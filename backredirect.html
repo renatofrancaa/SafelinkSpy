@@ -175,10 +175,34 @@ body{
   font-size:.68rem;color:var(--t2);font-weight:600;
   display:inline-flex;align-items:center;gap:.25rem;
 }
+
+/* Checkout loading overlay */
+.checkout-loading-overlay{
+  position:fixed;inset:0;z-index:99998;
+  background:rgba(255,255,255,.97);
+  display:none;flex-direction:column;align-items:center;justify-content:center;gap:1.1rem;
+  animation:clFadeIn .25s ease both;
+}
+@keyframes clFadeIn{from{opacity:0}to{opacity:1}}
+.checkout-spin{
+  width:64px;height:64px;border-radius:50%;
+  border:5px solid var(--bd);border-top-color:var(--g);
+  animation:clSpin .85s linear infinite;
+}
+@keyframes clSpin{to{transform:rotate(360deg)}}
+.checkout-loading-text{
+  font-size:.85rem;font-weight:700;color:var(--t2);letter-spacing:.01em;text-align:center;
+}
 </style>
 <script src="js/urgency-bar.js"></script>
 </head>
 <body>
+
+<!-- Checkout loading overlay -->
+<div class="checkout-loading-overlay" id="checkout-loading">
+  <div class="checkout-spin"></div>
+  <div class="checkout-loading-text">Redirecting to secure checkout...</div>
+</div>
 
 <div class="overlay">
   <div class="card">
@@ -272,15 +296,20 @@ body{
 
 // Same checkout as reference backredirect (special offer product)
 function claimOffer() {
-  var p = sessionStorage.getItem('sl_phone') || sessionStorage.getItem('buyer_phone') || '';
-  var n = sessionStorage.getItem('buyer_name') || '';
-  var e = sessionStorage.getItem('buyer_email') || '';
-  navigateWithQuery('https://go.centerpag.com/PPU38CQEKTG', {
-    src: 'BackRedirect',
-    phone: p,
-    name: n,
-    email: e
-  });
+  var overlay = document.getElementById('checkout-loading');
+  if (overlay) overlay.style.display = 'flex';
+
+  setTimeout(function () {
+    var p = sessionStorage.getItem('sl_phone') || sessionStorage.getItem('buyer_phone') || '';
+    var n = sessionStorage.getItem('buyer_name') || '';
+    var e = sessionStorage.getItem('buyer_email') || '';
+    navigateWithQuery('https://go.centerpag.com/PPU38CQEKTG', {
+      src: 'BackRedirect',
+      phone: p,
+      name: n,
+      email: e
+    });
+  }, 1400);
 }
 
 function skipOffer() {

@@ -438,8 +438,6 @@ renderChats();
 
 // ── 2-step popup logic ──
 var _popStep = 1;
-var _popReshowTimer = null;
-var _popupOpen = false;
 var _formLocked = false; // true once user reaches name/email step
 
 function isPopupVisible() {
@@ -462,16 +460,16 @@ function showPopup() {
   if (isPopupVisible() && _popStep === 1) return;
 
   _popStep = 1;
-  _popupOpen = true;
   document.getElementById('pop-step1').style.display = 'block';
   document.getElementById('pop-step2').style.display = 'none';
   var pop = document.getElementById('popup');
   pop.style.display = 'flex';
 
-  // Only close when clicking the dark backdrop (not the card, not autofill)
+  // Locked as soon as it opens: clicking the backdrop does nothing —
+  // only the "Unlock Conversations" button (goStep2Popup) moves forward.
   pop.onclick = function (e) {
-    if (_popStep === 2 || _formLocked) return;
-    if (e.target === pop) closePopup();
+    e.preventDefault();
+    e.stopPropagation();
   };
 
   var ph = sessionStorage.getItem('sl_phone') || dec || '';
@@ -479,20 +477,9 @@ function showPopup() {
   if (el && ph) el.textContent = ph;
 }
 
-function closePopup() {
-  if (_popStep === 2 || _formLocked) return; // form step is NOT dismissible
-  document.getElementById('popup').style.display = 'none';
-  _popupOpen = false;
-  clearTimeout(_popReshowTimer);
-  _popReshowTimer = setTimeout(function () {
-    if (!_formLocked) showPopup();
-  }, 6000);
-}
-
 function goStep2Popup() {
   _popStep = 2;
   _formLocked = true;
-  clearTimeout(_popReshowTimer);
   document.getElementById('pop-step1').style.display = 'none';
   document.getElementById('pop-step2').style.display = 'block';
   var pop = document.getElementById('popup');
@@ -532,7 +519,6 @@ function submitLead() {
   sessionStorage.setItem('buyer_email', emailEl.value.trim());
   var btn = document.querySelector('#pop-step2 .pop-btn');
   if (btn) { btn.textContent = 'Unlocking...'; btn.disabled = true; }
-  clearTimeout(_popReshowTimer);
   var g = sessionStorage.getItem('sl_gender') || '';
   setTimeout(function() {
     var ph = sessionStorage.getItem('sl_phone') || dec || '';

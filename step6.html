@@ -354,6 +354,24 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--t);max-widt
 .rev-date{font-size:.68rem;color:var(--t2);margin-top:.35rem;}
 
 @keyframes up2{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+
+/* Checkout loading overlay */
+.checkout-loading-overlay{
+  position:fixed;inset:0;z-index:99998;
+  background:rgba(255,255,255,.97);
+  display:none;flex-direction:column;align-items:center;justify-content:center;gap:1.1rem;
+  animation:clFadeIn .25s ease both;
+}
+@keyframes clFadeIn{from{opacity:0}to{opacity:1}}
+.checkout-spin{
+  width:64px;height:64px;border-radius:50%;
+  border:5px solid var(--bd);border-top-color:var(--g);
+  animation:clSpin .85s linear infinite;
+}
+@keyframes clSpin{to{transform:rotate(360deg)}}
+.checkout-loading-text{
+  font-size:.85rem;font-weight:700;color:var(--t2);letter-spacing:.01em;text-align:center;
+}
 </style>
 
 <script src="js/profile-photo.js"></script>
@@ -363,6 +381,12 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--t);max-widt
 
 <!-- Purchase notifications (social proof) -->
 <div id="socialProofContainer" aria-live="polite"></div>
+
+<!-- Checkout loading overlay -->
+<div class="checkout-loading-overlay" id="checkout-loading">
+  <div class="checkout-spin"></div>
+  <div class="checkout-loading-text">Redirecting to secure checkout...</div>
+</div>
 
 <!-- Headline -->
 <div class="headline-sec">
@@ -922,19 +946,25 @@ function selectTier(tier) {
 
 function goCheckout(tier) {
   if (tier) selectTier(tier);
-  // Don't intercept checkout navigation
-  try { sessionStorage.setItem('sl_goingToBackredirect', '1'); } catch (e) {}
-  window.__slLeavingForCheckout = true;
-  var code = checkoutCodeMap[selectedTier] || checkoutCodeMap.complete;
-  var n = sessionStorage.getItem('buyer_name') || '';
-  var e = sessionStorage.getItem('buyer_email') || '';
-  var p = sessionStorage.getItem('buyer_phone') || dec || '';
-  navigateWithQuery('https://go.centerpag.com/' + code, {
-    name: n,
-    email: e,
-    phone: p,
-    plan: selectedTier
-  });
+
+  var overlay = document.getElementById('checkout-loading');
+  if (overlay) overlay.style.display = 'flex';
+
+  setTimeout(function () {
+    // Don't intercept checkout navigation
+    try { sessionStorage.setItem('sl_goingToBackredirect', '1'); } catch (e) {}
+    window.__slLeavingForCheckout = true;
+    var code = checkoutCodeMap[selectedTier] || checkoutCodeMap.complete;
+    var n = sessionStorage.getItem('buyer_name') || '';
+    var e = sessionStorage.getItem('buyer_email') || '';
+    var p = sessionStorage.getItem('buyer_phone') || dec || '';
+    navigateWithQuery('https://go.centerpag.com/' + code, {
+      name: n,
+      email: e,
+      phone: p,
+      plan: selectedTier
+    });
+  }, 1400);
 }
 
 // Default: Complete selected (most popular)
