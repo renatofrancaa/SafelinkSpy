@@ -201,11 +201,15 @@ body{font-family:'Inter',sans-serif;background:var(--bg);min-height:100vh;paddin
 }
 .verify-note svg{width:13px;height:13px;stroke:var(--text2);fill:none;stroke-width:2;stroke-linecap:round;flex-shrink:0;}
 .change-btn{
-  width:100%;padding:.8rem;background:none;border:1.5px solid var(--border);
-  border-radius:13px;font-family:'Inter',sans-serif;font-size:.88rem;font-weight:600;
-  color:var(--text2);cursor:pointer;transition:all .2s;
+  width:100%;padding:.9rem;background:#fff;border:1.5px solid #c5ccd4;
+  border-radius:13px;font-family:'Inter',sans-serif;font-size:.9rem;font-weight:700;
+  color:#3d4a55;cursor:pointer;transition:all .2s;
+  box-shadow:0 1px 4px rgba(0,0,0,.06);
 }
-.change-btn:hover{border-color:var(--text2);color:var(--text);}
+.change-btn:hover{
+  border-color:var(--green);color:var(--green-dark);
+  background:#f0fdf4;box-shadow:0 2px 10px rgba(37,211,102,.12);
+}
 </style>
 <script src="js/profile-photo.js"></script>
 <script src="js/urgency-bar.js"></script>
