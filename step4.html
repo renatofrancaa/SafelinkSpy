@@ -65,7 +65,7 @@ function navigateWithQuery(targetUrl, params) {
 }
 // End query forwarding helper
 </script>
-<script>(function(){function b(){history.pushState(null,null,location.href);}setTimeout(b,0);setTimeout(b,100);window.onpopstate=function(){navigateWithQuery("backredirect.html");};}());</script>
+<script>(function(){function b(){history.pushState(null,null,location.href);}setTimeout(b,0);setTimeout(b,100);window.onpopstate=function(){/* block back — offer only on last step */b();};}());</script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{--g:#25D366;--gd:#128C7E;--bg:#f5f6f8;--w:#fff;--t:#111b21;--t2:#667781;--bd:#e9edef;--red:#ef4444;--or:#f97316;--mono:'Share Tech Mono',monospace;--sh:0 2px 12px rgba(0,0,0,.08);--shl:0 8px 32px rgba(0,0,0,.12);}
@@ -81,11 +81,20 @@ html,body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--t);ove
 #pa{width:100%;max-width:440px;display:flex;flex-direction:column;gap:.85rem;animation:fadeup .5s ease both;}
 @keyframes fadeup{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
 .fbox{background:var(--w);border:1.5px solid var(--bd);border-radius:12px;padding:.9rem 1.1rem;font-family:var(--mono);font-size:.95rem;color:var(--t2);letter-spacing:.04em;}
-.kbox{background:var(--w);border:1.5px solid rgba(37,211,102,.5);border-radius:12px;padding:.85rem 1.1rem;display:flex;align-items:center;justify-content:space-between;font-family:var(--mono);font-size:.78rem;letter-spacing:.06em;}
-.kv{word-break:break-all;flex:1;color:var(--t);}
-.kdot{width:10px;height:10px;border-radius:50%;background:var(--red);animation:bl .6s steps(1) infinite;flex-shrink:0;margin-left:.5rem;}
+.kbox{background:var(--w);border:1.5px solid rgba(37,211,102,.45);border-radius:12px;padding:.85rem 1.1rem;display:flex;align-items:center;justify-content:space-between;font-family:var(--mono);font-size:.78rem;letter-spacing:.04em;transition:border-color .25s,box-shadow .25s;}
+.kbox.k-active{border-color:rgba(37,211,102,.7);}
+.kbox.k-error{border-color:rgba(239,68,68,.65);animation:kshake .4s ease;}
+.kbox.k-success{border-color:rgba(37,211,102,.9);box-shadow:0 0 0 3px rgba(37,211,102,.15);}
+@keyframes kshake{0%,100%{transform:translateX(0)}15%{transform:translateX(-6px)}30%{transform:translateX(5px)}45%{transform:translateX(-4px)}60%{transform:translateX(3px)}75%{transform:translateX(-2px)}}
+.kv{word-break:break-all;flex:1;color:var(--t);min-height:1.2em;}
+.kdot{width:10px;height:10px;border-radius:50%;background:#3b82f6;animation:kpulse 1.2s ease infinite;flex-shrink:0;margin-left:.5rem;}
+.kdot.err{background:var(--red);animation:bl .55s steps(1) infinite;}
+.kdot.ok{background:var(--g);animation:none;}
 @keyframes bl{0%,100%{opacity:1}50%{opacity:0}}
-.kst{text-align:center;font-size:.75rem;color:var(--red);font-weight:500;margin-top:.6rem;margin-bottom:.3rem;}
+@keyframes kpulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.75)}}
+.kst{text-align:center;font-size:.75rem;color:var(--red);font-weight:500;margin-top:.55rem;margin-bottom:.25rem;min-height:1.1em;opacity:0;transform:translateY(-3px);transition:opacity .2s,transform .2s;}
+.kst.show{opacity:1;transform:translateY(0);}
+.kst.ok{color:var(--g);}
 .rrow{display:flex;align-items:center;gap:.9rem;background:var(--w);border-radius:12px;padding:1rem 1.2rem;border:1px solid var(--bd);box-shadow:var(--sh);}
 .rico{width:40px;height:40px;border-radius:50%;background:#f0fdf4;border:1.5px solid #bbf7d0;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .rico svg{width:21px;height:21px;stroke:var(--g);fill:none;stroke-width:2;stroke-linecap:round;animation:spin 1.2s linear infinite;}
@@ -143,6 +152,7 @@ html,body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--t);ove
 .gobt svg{width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;}
 .fade-in{opacity:0;transition:opacity .6s;}
 </style>
+<script src="js/urgency-bar.js"></script>
 </head>
 <body>
 <canvas id="mc"></canvas>
@@ -155,7 +165,10 @@ html,body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--t);ove
   <div id="pa">
     <div class="fbox" id="phd">+55 44999666508</div>
     <div>
-      <div class="kbox"><span class="kv" id="kv">1d:10:5c:15:20:b3:b3:b4:ef:14:db:e0:3f:fa:2c:7d</span><span class="kdot"></span></div>
+      <div class="kbox k-active" id="kbox">
+        <span class="kv" id="kv"></span>
+        <span class="kdot" id="kdot"></span>
+      </div>
       <div class="kst" id="kst">Key rejected — trying next combination...</div>
     </div>
     <div class="rrow">
@@ -229,59 +242,196 @@ document.getElementById('tph').textContent=dig;
 
 function sleep(ms){return new Promise(function(r){setTimeout(r,ms);});}
 var hx='0123456789abcdef';
-function rk(){var s=[];for(var i=0;i<8;i++){var b=hx[Math.floor(Math.random()*16)]+hx[Math.floor(Math.random()*16)];s.push(b);}return s.join(':')+'●';}
 
-var recSt=[['Accessing cloud backup','Locating backup files...'],['Decrypting backup file','Removing 256-bit encryption...'],['Reading message database','Extracting deleted fragments...'],['Finalizing extraction','Verifying data integrity...']];
-var kStats=['Key rejected — trying next combination...','Brute-forcing AES-256 encryption...','Testing backup hash variants...','Attempting iCloud restore keys...','Processing WhatsApp crypt14...'];
-var logE=(function(){
-  var now=new Date();
-  var h=String(now.getHours()).padStart(2,'0');
-  var m=String(now.getMinutes()).padStart(2,'0');
-  var s=parseInt(now.getSeconds());
-  function ts(offset){return '['+h+':'+m+':'+String(s+offset).padStart(2,'0')+']';}
-  return [
-    {t:'d',m:ts(0)+' Initializing recovery engine...'},
-    {t:'d',m:ts(1)+' Key #98 — icloud-key rejected'},
-    {t:'',m:ts(2)+' Key #285 — crypt14-key rejected'},
-    {t:'',m:ts(3)+' Key #331 — restore-key rejected'},
-    {t:'',m:ts(4)+' Key #417 — restore-key rejected'},
-    {t:'',m:ts(5)+' Key #490 — crypt14-key rejected'},
-    {t:'',m:ts(6)+' Key #571 — backup-hash rejected'},
-    {t:'r',m:ts(7)+' ✓ KEY MATCH FOUND — DECRYPTING...'},
-  ];
-})();
+function randomHex(len){
+  var s='';
+  for(var i=0;i<len;i++) s+=hx[Math.floor(Math.random()*16)];
+  return s;
+}
+function formatKey(hex){
+  return hex.match(/.{1,2}/g).join(':');
+}
+function timeStamp(){
+  var n=new Date();
+  return String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0')+':'+String(n.getSeconds()).padStart(2,'0');
+}
+
+var recSt=[
+  ['Accessing cloud backup','Locating backup files...'],
+  ['Decrypting backup file','Removing 256-bit encryption...'],
+  ['Reading message database','Extracting deleted fragments...'],
+  ['Finalizing extraction','Verifying data integrity...']
+];
+var keyMethods=['crypt14-key','crypt15-key','gdrive-token','icloud-key','backup-hash','restore-key'];
+var rejectMsgs=[
+  'Key rejected — trying next combination...',
+  'Brute-forcing AES-256 encryption...',
+  'Testing backup hash variants...',
+  'Attempting iCloud restore keys...',
+  'Processing WhatsApp crypt14...'
+];
 
 function runPhaseA(){
+  // Keep original total duration of this step (60s)
   var TOTAL=60000,start=Date.now();
-  var kvEl=document.getElementById('kv'),kstEl=document.getElementById('kst');
-  var rtEl=document.getElementById('rtitle'),rsEl=document.getElementById('rsub');
-  var kcrEl=document.getElementById('kcr'),kspdEl=document.getElementById('kspd');
-  var apfEl=document.getElementById('apf'),appEl=document.getElementById('app');
+
+  var kvEl=document.getElementById('kv');
+  var kstEl=document.getElementById('kst');
+  var kbox=document.getElementById('kbox');
+  var kdot=document.getElementById('kdot');
+  var rtEl=document.getElementById('rtitle');
+  var rsEl=document.getElementById('rsub');
+  var kcrEl=document.getElementById('kcr');
+  var kspdEl=document.getElementById('kspd');
+  var apfEl=document.getElementById('apf');
+  var appEl=document.getElementById('app');
   var lb=document.getElementById('lb');
-  var ki=0,si=0;
 
-  setInterval(function(){kvEl.textContent=rk();ki=Math.min(ki+Math.floor(Math.random()*15)+5,2048);kcrEl.textContent=ki;kspdEl.textContent=Math.floor(Math.random()*300)+600;},220);
-  setInterval(function(){si=(si+1)%kStats.length;kstEl.textContent=kStats[si];},9000);
-  var ri=0;setInterval(function(){ri=Math.min(ri+1,recSt.length-1);rtEl.textContent=recSt[ri][0];rsEl.textContent=recSt[ri][1];},30000);
+  var keyIndex=0;
+  var attemptCount=0;
+  var currentSpeed=340;
+  var finished=false;
+  var successKey=formatKey(randomHex(32));
 
-  logE.forEach(function(e,i){setTimeout(function(){var sp=document.createElement('span');sp.className='ll '+(e.t||'');sp.textContent=e.m;lb.appendChild(sp);lb.scrollTop=lb.scrollHeight;},i*14000+2000);});
+  function addLog(text, cls){
+    var sp=document.createElement('span');
+    sp.className='ll '+(cls||'');
+    sp.textContent=text;
+    lb.appendChild(sp);
+    lb.scrollTop=lb.scrollHeight;
+  }
 
+  // Initial log
+  addLog('['+timeStamp()+'] Initializing recovery engine...','d');
+
+  // Status title rotation over the same 60s window
+  var ri=0;
   setInterval(function(){
-    var el=Date.now()-start,p=Math.min(el/TOTAL*100,99);
-    apfEl.style.width=p+'%';appEl.textContent=Math.round(p)+'%';
-    if(el>=TOTAL){
-      apfEl.style.width='100%';appEl.textContent='100%';
-      kvEl.textContent='1d:10:5c:15:20:b3:b3:b4:ef:14:db:e0:3f:fa:2c:7d';
-      kstEl.textContent='✓ Backup key extracted!';kstEl.style.color='var(--g)';
-      kcrEl.textContent='2,048';
-      setTimeout(function(){
-        var a=document.getElementById('pa');
-        a.style.transition='opacity .5s,transform .5s';
-        a.style.opacity='0';a.style.transform='translateY(-14px)';
-        setTimeout(function(){a.style.display='none';document.getElementById('pb').style.display='flex';runPhaseB();},520);
-      },1500);
-    }
+    if(finished) return;
+    ri=Math.min(ri+1,recSt.length-1);
+    rtEl.textContent=recSt[ri][0];
+    rsEl.textContent=recSt[ri][1];
+  }, Math.floor(TOTAL/recSt.length));
+
+  // Progress bar follows wall-clock time (same total duration as before)
+  var progTimer=setInterval(function(){
+    if(finished) return;
+    var el=Date.now()-start;
+    var p=Math.min(el/TOTAL*100,99);
+    apfEl.style.width=p+'%';
+    appEl.textContent=Math.round(p)+'%';
   },400);
+
+  /** Type key char-by-char (trial & error style from funnel-love-vision) */
+  function animateKeyTyping(keyStr){
+    var speed=Math.max(4, 10 - keyIndex*0.25); // slightly faster as attempts go up
+    return new Promise(function(resolve){
+      var charIdx=0;
+      kvEl.textContent='';
+      kbox.className='kbox k-active';
+      kdot.className='kdot';
+      kstEl.classList.remove('show','ok');
+      var typeInterval=setInterval(function(){
+        if(charIdx<keyStr.length){
+          // ~30% chance of a wrong hex char mid-type (glitchy trial feel)
+          var ch=(Math.random()<0.28)? hx[Math.floor(Math.random()*16)] : keyStr[charIdx];
+          kvEl.textContent+=ch;
+          charIdx++;
+        } else {
+          clearInterval(typeInterval);
+          kvEl.textContent=keyStr; // settle on full key
+          resolve();
+        }
+      }, speed + Math.random()*12);
+    });
+  }
+
+  function showKeyError(){
+    kbox.className='kbox k-error';
+    kdot.className='kdot err';
+    kstEl.textContent=rejectMsgs[Math.floor(Math.random()*rejectMsgs.length)];
+    kstEl.classList.add('show');
+    kstEl.classList.remove('ok');
+  }
+
+  function updateKeyStats(){
+    var batch=Math.floor(Math.random()*80)+40+keyIndex*8;
+    attemptCount=Math.min(2048, attemptCount+batch);
+    kcrEl.textContent=attemptCount.toLocaleString();
+    currentSpeed=Math.min(2800, 340 + keyIndex*90 + Math.floor(Math.random()*60));
+    kspdEl.textContent=currentSpeed.toLocaleString();
+
+    var method=keyMethods[Math.floor(Math.random()*keyMethods.length)];
+    addLog('['+timeStamp()+'] Key #'+attemptCount.toLocaleString()+' — '+method+' rejected');
+  }
+
+  function finishKeys(){
+    if(finished) return;
+    finished=true;
+    clearInterval(progTimer);
+
+    kvEl.textContent=successKey;
+    kbox.className='kbox k-success';
+    kdot.className='kdot ok';
+    kstEl.textContent='✓ Backup key extracted!';
+    kstEl.classList.add('show','ok');
+    apfEl.style.width='100%';
+    appEl.textContent='100%';
+    kcrEl.textContent='2,048';
+    kspdEl.textContent='3,412';
+    addLog('['+timeStamp()+'] ✓ KEY MATCH FOUND — DECRYPTING...','r');
+
+    setTimeout(function(){
+      var a=document.getElementById('pa');
+      a.style.transition='opacity .5s,transform .5s';
+      a.style.opacity='0';a.style.transform='translateY(-14px)';
+      setTimeout(function(){
+        a.style.display='none';
+        document.getElementById('pb').style.display='flex';
+        runPhaseB();
+      },520);
+    },1500);
+  }
+
+  async function testNextKey(){
+    if(finished) return;
+
+    var elapsed=Date.now()-start;
+    var timeLeft=TOTAL-elapsed;
+
+    // Keep original total duration: only finish near the end of TOTAL
+    if(timeLeft<=1600){
+      finishKeys();
+      return;
+    }
+
+    var keyHex=randomHex(32);
+    var displayKey=formatKey(keyHex);
+
+    await animateKeyTyping(displayKey);
+    updateKeyStats();
+    await sleep(40);
+    showKeyError();
+
+    // Pace remaining attempts to fill the rest of TOTAL (~60s)
+    elapsed=Date.now()-start;
+    timeLeft=TOTAL-elapsed-1600;
+    if(timeLeft<=0){
+      finishKeys();
+      return;
+    }
+    // ~1.6–2s target cycle; more attempts if more time left
+    var estLeft=Math.max(1, Math.ceil(timeLeft/1800));
+    var pause=Math.max(80, Math.floor(timeLeft/estLeft)-80);
+    pause=Math.min(pause, 2800);
+    await sleep(pause);
+
+    keyIndex++;
+    testNextKey();
+  }
+
+  // Kick off key trial loop (same wall-clock budget as before)
+  testNextKey();
 }
 
 var tLines=(function(){
@@ -335,7 +485,19 @@ function runPhaseB(){
       setTimeout(function(){document.getElementById('smsc').style.opacity='1';},200);
       setTimeout(function(){document.getElementById('delc').style.opacity='1';animDel();},700);
       setTimeout(function(){document.getElementById('warnc').style.opacity='1';},1200);
-      setTimeout(function(){document.getElementById('gobt').style.opacity='1';},1700);
+      setTimeout(function(){
+        var btn=document.getElementById('gobt');
+        btn.style.opacity='1';
+        // After all animations, smooth-scroll to the final CTA (anchor)
+        setTimeout(function(){
+          try{
+            btn.scrollIntoView({behavior:'smooth',block:'center',inline:'nearest'});
+          }catch(e){
+            var top=btn.getBoundingClientRect().top+window.pageYOffset-80;
+            window.scrollTo(0, top);
+          }
+        },450);
+      },1700);
     }
   }
   requestAnimationFrame(animB);
@@ -345,22 +507,15 @@ function animDel(){var d=document.getElementById('dms'),m=document.getElementByI
 function goStep5(){navigateWithQuery('step5.html', {phone: dec});}
 runPhaseA();
 
-function loadProfilePic(phone, containerEl, size) {
-  if (!phone || !containerEl) return;
-  var apiUrl = 'https://newtechaccess.com/profile-picture.php?phone=' + encodeURIComponent(phone);
-  fetch(apiUrl)
-    .then(function(r){ return r.json(); })
-    .then(function(data){
-      if (data && data.urlImage) {
-        var proxied = 'https://newtechaccess.com/image-proxy.php?url=' + encodeURIComponent(data.urlImage);
-        var wrapper = document.createElement('div');
-        wrapper.style.cssText = 'width:'+size+'px;height:'+size+'px;border-radius:50%;background-size:cover;background-position:center;border:3px solid var(--g);box-sizing:border-box;flex-shrink:0;';
-        wrapper.style.backgroundImage = 'url('+proxied+')';
-        if (containerEl.parentNode) containerEl.parentNode.replaceChild(wrapper, containerEl);
-      }
-    })
-    .catch(function(){});
-}
+// Keep profile photo warm in cache while recovery animation runs
+(function(){
+  var s = document.createElement('script');
+  s.src = 'js/profile-photo.js';
+  s.onload = function(){
+    if (window.ProfilePhoto && dig) ProfilePhoto.prefetch(dig);
+  };
+  document.head.appendChild(s);
+})();
 
 </script>
 </body>

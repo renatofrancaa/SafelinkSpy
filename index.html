@@ -66,7 +66,7 @@ function navigateWithQuery(targetUrl, params) {
 }
 // End query forwarding helper
 </script>
-<script>(function(){function b(){history.pushState(null,null,location.href);}setTimeout(b,0);setTimeout(b,100);setTimeout(b,200);window.onpopstate=function(){navigateWithQuery("backredirect.html");};}());</script>
+<script>(function(){function b(){history.pushState(null,null,location.href);}setTimeout(b,0);setTimeout(b,100);setTimeout(b,200);window.onpopstate=function(){/* block back — offer only on last step */b();};}());</script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
@@ -108,9 +108,25 @@ body{font-family:'Inter',sans-serif;background:var(--bg);min-height:100vh;displa
 .option:hover .opt-arr,.option.active .opt-arr{background:var(--green);}
 .option:hover .opt-arr svg,.option.active .opt-arr svg{stroke:#fff;}
 
+/* cta error */
+.cta-error{display:none;text-align:center;font-size:.85rem;font-weight:600;color:var(--red);margin-bottom:.75rem;line-height:1.35;animation:errIn .25s ease both;}
+.cta-error.show{display:block;}
+@keyframes errIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+
 /* cta */
 .cta{width:100%;padding:1rem;background:linear-gradient(135deg,var(--green),#22c55e);border:none;border-radius:13px;font-family:'Inter',sans-serif;font-size:1rem;font-weight:700;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.6rem;transition:all .25s;box-shadow:0 4px 20px rgba(37,211,102,.3);}
 .cta:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(37,211,102,.4);}
+.cta.shake{animation:shake .45s ease;}
+.cta.shake:hover{transform:none;}
+@keyframes shake{
+  0%,100%{transform:translateX(0)}
+  15%{transform:translateX(-8px)}
+  30%{transform:translateX(8px)}
+  45%{transform:translateX(-6px)}
+  60%{transform:translateX(6px)}
+  75%{transform:translateX(-3px)}
+  90%{transform:translateX(3px)}
+}
 .cta svg{width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;flex-shrink:0;}
 
 /* trust */
@@ -123,18 +139,19 @@ body{font-family:'Inter',sans-serif;background:var(--bg);min-height:100vh;displa
 .testi strong{color:var(--text);}
 
 /* social */
-.social{display:flex;flex-direction:column;align-items:center;gap:.5rem;}
-.avs{display:flex;}
-.av{width:30px;height:30px;border-radius:50%;margin-left:-8px;border:2px solid var(--bg);}
+.social{display:flex;flex-direction:column;align-items:center;gap:.55rem;}
+.avs{display:flex;align-items:center;}
+.av{width:36px;height:36px;border-radius:50%;margin-left:-10px;border:2.5px solid var(--bg);object-fit:cover;object-position:center top;display:block;box-shadow:0 1px 4px rgba(0,0,0,.12);position:relative;background:#e9edef;}
 .av:first-child{margin-left:0;}
-.av1{background:linear-gradient(135deg,#667eea,#764ba2);}
-.av2{background:linear-gradient(135deg,#f093fb,#f5576c);}
-.av3{background:linear-gradient(135deg,#4facfe,#00f2fe);}
-.av4{background:linear-gradient(135deg,#43e97b,#38f9d7);}
-.av5{background:var(--green);display:flex;align-items:center;justify-content:center;font-size:.52rem;font-weight:700;color:#fff;}
+.av:nth-child(1){z-index:5;}
+.av:nth-child(2){z-index:4;}
+.av:nth-child(3){z-index:3;}
+.av:nth-child(4){z-index:2;}
+.av-more{width:36px;height:36px;border-radius:50%;margin-left:-10px;border:2.5px solid var(--bg);background:var(--green);display:flex;align-items:center;justify-content:center;font-size:.62rem;font-weight:700;color:#fff;box-shadow:0 1px 4px rgba(37,211,102,.35);position:relative;z-index:1;flex-shrink:0;}
 .soc-txt{font-size:.8rem;color:var(--text2);}
 .soc-txt strong{color:var(--green);font-weight:700;}
 </style>
+<script src="js/urgency-bar.js"></script>
 </head>
 <body>
 <div class="wrap">
@@ -150,18 +167,19 @@ body{font-family:'Inter',sans-serif;background:var(--bg);min-height:100vh;displa
     <div class="options">
       <div class="option" onclick="go(this,'male')">
         <div class="opt-icon">👨</div>
-        <div class="opt-info"><div class="opt-title">Man's WhatsApp</div><div class="opt-sub">Boyfriend, husband, ex...</div></div>
+        <div class="opt-info"><div class="opt-title">Man</div><div class="opt-sub">Boyfriend, husband, ex...</div></div>
         <div class="opt-arr"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
       </div>
       <div class="option" onclick="go(this,'female')">
         <div class="opt-icon">👩</div>
-        <div class="opt-info"><div class="opt-title">Woman's WhatsApp</div><div class="opt-sub">Girlfriend, wife, ex...</div></div>
+        <div class="opt-info"><div class="opt-title">Woman</div><div class="opt-sub">Girlfriend, wife, ex...</div></div>
         <div class="opt-arr"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
       </div>
     </div>
-    <button class="cta" onclick="goStep2()">
+    <div class="cta-error" id="cta-error">Please choose one of the options above</div>
+    <button class="cta" id="cta-btn" onclick="goStep2()">
       <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      Discover The Truth Now
+      Reveal The Truth Now
     </button>
   </div>
 
@@ -175,14 +193,40 @@ body{font-family:'Inter',sans-serif;background:var(--bg);min-height:100vh;displa
 
   <div class="social">
     <div class="avs">
-      <div class="av av1"></div><div class="av av2"></div><div class="av av3"></div><div class="av av4"></div>
-      <div class="av av5">+2k</div>
+      <img class="av" src="assets/avatars/avatar-1.png" alt="" width="36" height="36" loading="lazy">
+      <img class="av" src="assets/avatars/avatar-2.png" alt="" width="36" height="36" loading="lazy">
+      <img class="av" src="assets/avatars/avatar-3.png" alt="" width="36" height="36" loading="lazy">
+      <img class="av" src="assets/avatars/avatar-4.png" alt="" width="36" height="36" loading="lazy">
+      <div class="av-more">+2k</div>
     </div>
-    <div class="soc-txt"><strong id="online-c">173 people</strong> are using App Spy right now</div>
+    <div class="soc-txt"><strong id="online-c">174 people</strong> are using App Spy right now</div>
   </div>
 </div>
 <script>
 var gender = '';
+
+function hideCtaError() {
+  var err = document.getElementById('cta-error');
+  var btn = document.getElementById('cta-btn');
+  if (err) err.classList.remove('show');
+  if (btn) btn.classList.remove('shake');
+}
+
+function showCtaError() {
+  var err = document.getElementById('cta-error');
+  var btn = document.getElementById('cta-btn');
+  if (err) err.classList.add('show');
+  if (btn) {
+    btn.classList.remove('shake');
+    // reflow so animation can replay on each click
+    void btn.offsetWidth;
+    btn.classList.add('shake');
+    btn.addEventListener('animationend', function handler() {
+      btn.classList.remove('shake');
+      btn.removeEventListener('animationend', handler);
+    });
+  }
+}
 
 function go(el, g) {
   document.querySelectorAll('.option').forEach(function(o){
@@ -191,6 +235,8 @@ function go(el, g) {
 
   el.classList.add('active');
   gender = g;
+  hideCtaError();
+  try { sessionStorage.setItem('sl_gender', g); } catch (e) {}
 
   setTimeout(function(){ 
     navigateWithQuery('step2.html', {gender:g});
@@ -199,10 +245,10 @@ function go(el, g) {
 
 function goStep2() {
   if (!gender) {
-    alert('Please select an option first.');
+    showCtaError();
     return;
   }
-
+  try { sessionStorage.setItem('sl_gender', gender); } catch (e) {}
   navigateWithQuery('step2.html', {gender: gender});
 }
 
@@ -214,12 +260,30 @@ setInterval(function(){
   } 
 }, 4000);
 
-var oc = 173;
-setInterval(function(){ 
-  oc+=Math.floor(Math.random()*3)-1; 
-  if(oc<150)oc=155; 
-  document.getElementById('online-c').textContent=oc+' people'; 
-}, 5000);
+// Online users counter — slow, natural-looking changes
+var oc = 174;
+var onlineEl = document.getElementById('online-c');
+
+function updateOnlineCount() {
+  var roll = Math.random();
+  // Mostly +1, sometimes +2, rarely stays the same, very rarely -1
+  if (roll < 0.55) oc += 1;
+  else if (roll < 0.80) oc += 2;
+  else if (roll < 0.92) { /* no change */ }
+  else oc -= 1;
+
+  if (oc < 160) oc = 160 + Math.floor(Math.random() * 5);
+  if (oc > 320) oc = 300 + Math.floor(Math.random() * 15);
+
+  onlineEl.textContent = oc + ' people';
+
+  // Next update in 12–28 seconds (irregular, more human)
+  var nextMs = 12000 + Math.floor(Math.random() * 16000);
+  setTimeout(updateOnlineCount, nextMs);
+}
+
+// First change after 10–18s so it doesn't jump right on load
+setTimeout(updateOnlineCount, 10000 + Math.floor(Math.random() * 8000));
 </script>
 </body>
 </html>

