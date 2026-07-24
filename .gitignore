@@ -1,0 +1,28 @@
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editors / IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Env / secrets (add real keys here later if needed)
+.env
+.env.*
+!.env.example
+
+# Dependencies / build (if you add a bundler later)
+node_modules/
+dist/
+.vercel/
+*.log
+npm-debug.log*
+
+# Local leftovers
+*-clean.html
+.backup/
+tmp/

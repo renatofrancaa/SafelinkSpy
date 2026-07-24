@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<script
+  src="https://cdn.utmify.com.br/scripts/utms/latest.js"
+  data-utmify-prevent-xcod-sck
+  data-utmify-prevent-subids
+  async
+  defer
+></script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-46T459G961"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-46T459G961');
+</script>
+
+<!-- Script rastreador -->
+<script
+  src="https://cdn.skalame.com.br/scripts/utms/latest.js"
+  data-skalame-prevent-xcod-sck
+  data-skalame-prevent-subids
+  async
+  defer
+></script>
+
+<script>
+  window.pixelId = "69c69f3ce78656ea3823d1f1";
+  var a = document.createElement("script");
+  a.setAttribute("async", "");
+  a.setAttribute("defer", "");
+  a.setAttribute("src", "https://cdn.utmify.com.br/scripts/pixel/pixel.js");
+  document.head.appendChild(a);
+</script>
+
+<script>
+  window.pixelId = "pc_oFPxkkRPcuXjW7EXGEP2u71dCPuxANnMBJVxz9Zc";
+  window.skalameApiBaseUrl = "https://skalame.vegacheckout.com.br";
+  var a = document.createElement("script");
+  a.setAttribute("async", "");
+  a.setAttribute("defer", "");
+  a.setAttribute("src", "https://skalame.vegacheckout.com.br/scripts/pixel.js?v=" + Date.now());
+  document.head.appendChild(a);
+</script>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>App Spy — Unlock Full Access</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdn.utmify.com.br/scripts/utms/latest.js" data-utmify-prevent-xcod-sck data-utmify-prevent-subids async defer></script>
+<script>!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');fbq('init','2163220407447907');fbq('track','PageView');</script>
+<noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=2163220407447907&ev=PageView&noscript=1"/></noscript>
+<script>
+// Query forwarding helper
+function buildForwardUrl(targetUrl, params) {
+  var url = new URL(targetUrl, window.location.href);
+  var currentParams = new URLSearchParams(window.location.search);
+  currentParams.forEach(function(value, key) {
+    if (!url.searchParams.has(key)) url.searchParams.set(key, value);
+  });
+  if (params) {
+    Object.keys(params).forEach(function(key) {
+      var value = params[key];
+      if (value !== undefined && value !== null && value !== '') url.searchParams.set(key, value);
+    });
+  }
+  return url.toString();
+}
+function navigateWithQuery(targetUrl, params) {
+  window.location.href = buildForwardUrl(targetUrl, params);
+}
+// End query forwarding helper
+</script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --g:#25D366;--gd:#128C7E;--bg:#f5f5f0;--w:#fff;
+  --t:#111;--t2:#666;--bd:#e8e8e8;--red:#ef4444;
+  --or:#f97316;--gold:#f59e0b;
+}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--t);max-width:480px;margin:0 auto;}
+
+/* Urgency bar */
+.urg-bar{background:#fff7f7;border:1px solid #fecaca;border-radius:10px;padding:.6rem 1rem;display:flex;align-items:center;gap:.6rem;margin:1rem 1rem 0;}
+.urg-bar svg{width:16px;height:16px;stroke:var(--red);fill:none;stroke-width:2;stroke-linecap:round;flex-shrink:0;}
+.urg-txt{font-size:.78rem;color:var(--red);}
+.urg-txt strong{font-weight:700;}
+
+/* Headline */
+.headline-sec{padding:1.2rem 1rem .8rem;text-align:center;}
+.headline-sec h1{font-size:clamp(1.4rem,5vw,1.9rem);font-weight:900;color:var(--t);line-height:1.2;letter-spacing:-.03em;}
+.headline-sec h1 span{color:var(--g);}
+
+/* Target card */
+.target-card{margin:0 1rem;background:var(--w);border-radius:14px;padding:1rem 1.2rem;border:1px solid var(--bd);display:flex;align-items:center;gap:.9rem;box-shadow:0 2px 12px rgba(0,0,0,.06);}
+.t-av{width:52px;height:52px;border-radius:50%;background:#e9edef;border:2px solid var(--g);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;}
+.t-av svg{width:28px;height:28px;fill:#adb5bd;}
+.t-av img{width:52px;height:52px;object-fit:cover;border-radius:50%;}
+.t-num{font-size:.95rem;font-weight:700;color:var(--t);margin-bottom:.15rem;}
+.t-sub{font-size:.72rem;color:var(--t2);}
+.t-sub span{color:var(--t);font-weight:600;}
+
+/* Found banner */
+.found-banner{margin:.8rem 1rem 0;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:.85rem 1.1rem;text-align:center;}
+.found-title{font-size:.95rem;font-weight:800;color:var(--gd);margin-bottom:.25rem;}
+.found-sub{font-size:.78rem;color:var(--t2);}
+
+/* Sections */
+.section{margin:.8rem 1rem 0;}
+.card{background:var(--w);border-radius:14px;padding:1.1rem;border:1px solid var(--bd);box-shadow:0 2px 8px rgba(0,0,0,.05);}
+
+/* Suspicion index */
+.susp-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:.6rem;}
+.susp-lbl{display:flex;align-items:center;gap:.4rem;font-size:.78rem;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.07em;}
+.susp-lbl svg{width:14px;height:14px;stroke:var(--or);fill:none;stroke-width:2;}
+.susp-pct{font-size:1.1rem;font-weight:900;color:var(--red);}
+.susp-track{height:10px;background:var(--bd);border-radius:20px;overflow:hidden;margin-bottom:.75rem;}
+.susp-fill{height:100%;background:linear-gradient(90deg,var(--or),var(--red));border-radius:20px;width:0%;transition:width 1.5s cubic-bezier(.4,0,.2,1);}
+.susp-items{display:flex;flex-direction:column;gap:.45rem;}
+.susp-item{display:flex;justify-content:space-between;align-items:center;font-size:.8rem;}
+.si-label{color:var(--t2);display:flex;align-items:center;gap:.4rem;}
+.si-label svg{width:12px;height:12px;stroke:var(--t2);fill:none;stroke-width:2;}
+.si-pct{font-weight:700;color:var(--t);}
+
+/* Activity monitor */
+.am-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:.85rem;}
+.am-title{font-size:.88rem;font-weight:800;color:var(--t);display:flex;align-items:center;gap:.45rem;}
+.am-title svg{width:14px;height:14px;stroke:var(--gd);fill:none;stroke-width:2;}
+.am-badge{font-size:.68rem;font-weight:700;color:var(--g);background:#f0fdf4;border:1px solid #bbf7d0;border-radius:20px;padding:.18rem .55rem;}
+.am-item{display:flex;gap:.75rem;padding:.65rem 0;border-bottom:1px solid var(--bd);align-items:flex-start;}
+.am-item:last-child{border-bottom:none;}
+.am-icon{width:30px;height:30px;border-radius:50%;background:var(--bg);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:.9rem;}
+.am-body{flex:1;min-width:0;}
+.am-text{font-size:.8rem;color:var(--t);line-height:1.4;margin-bottom:.2rem;}
+.am-text strong{font-weight:700;}
+.am-meta{font-size:.7rem;color:var(--t2);}
+.tag{font-size:.6rem;font-weight:700;border-radius:3px;padding:.15rem .4rem;margin-left:.35rem;}
+.tag-sus{background:#fff0f0;color:var(--red);border:1px solid #fecaca;}
+.tag-del{background:#fee2e2;color:var(--red);}
+.tag-crit{background:#fef2f2;color:var(--red);}
+.tag-hid{background:#f5f3ff;color:#7c3aed;}
+.tag-ghost{background:#f0f9ff;color:#0369a1;}
+.tag-enc{background:#f0fdf4;color:var(--gd);}
+.tag-alert{background:#fff7ed;color:var(--or);}
+.tag-disg{background:#fefce8;color:#854d0e;}
+.tag-freq{background:#fff7ed;color:var(--or);}
+
+/* MFC */
+.mfc-row{display:flex;align-items:center;gap:.85rem;}
+.mfc-av{width:44px;height:44px;border-radius:50%;background:var(--red);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.mfc-av svg{width:22px;height:22px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;}
+.mfc-badge{font-size:.65rem;font-weight:700;background:#fff0f0;color:var(--red);border:1px solid #fecaca;border-radius:3px;padding:.1rem .35rem;display:inline-block;margin-bottom:.25rem;}
+.mfc-name{font-size:.88rem;font-weight:700;color:var(--t);filter:blur(4px);}
+.mfc-sub{font-size:.72rem;color:var(--t2);}
+.mfc-sub strong{color:var(--red);}
+.mfc-lock{width:36px;height:36px;border-radius:50%;background:var(--red);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-left:auto;}
+.mfc-lock svg{width:17px;height:17px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;}
+.viewers-bar{text-align:center;font-size:.72rem;color:var(--t2);margin-top:.6rem;}
+.viewers-bar span{color:var(--red);font-weight:600;}
+
+/* Last deleted msg */
+.ldm-bubble{background:#f8f8f8;border-radius:12px;padding:.9rem 1rem;font-size:.82rem;color:var(--t);line-height:1.5;margin-bottom:.5rem;border-left:3px solid var(--red);}
+.ldm-meta{display:flex;justify-content:space-between;align-items:center;font-size:.72rem;color:var(--t2);}
+.ldm-unlock{color:var(--g);font-weight:600;display:flex;align-items:center;gap:.3rem;cursor:pointer;}
+
+/* Photos grid */
+.photos-label{display:flex;align-items:center;gap:.4rem;font-size:.85rem;font-weight:700;color:var(--t);margin-bottom:.2rem;}
+.photos-label svg{width:15px;height:15px;stroke:var(--g);fill:none;stroke-width:2;stroke-linecap:round;}
+.photos-sub{font-size:.75rem;color:var(--t2);margin-bottom:.75rem;}
+.photos-grid{display:grid;grid-template-columns:2fr 1fr;gap:4px;border-radius:10px;overflow:hidden;}
+.photo-cell{position:relative;aspect-ratio:1;background:#1a1a2e;overflow:hidden;}
+.photo-cell:first-child{grid-row:span 2;aspect-ratio:auto;}
+.photo-cell img{width:100%;height:100%;object-fit:cover;filter:blur(14px);transform:scale(1.15);}
+.photo-lock{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.3rem;background:rgba(0,0,0,.15);}
+.photo-lock svg{width:20px;height:20px;stroke:rgba(255,255,255,.8);fill:none;stroke-width:2;stroke-linecap:round;}
+.photo-lock span{font-size:.58rem;color:rgba(255,255,255,.6);font-weight:700;letter-spacing:.06em;}
+.photos-more{text-align:center;margin-top:.65rem;font-size:.76rem;color:var(--t2);}
+.photos-more strong{color:var(--g);}
+
+/* Locations */
+.loc-header{display:flex;align-items:center;gap:.4rem;font-size:.82rem;font-weight:700;color:var(--red);margin-bottom:.65rem;}
+.loc-header svg{width:14px;height:14px;stroke:var(--red);fill:none;stroke-width:2;}
+.loc-item{display:flex;align-items:center;gap:.75rem;padding:.65rem 0;border-bottom:1px solid var(--bd);}
+.loc-item:last-child{border-bottom:none;}
+.loc-icon{width:32px;height:32px;border-radius:50%;background:#fef2f2;border:1.5px solid #fecaca;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:.9rem;}
+.loc-name{font-size:.82rem;font-weight:600;color:var(--t);}
+.loc-sub{font-size:.7rem;color:var(--t2);}
+.loc-badge{font-size:.62rem;font-weight:700;border-radius:4px;padding:.15rem .45rem;margin-left:auto;flex-shrink:0;}
+.lb-flag{background:#fee2e2;color:var(--red);}
+.lb-sus{background:#fef3c7;color:#92400e;}
+
+/* Bonuses */
+.bonus-card{background:var(--w);border-radius:14px;padding:1.1rem;border:2px solid var(--gold);box-shadow:0 2px 12px rgba(245,158,11,.1);}
+.bonus-header{text-align:center;margin-bottom:.9rem;}
+.bonus-title{font-size:.85rem;font-weight:800;color:var(--gold);display:flex;align-items:center;justify-content:center;gap:.4rem;}
+.bonus-title svg{width:14px;height:14px;stroke:var(--gold);fill:none;stroke-width:2;}
+.bonus-value{font-size:.72rem;color:var(--t2);margin-top:.2rem;}
+.bonus-value del{color:var(--t2);}
+.bonus-value strong{color:var(--g);}
+.bonus-item{display:flex;align-items:center;gap:.8rem;padding:.55rem 0;border-bottom:1px solid var(--bd);}
+.bonus-item:last-child{border-bottom:none;}
+.b-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:1.1rem;}
+.b-name{font-size:.85rem;font-weight:700;color:var(--t);margin-bottom:.12rem;}
+.b-sub{font-size:.72rem;color:var(--t2);}
+
+/* See What's Inside - Carousel */
+.carousel-sec{padding:1.2rem 0 .5rem;}
+.carousel-title{text-align:center;font-size:1.1rem;font-weight:900;color:var(--t);margin-bottom:.25rem;}
+.carousel-title span{color:var(--g);}
+.carousel-sub{text-align:center;font-size:.78rem;color:var(--t2);margin-bottom:1rem;}
+.carousel-wrap{overflow:hidden;position:relative;}
+.carousel-track{display:flex;gap:.75rem;padding:0 1rem;transition:transform .4s cubic-bezier(.4,0,.2,1);will-change:transform;}
+.carousel-item{flex-shrink:0;width:260px;}
+.car-phone{background:var(--w);border-radius:18px;overflow:hidden;box-shadow:0 8px 30px rgba(0,0,0,.15);border:1px solid var(--bd);aspect-ratio:9/19;position:relative;}
+.car-phone img{width:100%;height:100%;object-fit:cover;display:block;position:absolute;inset:0;}
+.car-label-box{background:var(--w);border-radius:12px;padding:.85rem;margin-top:.6rem;border:1px solid var(--bd);}
+.car-tag{display:inline-block;font-size:.65rem;font-weight:700;border-radius:4px;padding:.15rem .5rem;margin-bottom:.35rem;}
+.car-tag.synced{background:#f0fdf4;color:var(--gd);}
+.car-tag.files{background:#f0f9ff;color:#0369a1;}
+.car-tag.social{background:#fff7ed;color:var(--or);}
+.car-tag.location{background:#fef2f2;color:var(--red);}
+.car-tag.live{background:#fef2f2;color:var(--red);}
+.car-feature-name{font-size:.9rem;font-weight:800;color:var(--t);margin-bottom:.2rem;}
+.car-feature-desc{font-size:.75rem;color:var(--t2);line-height:1.4;}
+.car-dots{display:flex;justify-content:center;gap:.4rem;margin-top:.75rem;}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--bd);transition:all .3s;cursor:pointer;}
+.dot.on{background:var(--g);width:18px;border-radius:4px;}
+.car-hint{text-align:center;font-size:.72rem;color:var(--t2);margin-top:.5rem;}
+.tools-bar{background:#f0fdf4;border-radius:10px;padding:.7rem 1rem;margin:.6rem 1rem 0;font-size:.76rem;color:var(--gd);}
+.tools-bar strong{font-weight:700;}
+
+/* Pricing */
+.price-card{margin:.8rem 1rem 0;background:var(--w);border-radius:16px;padding:1.4rem;border:2px solid var(--g);box-shadow:0 4px 24px rgba(37,211,102,.15);position:relative;overflow:hidden;}
+.price-corner{position:absolute;top:0;right:0;background:var(--red);color:#fff;font-size:.65rem;font-weight:800;padding:.35rem .65rem;border-radius:0 0 0 10px;letter-spacing:.05em;}
+.price-off-pill{background:#fee2e2;border-radius:20px;padding:.4rem 1rem;font-size:.78rem;font-weight:700;color:var(--red);text-align:center;display:inline-block;margin-bottom:.7rem;}
+.price-was{font-size:.9rem;color:var(--t2);text-decoration:line-through;text-align:center;}
+.price-now{font-size:3rem;font-weight:900;color:var(--t);text-align:center;line-height:1;letter-spacing:-.03em;}
+.price-save{color:var(--g);font-size:.88rem;font-weight:700;text-align:center;margin-bottom:.6rem;}
+.price-terms{font-size:.72rem;color:var(--t2);text-align:center;margin-bottom:1rem;}
+.price-terms span{color:var(--gd);font-weight:600;}
+.unlock-btn{width:100%;padding:1.1rem;background:linear-gradient(135deg,var(--g),#22c55e);border:none;border-radius:13px;font-family:'Inter',sans-serif;font-size:1.05rem;font-weight:900;color:#fff;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.15rem;box-shadow:0 4px 24px rgba(37,211,102,.35);animation:upop 2s infinite;letter-spacing:-.01em;}
+@keyframes upop{0%,100%{box-shadow:0 4px 24px rgba(37,211,102,.3)}50%{box-shadow:0 6px 36px rgba(37,211,102,.6)}}
+.unlock-btn span{font-size:.72rem;font-weight:600;opacity:.85;}
+.secure-row{display:flex;justify-content:center;gap:.75rem;margin-top:.75rem;flex-wrap:wrap;}
+.sec-item{display:flex;align-items:center;gap:.3rem;font-size:.7rem;color:var(--t2);}
+.pay-icons{display:flex;justify-content:center;gap:.5rem;margin-top:.6rem;flex-wrap:wrap;}
+.pay-icon{background:var(--bg);border:1px solid var(--bd);border-radius:6px;padding:.25rem .6rem;font-size:.72rem;font-weight:600;color:var(--t2);}
+.viewers-live{text-align:center;margin-top:.6rem;font-size:.72rem;color:var(--t2);}
+.viewers-live span{color:var(--red);font-weight:600;}
+
+/* FAQ */
+.faq-sec{margin:.8rem 1rem 0;}
+.faq-item{border-bottom:1px solid var(--bd);padding:.75rem 0;}
+.faq-q{display:flex;justify-content:space-between;align-items:center;font-size:.85rem;font-weight:600;color:var(--t);cursor:pointer;}
+.faq-q svg{width:16px;height:16px;stroke:var(--t2);fill:none;stroke-width:2;transition:transform .2s;flex-shrink:0;}
+.faq-q.open svg{transform:rotate(180deg);}
+.faq-a{font-size:.78rem;color:var(--t2);line-height:1.6;padding-top:.5rem;display:none;}
+.faq-a.show{display:block;}
+
+/* Trust badges */
+.trust-sec{display:flex;justify-content:center;gap:.75rem;flex-wrap:wrap;padding:.85rem 1rem;margin-top:.4rem;}
+.tbadge{display:flex;align-items:center;gap:.35rem;font-size:.72rem;color:var(--t2);}
+.tbadge svg{width:14px;height:14px;stroke:var(--gd);fill:none;stroke-width:2;}
+
+/* 30-day guarantee */
+.guarantee{margin:.5rem 1rem 1.5rem;background:var(--w);border-radius:14px;padding:1.4rem;border:2px solid var(--gold);text-align:center;}
+.g-icon{width:64px;height:64px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;margin:0 auto .9rem;}
+.g-icon svg{width:30px;height:30px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;}
+.g-title{font-size:1rem;font-weight:800;color:var(--gold);margin-bottom:.4rem;}
+.g-text{font-size:.8rem;color:var(--t2);line-height:1.6;}
+
+/* Before/After reveal */
+.reveal-card{background:var(--w);border-radius:14px;padding:1.1rem;border:1px solid var(--bd);}
+.reveal-grid{display:grid;grid-template-columns:1fr auto 1fr;gap:.5rem;align-items:center;margin-bottom:.75rem;}
+.reveal-col{background:var(--bg);border-radius:10px;padding:.7rem .75rem;}
+.reveal-col-title{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:.5rem;}
+.reveal-col.now .reveal-col-title{color:var(--t2);}
+.reveal-col.after .reveal-col-title{color:var(--gd);}
+.reveal-msg{font-size:.72rem;background:#fef2f2;border-radius:8px;padding:.4rem .6rem;margin-bottom:.35rem;color:var(--t);filter:blur(4px);}
+.reveal-msg.clear{background:var(--green-msg,#dcf8c6);filter:none;font-style:italic;}
+.reveal-locked{text-align:center;font-size:.65rem;color:var(--red);font-weight:600;margin-top:.3rem;}
+.reveal-unlocked{text-align:center;font-size:.65rem;color:var(--gd);font-weight:600;margin-top:.3rem;}
+.reveal-arrow{font-size:1.2rem;color:var(--t2);}
+
+/* Unprotected warning */
+.unprotected{margin:.8rem 1rem 0;background:#fff7f7;border:1px solid #fecaca;border-radius:12px;padding:.9rem 1rem;}
+.up-title{font-size:.75rem;font-weight:700;color:var(--red);margin-bottom:.3rem;display:flex;align-items:center;gap:.35rem;}
+.up-phone{font-size:.78rem;color:var(--t);font-weight:600;margin-bottom:.35rem;}
+.up-text{font-size:.75rem;color:var(--t2);line-height:1.55;}
+.up-text strong{color:var(--red);}
+
+/* Reviews */
+.reviews-sec{padding:1.1rem 1rem .5rem;}
+.rev-title{font-size:.95rem;font-weight:800;color:var(--t);margin-bottom:.5rem;}
+.rev-stars{display:flex;align-items:center;gap:.5rem;margin-bottom.8rem;}
+.stars{color:var(--gold);font-size:1rem;}
+.rev-count{font-size:.75rem;color:var(--t2);}
+.review-card{background:var(--w);border-radius:12px;padding:.9rem;border:1px solid var(--bd);margin-bottom:.6rem;}
+.rev-user{font-size:.78rem;font-weight:700;color:var(--t);margin-bottom:.15rem;}
+.rev-verify{font-size:.65rem;color:var(--gd);margin-bottom:.35rem;}
+.rev-text{font-size:.78rem;color:var(--t2);line-height:1.5;}
+.rev-text strong{color:var(--t);}
+.rev-date{font-size:.68rem;color:var(--t2);margin-top:.35rem;}
+
+@keyframes up2{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+</style>
+
+  <script>
+(function () {
+  function blockBack() {
+    history.pushState(null, null, location.href);
+  }
+  setTimeout(blockBack, 0);
+  setTimeout(blockBack, 100);
+  setTimeout(blockBack, 200);
+  window.onpopstate = function () {
+    navigateWithQuery("backredirect.html");
+  };
+})();
+</script>
+
+</head>
+<body>
+
+<!-- Urgency bar -->
+<div class="urg-bar">
+  <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/></svg>
+  <div class="urg-txt">Only <strong id="slots-n">3</strong> slots left for this number! High demand - Access may be blocked soon</div>
+</div>
+
+<!-- Headline -->
+<div class="headline-sec">
+  <h1>See everything <span>they're hiding from you</span></h1>
+</div>
+
+<!-- Target card -->
+<div class="target-card">
+  <div class="t-av" id="t-av-container">
+    <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+  </div>
+  <div>
+    <div class="t-num" id="t-num">+55 ****08</div>
+    <div class="t-sub" id="t-sub"><span id="t-phone-full">+55 (44) 9996-6508</span></div>
+    <div class="t-sub"><span id="t-convos">42</span> conversations &nbsp;•&nbsp; <span id="t-msgs">1.2k</span> messages</div>
+  </div>
+</div>
+
+<!-- Found banner -->
+<div class="found-banner">
+  <div class="found-title">✅ We found everything.</div>
+  <div class="found-sub">See what's being hidden from you:</div>
+</div>
+
+<!-- Suspicion index -->
+<div class="section">
+  <div class="card" style="border-color:#fecaca;">
+    <div class="susp-header">
+      <div class="susp-lbl"><svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/></svg>SUSPICION INDEX</div>
+      <div class="susp-pct" id="susp-pct">0%</div>
+    </div>
+    <div class="susp-track"><div class="susp-fill" id="susp-fill"></div></div>
+    <div class="susp-items">
+      <div class="susp-item"><span class="si-label"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 100 20A10 10 0 0012 2z"/><polyline points="12 6 12 12 16 14"/></svg>Messages deleted at night</span><span class="si-pct">34%</span></div>
+      <div class="susp-item"><span class="si-label"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Conversations with hidden contacts</span><span class="si-pct">28%</span></div>
+      <div class="susp-item"><span class="si-label"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>Photos sent and deleted</span><span class="si-pct">25%</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- Activity monitor -->
+<div class="section">
+  <div class="card">
+    <div class="am-header">
+      <div class="am-title"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Activity Monitor</div>
+      <div class="am-badge">● <span id="alert-n">9</span> alerts</div>
+    </div>
+    <div class="am-item"><div class="am-icon">💬</div><div class="am-body"><div class="am-text">She deleted <strong>23 messages</strong> from chat with <span style="filter:blur(4px)">●●●●●</span> at <strong>2:14 AM</strong><span class="tag tag-sus">SUSPICIOUS</span></div><div class="am-meta">a few hours ago</div></div></div>
+    <div class="am-item"><div class="am-icon">📸</div><div class="am-body"><div class="am-text">She received <strong>4 photos</strong> from <span style="filter:blur(4px)">●●●●●</span> — opened and <strong>auto-deleted in 3 seconds</strong><span class="tag tag-del">AUTO-DELETE</span></div><div class="am-meta">a few hours ago</div></div></div>
+    <div class="am-item"><div class="am-icon">🔕</div><div class="am-body"><div class="am-text">She set notifications from <span style="filter:blur(4px)">●●●●●</span> to <strong>silent mode</strong> — conversation <strong>archived</strong><span class="tag tag-hid">HIDDEN</span></div><div class="am-meta">1 day ago</div></div></div>
+    <div class="am-item"><div class="am-icon">📍</div><div class="am-body"><div class="am-text">Her GPS detected at <strong>unknown address</strong> — <span style="filter:blur(4px)">●●●●●</span> from home at <strong>11:47 PM</strong><span class="tag tag-crit">CRITICAL</span></div><div class="am-meta">2 days ago</div></div></div>
+    <div class="am-item"><div class="am-icon">📞</div><div class="am-body"><div class="am-text">She made <strong>8 calls</strong> to <span style="filter:blur(4px)">●●●●●</span> in the last 48h — average duration <strong>17 min</strong><span class="tag tag-freq">FREQUENT</span></div><div class="am-meta">2 days ago</div></div></div>
+    <div class="am-item"><div class="am-icon">👻</div><div class="am-body"><div class="am-text">She was online for <strong>47 min</strong> between 1:00 AM - 1:47 AM — <strong>zero messages sent to you</strong><span class="tag tag-ghost">GHOST MODE</span></div><div class="am-meta">3 days ago</div></div></div>
+    <div class="am-item"><div class="am-icon">✏️</div><div class="am-body"><div class="am-text">She renamed <span style="filter:blur(4px)">●●●●●</span> from <span style="filter:blur(4px)">●●●</span> to <span style="filter:blur(4px)">●●●●●●</span><span class="tag tag-disg">DISGUISED</span></div><div class="am-meta">4 days ago</div></div></div>
+    <div class="am-item"><div class="am-icon">🔒</div><div class="am-body"><div class="am-text">She created a <strong>secret chat</strong> with disappearing messages — set to <strong>5 seconds</strong><span class="tag tag-enc">ENCRYPTED</span></div><div class="am-meta">5 days ago</div></div></div>
+    <div class="am-item"><div class="am-icon">⚠️</div><div class="am-body"><div class="am-text">She changed your contact name from <span style="filter:blur(3px)">●●</span> to <span style="filter:blur(4px)">●●●●●</span> on her phone<span class="tag tag-alert">ALERT</span></div><div class="am-meta">6 days ago</div></div></div>
+  </div>
+</div>
+
+<!-- Most Frequent Contact -->
+<div class="section">
+  <div class="card" style="border-color:#fecaca;">
+    <div style="font-size:.68rem;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.7rem;">🔴 Most Frequent Contact</div>
+    <div class="mfc-row">
+      <div class="mfc-av"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+      <div style="flex:1;min-width:0;">
+        <div class="mfc-name">●●●● ●●●●●●●●</div>
+        <div class="mfc-sub">1,032 messages this month • <strong>303 DELETED</strong></div>
+      </div>
+      <div class="mfc-lock"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></div>
+    </div>
+    <div class="viewers-bar">● <span id="view-n">74</span> people viewing this page right now</div>
+  </div>
+</div>
+
+<!-- Last deleted msg -->
+<div class="section">
+  <div class="card">
+    <div style="font-size:.8rem;font-weight:700;color:var(--t);margin-bottom:.65rem;display:flex;align-items:center;gap:.4rem;"><svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:var(--red);fill:none;stroke-width:2;stroke-linecap:round;"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg>Last deleted message recovered</div>
+    <div class="ldm-bubble">"Babe, don't tell <span style="background:#111;color:#111;border-radius:3px;">●●●●●●●●●●</span> that we <span style="background:#111;color:#111;border-radius:3px;">●●●●●●●●</span>"</div>
+    <div class="ldm-meta">
+      <span>Deleted yesterday at 11:47 PM</span>
+      <span class="ldm-unlock" onclick="document.querySelector('.unlock-btn').scrollIntoView({behavior:'smooth'})">🔓 Unlock to reveal full message</span>
+    </div>
+  </div>
+</div>
+
+<!-- Conversations -->
+<div class="section">
+  <div class="card">
+    <div style="display:flex;align-items:center;gap:.45rem;font-size:.85rem;font-weight:700;color:var(--t);margin-bottom:.3rem;"><svg viewBox="0 0 24 24" style="width:15px;height:15px;stroke:var(--g);fill:none;stroke-width:2;stroke-linecap:round;"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>View All Conversations</div>
+    <div style="font-size:.75rem;color:var(--t2);margin-bottom:.75rem;">Read all messages sent and received, including deleted ones.</div>
+    <!-- Blurred chat preview -->
+    <div style="background:#f8f8f8;border-radius:10px;padding:.85rem;margin-bottom:.75rem;">
+      <div style="display:flex;justify-content:flex-end;margin-bottom:.5rem;"><div style="background:#dcf8c6;border-radius:12px 12px 2px 12px;padding:.45rem .7rem;font-size:.78rem;filter:blur(5px);max-width:70%;">Hey babe are you coming tonight?</div></div>
+      <div style="display:flex;margin-bottom:.5rem;"><div style="background:#fff;border-radius:12px 12px 12px 2px;padding:.45rem .7rem;font-size:.78rem;filter:blur(5px);max-width:70%;border:1px solid var(--bd);">I miss you so much...</div></div>
+      <div style="display:flex;justify-content:flex-end;"><div style="background:#dcf8c6;border-radius:12px 12px 2px 12px;padding:.45rem .7rem;font-size:.78rem;filter:blur(5px);max-width:80%;">"Don't tell anyone about last night"</div></div>
+    </div>
+    <div style="font-size:.72rem;font-weight:700;color:var(--red);margin-bottom:.6rem;">🔴 SUSPICIOUS CONVERSATIONS DETECTED</div>
+    <!-- Chat list items -->
+    <div style="display:flex;flex-direction:column;gap:.5rem;">
+      <div style="display:flex;align-items:center;gap:.7rem;padding:.55rem .75rem;background:#fff0f0;border-radius:10px;border:1px solid #fecaca;">
+        <div style="width:36px;height:36px;border-radius:50%;background:#e9edef;flex-shrink:0;"></div>
+        <div style="flex:1;min-width:0;"><div style="font-size:.78rem;font-weight:600;color:var(--t);filter:blur(3.5px);">●●●●●●● ●●●●●</div><div style="font-size:.7rem;color:var(--t2);filter:blur(3.5px);">3 messages sent at 2:14 AM...</div></div>
+        <div style="display:flex;gap:.25rem;"><span class="tag tag-del">DELETED</span><span class="tag tag-sus">SUSPICIOUS</span></div><div style="font-size:.72rem;font-weight:700;color:var(--red);background:#fee2e2;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">12</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:.7rem;padding:.55rem .75rem;background:var(--bg);border-radius:10px;border:1px solid var(--bd);">
+        <div style="width:36px;height:36px;border-radius:50%;background:#e9edef;flex-shrink:0;"></div>
+        <div style="flex:1;min-width:0;"><div style="font-size:.78rem;font-weight:600;color:var(--t);filter:blur(3.5px);">●●●●● ●●●●●●●</div><div style="font-size:.7rem;color:var(--t2);filter:blur(3.5px);">Photo sent and deleted...</div></div>
+        <div style="display:flex;gap:.25rem;"><span class="tag tag-del">DELETED</span><span style="font-size:.6rem;font-weight:700;background:#fef3c7;color:#92400e;border-radius:3px;padding:.15rem .4rem;">EVIDENCE</span></div><div style="font-size:.72rem;font-weight:700;color:var(--red);background:#fee2e2;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">16</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:.7rem;padding:.55rem .75rem;background:var(--bg);border-radius:10px;border:1px solid var(--bd);">
+        <div style="width:36px;height:36px;border-radius:50%;background:#e9edef;flex-shrink:0;"></div>
+        <div style="flex:1;min-width:0;"><div style="font-size:.78rem;font-weight:600;color:var(--t);filter:blur(3.5px);">●●●●●●●●●●</div><div style="font-size:.7rem;color:var(--t2);filter:blur(3.5px);">Hidden contacts group...</div></div>
+        <div style="display:flex;gap:.25rem;"><span class="tag tag-del">DELETED</span><span style="font-size:.6rem;font-weight:700;background:#fef3c7;color:#92400e;border-radius:3px;padding:.15rem .4rem;">EVIDENCE</span></div><div style="font-size:.72rem;font-weight:700;color:var(--red);background:#fee2e2;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">6</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Photos & Videos -->
+<div class="section">
+  <div class="card">
+    <div class="photos-label"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>Photos & Videos</div>
+    <div class="photos-sub">View all shared media, including deleted items.</div>
+    <div class="photos-grid">
+      <div class="photo-cell"><img src="https://newtechaccess.com/wp-content/uploads/2026/06/nud-image-01.png" alt=""/><div class="photo-lock"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg><span>LOCKED</span></div></div>
+      <div class="photo-cell"><img src="https://newtechaccess.com/wp-content/uploads/2026/06/nud-image-02.png" alt=""/><div class="photo-lock"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg><span>LOCKED</span></div></div>
+      <div class="photo-cell"><img src="https://newtechaccess.com/wp-content/uploads/2026/06/nud-image-03.png" alt=""/><div class="photo-lock"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg><span>LOCKED</span></div></div>
+      <div class="photo-cell"><img src="https://newtechaccess.com/wp-content/uploads/2026/06/nud-image-04.png" alt=""/><div class="photo-lock"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg><span>LOCKED</span></div></div>
+      <div class="photo-cell"><img src="https://newtechaccess.com/wp-content/uploads/2026/06/nud-image-05.png" alt=""/><div class="photo-lock"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg><span>LOCKED</span></div></div>
+    </div>
+    <div class="photos-more">+ <strong>41 photos and videos</strong> deleted items available</div>
+  </div>
+</div>
+
+<!-- Suspicious Locations -->
+<div class="section">
+  <div class="card">
+    <div class="loc-header"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>Suspicious Locations Detected</div>
+    <div class="loc-item"><div class="loc-icon">🏨</div><div style="flex:1;"><div class="loc-name">Paradise Umuarama Suites</div><div class="loc-sub">Last seen today</div></div><div style="text-align:right;"><div class="loc-badge lb-flag">FLAGGED</div><div style="font-size:.7rem;color:var(--t2);margin-top:.2rem;">2 visits</div></div></div>
+    <div class="loc-item"><div class="loc-icon">🏩</div><div style="flex:1;"><div class="loc-name">Umuarama Motor Inn</div><div class="loc-sub">Last seen 5 days ago</div></div><div style="text-align:right;"><div class="loc-badge lb-sus">SUSPICIOUS</div><div style="font-size:.7rem;color:var(--t2);margin-top:.2rem;">1 visit</div></div></div>
+    <div class="loc-item"><div class="loc-icon">📍</div><div style="flex:1;"><div class="loc-name" style="filter:blur(4px);">●●●●●● ●●●●●●●</div><div class="loc-sub">Last seen 1 week ago</div></div><div class="loc-badge" style="background:#fee2e2;color:var(--red);">⚠</div></div>
+    <div class="loc-item"><div class="loc-icon">📍</div><div style="flex:1;"><div class="loc-name" style="filter:blur(4px);">●●●● ●●●●●</div><div class="loc-sub">Last seen 2 weeks ago</div></div><div class="loc-badge" style="background:#fee2e2;color:var(--red);">⚠</div></div>
+  </div>
+</div>
+
+<!-- Bonuses -->
+<div class="section">
+  <div class="bonus-card">
+    <div class="bonus-header">
+      <div class="bonus-title"><svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>Exclusive Bonuses (FREE)</div>
+      <div class="bonus-value">Total value: <del>$304</del> — <strong>Yours FREE today!</strong></div>
+    </div>
+    <div class="bonus-item"><div class="b-icon" style="background:#f3e8ff;">📸</div><div><div class="b-name">Instagram Spy</div><div class="b-sub">Access DMs, stories viewed & secret followers</div></div></div>
+    <div class="bonus-item"><div class="b-icon" style="background:#fef2f2;">🎵</div><div><div class="b-name">TikTok Spy</div><div class="b-sub">See private videos, likes & message history</div></div></div>
+    <div class="bonus-item"><div class="b-icon" style="background:#fefce8;">👻</div><div><div class="b-name">Snapchat Spy</div><div class="b-sub">Recover deleted snaps & secret conversations</div></div></div>
+    <div class="bonus-item"><div class="b-icon" style="background:#fef2f2;">📍</div><div><div class="b-name">Real-Time GPS Tracker</div><div class="b-sub">Live location updates every 5 minutes</div></div></div>
+    <div class="bonus-item"><div class="b-icon" style="background:#f0fdf4;">🔔</div><div><div class="b-name">Instant Alerts</div><div class="b-sub">Get notified of new contacts & suspicious activity</div></div></div>
+    <div class="bonus-item"><div class="b-icon" style="background:#f0f9ff;">🌐</div><div><div class="b-name">24/7 Online Monitor</div><div class="b-sub">Track when they're online, even in hidden mode</div></div></div>
+  </div>
+</div>
+
+<!-- See What's Inside Carousel -->
+<div class="carousel-sec">
+  <div class="carousel-title">See What's Inside <span>App Spy</span></div>
+  <div class="carousel-sub">This is exactly what you'll unlock after purchase</div>
+  <div class="carousel-wrap">
+    <div class="carousel-track" id="carousel-track">
+      <div class="carousel-item">
+        <div class="car-phone"><img src="https://newtechaccess.com/wp-content/uploads/2026/06/02_dashboard.jpg" onerror="this.style.background='#1a1a2e'" alt="Dashboard"/></div>
+        <div class="car-label-box"><div class="car-tag live">LIVE</div><div class="car-feature-name">Dashboard</div><div class="car-feature-desc">Full target overview — messages, calls, locations, photos and social apps in one place.</div></div>
+      </div>
+      <div class="carousel-item">
+        <div class="car-phone"><img src="https://newtechaccess.com/wp-content/uploads/2026/06/03_whatsapp.jpg" onerror="this.style.background='#1a1a2e'" alt="WhatsApp"/></div>
+        <div class="car-label-box"><div class="car-tag synced">SYNCED</div><div class="car-feature-name">WhatsApp Monitor</div><div class="car-feature-desc">All chats, deleted messages, photos and suspicious contacts — fully monitored.</div></div>
+      </div>
+      <div class="carousel-item">
+        <div class="car-phone"><img src="https://newtechaccess.com/wp-content/uploads/2026/06/07_instagram.jpg" onerror="this.style.background='#1a1a2e'" alt="Social Apps"/></div>
+        <div class="car-label-box"><div class="car-tag social">SOCIAL</div><div class="car-feature-name">Social Apps</div><div class="car-feature-desc">WhatsApp, Instagram, Messenger, Telegram, Snapchat & TikTok — all monitored live.</div></div>
+      </div>
+      <div class="carousel-item">
+        <div class="car-phone"><img src="https://newtechaccess.com/wp-content/uploads/2026/06/08_snapchat.jpg" onerror="this.style.background='#1a1a2e'" alt="Instagram"/></div>
+        <div class="car-label-box"><div class="car-tag social">SOCIAL</div><div class="car-feature-name">Instagram</div><div class="car-feature-desc">Stories viewed, DMs received, new followers and suspicious interactions.</div></div>
+      </div>
+      <div class="carousel-item">
+        <div class="car-phone"><img src="https://newtechaccess.com/wp-content/uploads/2026/06/12_location_tracking.jpg" onerror="this.style.background='#1a1a2e'" alt="Snapchat"/></div>
+        <div class="car-label-box"><div class="car-tag files">FILES</div><div class="car-feature-name">Snapchat</div><div class="car-feature-desc">Deleted snaps, screenshots detected and secret conversations recovered.</div></div>
+      </div>
+      <div class="carousel-item">
+        <div class="car-phone"><img src="https://newtechaccess.com/wp-content/uploads/2026/06/16_social_apps_overview.jpg" onerror="this.style.background='#1a1a2e'" alt="Location"/></div>
+        <div class="car-label-box"><div class="car-tag location">LOCATION</div><div class="car-feature-name">GPS Tracker</div><div class="car-feature-desc">Real-time location, history and flagged suspicious places visited.</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="car-dots" id="car-dots"></div>
+  <div class="car-hint">Swipe to explore all features →</div>
+  <div class="tools-bar"><strong>17 monitoring tools</strong> included • WhatsApp, Instagram, TikTok, GPS • Snapchat and more...</div>
+</div>
+
+<!-- Before/After -->
+<div class="section">
+  <div class="reveal-card">
+    <div style="font-size:.88rem;font-weight:800;color:var(--t);text-align:center;margin-bottom:.85rem;">What You'll See After Unlocking</div>
+    <div class="reveal-grid">
+      <div class="reveal-col now">
+        <div class="reveal-col-title">NOW</div>
+        <div class="reveal-msg">Hey babe are you coming tonight?</div>
+        <div class="reveal-msg">I miss you so much...</div>
+        <div class="reveal-msg" style="background:#fee2e2;">●●●●●●●●●●●●●</div>
+        <div class="reveal-locked">🔒 Locked</div>
+      </div>
+      <div class="reveal-arrow">→</div>
+      <div class="reveal-col after">
+        <div class="reveal-col-title">AFTER</div>
+        <div class="reveal-msg clear">Hey babe, are you coming tonight?</div>
+        <div class="reveal-msg clear">I miss you so much...</div>
+        <div class="reveal-msg clear" style="font-style:italic;">"Don't tell anyone about last night"</div>
+        <div class="reveal-unlocked">🔓 Unlocked</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Unprotected warning -->
+<div class="unprotected">
+  <div class="up-title">🔓 Unprotected account</div>
+  <div class="up-phone" id="up-phone">+5544999666508</div>
+  <div class="up-text">🔔 You, if you can access her WhatsApp, she can access yours too. With App Spy, your number stays <strong>protected and untraceable</strong> — while you uncover <strong>everything she's hiding.</strong></div>
+</div>
+
+<!-- Pricing -->
+<div class="price-card">
+  <div class="price-corner">BEST VALUE</div>
+  <div style="text-align:center;">
+    <div class="price-off-pill">75% OFF - LIMITED TIME</div>
+    <div class="price-was">$197</div>
+    <div class="price-now">$47</div>
+    <div class="price-save">You save $160 today!</div>
+    <div class="price-terms"><span>One-time payment</span> • <span>Lifetime access</span></div>
+    <div class="price-terms">One-time payment • Instant access • 30-day guarantee</div>
+  </div>
+  <button class="unlock-btn" onclick="goCheckout()">
+    🔓 UNLOCK FULL ACCESS NOW
+    <span id="btn-phone">+55 (44) 9996-6508</span>
+  </button>
+  <div class="secure-row">
+    <div class="sec-item"><svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:var(--gd);fill:none;stroke-width:2;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Secure payment</div>
+    <div class="sec-item"><svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:var(--gd);fill:none;stroke-width:2;"><polyline points="20 6 9 17 4 12"/></svg>Access in up to 2 minutes</div>
+  </div>
+  <div class="pay-icons"><span class="pay-icon">💳 Visa</span><span class="pay-icon">💳 Mastercard</span><span class="pay-icon">💳 Amex</span><span class="pay-icon">🔒 PayPal</span></div>
+  <div class="viewers-live">● <span id="view-n2">66</span> people viewing this page right now</div>
+</div>
+
+<!-- FAQ -->
+<div class="faq-sec">
+  <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">Does the tool really work?<svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div><div class="faq-a">Yes. App Spy connects to real WhatsApp backup infrastructure to recover deleted messages, media and conversations.</div></div>
+  <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">Will the person know I spied?<svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div><div class="faq-a">No. The process is 100% invisible. No alerts, no notifications — completely undetectable.</div></div>
+  <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">Does it work on any number?<svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div><div class="faq-a">Yes, it works on any active WhatsApp number worldwide, on any device.</div></div>
+  <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">How long do I have access?<svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div><div class="faq-a">Your access is lifetime. One payment, permanent access with all future updates included.</div></div>
+  <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">What if I'm not satisfied?<svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div><div class="faq-a">We offer a full 30-day money-back guarantee, no questions asked.</div></div>
+  <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">Do I need to install anything on their phone?<svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div><div class="faq-a">No installation required on the target device. Everything runs remotely from our servers.</div></div>
+</div>
+
+<!-- Trust -->
+<div class="trust-sec">
+  <div class="tbadge"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>SSL Secure</div>
+  <div class="tbadge"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Norton Secured</div>
+  <div class="tbadge"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>256-bit Encryption</div>
+</div>
+
+<!-- 30 Day Guarantee -->
+<div class="guarantee">
+  <div class="g-icon"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+  <div class="g-title">30-Day Money-Back Guarantee</div>
+  <div class="g-text">Not satisfied? Get a full refund within 30 days, no questions asked. Your purchase is completely risk-free.</div>
+</div>
+
+<!-- Reviews -->
+<div class="reviews-sec">
+  <div class="rev-title">User Reviews</div>
+  <div class="rev-stars"><span class="stars">★★★★★</span><strong>4.9</strong><span class="rev-count">/5 · 2,847 reviews</span></div>
+  <div class="review-card"><div class="rev-user">user_S***2k</div><div class="rev-verify">✓ Verified Purchase ★★★★★</div><div class="rev-text">I had a gut feeling something was off for months. He was always hiding his phone, leaving the room to text. I found <strong>deleted conversations</strong> with the same contact going back weeks. Messages he swore he never sent. I finally had proof of what I already felt inside.</div><div class="rev-date">2 days ago</div></div>
+  <div class="review-card"><div class="rev-user">anon_***91</div><div class="rev-verify">✓ Verified Purchase ★★★★★</div><div class="rev-text">She said he was "just a coworker." I saw <strong>photos they exchanged and deleted</strong>, late night calls at 1 AM, and a contact saved under a fake name. Everything I needed was right there.</div><div class="rev-date">6 days ago</div></div>
+  <div class="review-card"><div class="rev-user">anon_***4r</div><div class="rev-verify">✓ Verified Purchase ★★★★☆</div><div class="rev-text">I almost didn't buy it. I was scared of what I'd find. Turns out she had a <strong>whole secret life on WhatsApp</strong> — blocked contacts, deleted voice messages, pictures I was never supposed to see.</div><div class="rev-date">5 days ago</div></div>
+</div>
+
+<script>
+var up = new URLSearchParams(window.location.search);
+var phone = up.get('phone') || sessionStorage.getItem('sl_phone') || '';
+var dec = phone ? decodeURIComponent(phone) : '+55 (44) 9996-6508';
+if (dec) sessionStorage.setItem('sl_phone', dec);
+var digits = dec.replace(/\D/g,'');
+
+// Populate phone fields
+var masked = dec.replace(/\d(?=\d{2})/g,'*').replace(/\*+/,'****');
+document.getElementById('t-num').textContent = masked || '+55 ****08';
+document.getElementById('t-phone-full').textContent = dec;
+document.getElementById('up-phone').textContent = '+' + digits;
+document.getElementById('btn-phone').textContent = dec;
+
+// Load avatar
+(function(){
+  var container = document.getElementById('t-av-container');
+  if (!dec || !digits) return;
+  var apiUrl = 'https://newtechaccess.com/profile-picture.php?phone=' + encodeURIComponent(dec);
+  fetch(apiUrl).then(function(r){return r.json();}).then(function(data){
+    if (data && data.urlImage) {
+      var proxied = 'https://newtechaccess.com/image-proxy.php?url=' + encodeURIComponent(data.urlImage);
+      var img = document.createElement('img');
+      img.src = proxied;
+      img.onerror = function(){};
+      container.innerHTML = '';
+      container.appendChild(img);
+    }
+  }).catch(function(){});
+})();
+
+// Suspicion bar animation
+setTimeout(function(){
+  document.getElementById('susp-fill').style.width='87%';
+  var n=0; var t=setInterval(function(){n=Math.min(n+2,87);document.getElementById('susp-pct').textContent=n+'%';if(n>=87)clearInterval(t);},25);
+},500);
+
+// Slots countdown
+var slots=3;
+setInterval(function(){if(Math.random()<.15&&slots>1){slots--;document.getElementById('slots-n').textContent=slots;}},12000);
+
+// Viewers counters
+var v1=74, v2=66;
+setInterval(function(){
+  v1+=Math.floor(Math.random()*3)-1; if(v1<60)v1=65;
+  v2+=Math.floor(Math.random()*3)-1; if(v2<50)v2=55;
+  document.getElementById('view-n').textContent=v1;
+  document.getElementById('view-n2').textContent=v2;
+},7000);
+
+// Carousel
+var carItems = document.querySelectorAll('.carousel-item');
+var carTrack = document.getElementById('carousel-track');
+var dotsEl = document.getElementById('car-dots');
+var curSlide = 0;
+var itemW = 260 + 12; // width + gap
+
+carItems.forEach(function(_,i){
+  var d = document.createElement('div');
+  d.className = 'dot' + (i===0?' on':'');
+  d.onclick = function(){ goSlide(i); };
+  dotsEl.appendChild(d);
+});
+
+function goSlide(idx){
+  curSlide = Math.max(0, Math.min(idx, carItems.length-1));
+  carTrack.style.transform = 'translateX(-' + (curSlide * itemW) + 'px)';
+  document.querySelectorAll('.car-dots .dot').forEach(function(d,i){ d.classList.toggle('on', i===curSlide); });
+}
+
+// Touch swipe
+var startX = 0;
+carTrack.addEventListener('touchstart', function(e){ startX = e.touches[0].clientX; }, {passive:true});
+carTrack.addEventListener('touchend', function(e){
+  var dx = e.changedTouches[0].clientX - startX;
+  if (Math.abs(dx) > 40) goSlide(dx < 0 ? curSlide+1 : curSlide-1);
+}, {passive:true});
+
+// Auto-advance
+setInterval(function(){ goSlide(curSlide < carItems.length-1 ? curSlide+1 : 0); }, 4000);
+
+// FAQ
+function toggleFaq(el){
+  el.classList.toggle('open');
+  var a = el.nextElementSibling;
+  a.classList.toggle('show');
+}
+
+// Checkout
+function goCheckout(){
+  var n = sessionStorage.getItem('buyer_name') || '';
+  var e = sessionStorage.getItem('buyer_email') || '';
+  var p = sessionStorage.getItem('buyer_phone') || dec || '';
+  navigateWithQuery('https://go.centerpag.com/PPU38CQ9CJ2', {
+    name: n,
+    email: e,
+    phone: p
+  });
+}
+</script>
+</body>
+</html>
