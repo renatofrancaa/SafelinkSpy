@@ -26,3 +26,6 @@ npm-debug.log*
 *-clean.html
 .backup/
 tmp/
+
+.vercel
+.env*

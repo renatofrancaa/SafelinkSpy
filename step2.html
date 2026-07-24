@@ -274,7 +274,9 @@ function buildSelect() {
   sel.innerHTML = '';
   countries.forEach(function(c,i){
     var o = document.createElement('option');
-    o.value = i; o.textContent = c.name + ' (' + c.code + ')';
+    o.value = i;
+    // Flag emoji + country + dial code (shows in native mobile picker)
+    o.textContent = (c.flag ? c.flag + ' ' : '') + c.name + ' (' + c.code + ')';
     sel.appendChild(o);
   });
 }
