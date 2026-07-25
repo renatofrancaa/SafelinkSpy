@@ -303,7 +303,7 @@ function claimOffer() {
     var p = sessionStorage.getItem('sl_phone') || sessionStorage.getItem('buyer_phone') || '';
     var n = sessionStorage.getItem('buyer_name') || '';
     var e = sessionStorage.getItem('buyer_email') || '';
-    navigateWithQuery('https://go.centerpag.com/PPU38CQEKTG', {
+    navigateWithQuery('https://go.centerpag.com/PPU38CQD2HK', {
       src: 'BackRedirect',
       phone: p,
       name: n,
@@ -335,5 +335,6 @@ function skipOffer() {
   try { sessionStorage.removeItem('sl_goingToBackredirect'); } catch (e) {}
 })();
 </script>
+<script src="/js/zs-analytics.js" defer></script>
 </body>
 </html>

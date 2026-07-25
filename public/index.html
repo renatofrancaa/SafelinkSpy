@@ -62,11 +62,18 @@ function buildForwardUrl(targetUrl, params) {
   return url.toString();
 }
 function navigateWithQuery(targetUrl, params) {
-  window.location.href = buildForwardUrl(targetUrl, params);
+  var url = buildForwardUrl(targetUrl, params);
+  // Internal funnel: replace history so Back cannot return to a previous step
+  var isExternal = /^https?:\/\//i.test(String(targetUrl || ''));
+  if (isExternal) {
+    window.location.href = url;
+  } else {
+    window.location.replace(url);
+  }
 }
 // End query forwarding helper
 </script>
-<script>(function(){function b(){history.pushState(null,null,location.href);}setTimeout(b,0);setTimeout(b,100);setTimeout(b,200);window.onpopstate=function(){/* block back — offer only on last step */b();};}());</script>
+<script src="/js/block-back.js" defer></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
@@ -166,12 +173,12 @@ body{font-family:'Inter',sans-serif;background:var(--bg);min-height:100vh;displa
     <div class="card-lbl">I want to spy on a...</div>
     <div class="options">
       <div class="option" onclick="go(this,'male')">
-        <div class="opt-icon">👨</div>
+        <div class="opt-icon">👨🏻</div>
         <div class="opt-info"><div class="opt-title">Man</div><div class="opt-sub">Boyfriend, husband, ex...</div></div>
         <div class="opt-arr"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
       </div>
       <div class="option" onclick="go(this,'female')">
-        <div class="opt-icon">👩</div>
+        <div class="opt-icon">👩🏻</div>
         <div class="opt-info"><div class="opt-title">Woman</div><div class="opt-sub">Girlfriend, wife, ex...</div></div>
         <div class="opt-arr"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
       </div>
@@ -285,5 +292,6 @@ function updateOnlineCount() {
 // First change after 10–18s so it doesn't jump right on load
 setTimeout(updateOnlineCount, 10000 + Math.floor(Math.random() * 8000));
 </script>
+<script src="/js/zs-analytics.js" defer></script>
 </body>
 </html>

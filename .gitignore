@@ -15,12 +15,14 @@ desktop.ini
 .env.*
 !.env.example
 
-# Dependencies / build (if you add a bundler later)
+# Dependencies / build
 node_modules/
 dist/
+.next/
 .vercel/
 *.log
 npm-debug.log*
+tsconfig.tsbuildinfo
 
 # Local leftovers
 *-clean.html

@@ -61,11 +61,18 @@ function buildForwardUrl(targetUrl, params) {
   return url.toString();
 }
 function navigateWithQuery(targetUrl, params) {
-  window.location.href = buildForwardUrl(targetUrl, params);
+  var url = buildForwardUrl(targetUrl, params);
+  // Internal funnel: replace history so Back cannot return to a previous step
+  var isExternal = /^https?:\/\//i.test(String(targetUrl || ''));
+  if (isExternal) {
+    window.location.href = url;
+  } else {
+    window.location.replace(url);
+  }
 }
 // End query forwarding helper
 </script>
-<script>(function(){function b(){history.pushState(null,null,location.href);}setTimeout(b,0);setTimeout(b,100);window.onpopstate=function(){/* block back — offer only on last step */b();};}());</script>
+<script src="/js/block-back.js" defer></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{--g:#25D366;--gd:#128C7E;--bg:#f5f6f8;--w:#fff;--t:#111b21;--t2:#667781;--bd:#e9edef;--red:#ef4444;--or:#f97316;--mono:'Share Tech Mono',monospace;--sh:0 2px 12px rgba(0,0,0,.08);--shl:0 8px 32px rgba(0,0,0,.12);}
@@ -518,5 +525,6 @@ runPhaseA();
 })();
 
 </script>
+<script src="/js/zs-analytics.js" defer></script>
 </body>
 </html>

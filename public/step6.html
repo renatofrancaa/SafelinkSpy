@@ -930,8 +930,8 @@ function toggleFaq(el){
 // Checkout — two plans (same structure as reference CTA)
 // Map each plan to its CenterPag product code when you have separate links
 var checkoutCodeMap = {
-  basic: 'PPU38CQEHD1',     // Essentials $37
-  complete: 'PPU38CQ94FJ'   // Complete $67
+  basic: 'PPU38CQCLPQ',     // Essentials $37
+  complete: 'PPU38CQE9ME'   // Complete $67
 };
 var selectedTier = 'complete';
 
@@ -949,6 +949,21 @@ function goCheckout(tier) {
 
   var overlay = document.getElementById('checkout-loading');
   if (overlay) overlay.style.display = 'flex';
+
+  // Dashboard analytics — 1 checkout per visitor (sync XHR before redirect)
+  try {
+    var planValue = selectedTier === 'basic' ? 37 : 67;
+    var planLabel = selectedTier === 'basic' ? '$37 Essentials' : '$67 Complete';
+    var code = checkoutCodeMap[selectedTier] || checkoutCodeMap.complete;
+    if (window.ZSAnalytics && typeof window.ZSAnalytics.checkout === 'function') {
+      window.ZSAnalytics.checkout({
+        tier: selectedTier,
+        value: planValue,
+        planLabel: planLabel,
+        code: code
+      });
+    }
+  } catch (err) {}
 
   setTimeout(function () {
     // Don't intercept checkout navigation
@@ -1048,5 +1063,6 @@ selectTier('complete');
   });
 })();
 </script>
+<script src="/js/zs-analytics.js" defer></script>
 </body>
 </html>

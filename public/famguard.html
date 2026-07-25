@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Famguard | Smart Parental Control for Safer Digital Habits</title>
+    <meta name="description" content="Famguard helps families build balanced digital habits with screen time tools, web safety, app management and daily insights.">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #040607;
+            color: #f5f5f5;
+            line-height: 1.55;
+            overflow-x: hidden;
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        #matrix-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.12;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            width: min(1160px, 92%);
+            margin: auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        a { text-decoration: none; color: inherit; }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border: 1px solid rgba(108, 89, 216, 0.15);
+            border-radius: 999px;
+            background: rgba(74, 55, 182, 0.08);
+            backdrop-filter: blur(12px);
+            font-size: 13px;
+            font-weight: 700;
+            color: #8b7cf0;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            min-height: 54px;
+            padding: 0 24px;
+            border-radius: 16px;
+            font-weight: 800;
+            border: 0;
+            cursor: pointer;
+            transition: .22s ease;
+            white-space: nowrap;
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4a37b6 0%, #ab58f4 100%);
+            color: white;
+            box-shadow: 0 18px 36px rgba(74, 55, 182, 0.28);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 24px 44px rgba(74, 55, 182, 0.34);
+        }
+
+        .btn-secondary {
+            background: rgba(7, 9, 10, 0.8);
+            color: #d0d0d0;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            border-color: rgba(74, 55, 182, 0.3);
+        }
+
+        /* Header */
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background: rgba(4, 6, 7, 0.8);
+            backdrop-filter: blur(18px);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .nav {
+            height: 72px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            font-weight: 900;
+            font-size: 24px;
+            letter-spacing: -0.04em;
+            color: #f5f5f5;
+        }
+
+        .logo {
+            width: 42px;
+            height: 42px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #4a37b6, #ab58f4);
+            display: grid;
+            place-items: center;
+            color: #fff;
+            font-weight: 900;
+            font-size: 1.2rem;
+            box-shadow: 0 12px 30px rgba(74, 55, 182, 0.25);
+        }
+
+        .logo svg {
+            width: 22px;
+            height: 22px;
+        }
+
+        .navlinks {
+            display: flex;
+            align-items: center;
+            gap: 26px;
+            font-size: 14px;
+            font-weight: 700;
+            color: rgba(255,255,255,0.5);
+        }
+
+        .navlinks a:hover { color: #ab58f4; }
+
+        /* Hero */
+        .hero {
+            padding: 78px 0 62px;
+        }
+
+        .hero-grid {
+            display: grid;
+            grid-template-columns: 1.05fr 0.95fr;
+            gap: 44px;
+            align-items: center;
+        }
+
+        h1 {
+            font-size: clamp(42px, 6vw, 76px);
+            line-height: .98;
+            letter-spacing: -0.07em;
+            margin: 20px 0 22px;
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #4a37b6, #ab58f4);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .lead {
+            font-size: clamp(17px, 2.1vw, 21px);
+            color: rgba(255,255,255,0.45);
+            max-width: 650px;
+            margin-bottom: 30px;
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 14px;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: 28px;
+        }
+
+        .micro {
+            font-size: 13px;
+            color: rgba(255,255,255,0.35);
+            font-weight: 600;
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .micro span {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #6B59D8;
+        }
+
+        /* Dashboard Card */
+        .dashboard-wrap {
+            position: relative;
+            padding: 20px 0;
+        }
+
+        .blob {
+            position: absolute;
+            inset: auto -34px -34px auto;
+            width: 210px;
+            height: 210px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(74, 55, 182, 0.4), rgba(171, 88, 244, 0.3));
+            filter: blur(60px);
+            z-index: -1;
+        }
+
+        .phone-card {
+            background: rgba(7, 9, 10, 0.85);
+            backdrop-filter: blur(40px) saturate(180%);
+            -webkit-backdrop-filter: blur(40px) saturate(180%);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 38px;
+            padding: 22px;
+            box-shadow: 0 24px 70px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .phone-card:before {
+            content: "";
+            position: absolute;
+            width: 260px;
+            height: 260px;
+            border-radius: 50%;
+            background: rgba(74, 55, 182, 0.08);
+            top: -90px;
+            right: -80px;
+        }
+
+        .app-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 18px;
+            position: relative;
+        }
+
+        .user {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .avatar,
+        .mini span,
+        .icon,
+        .pill,
+        .guarantee {
+            font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', 'Inter', sans-serif;
+        }
+
+        .avatar {
+            width: 52px;
+            height: 52px;
+            border-radius: 18px;
+            background: linear-gradient(135deg, #4a37b6, #ab58f4);
+            display: grid;
+            place-items: center;
+            font-size: 24px;
+            line-height: 1;
+            font-size: 22px;
+        }
+
+        .user b { display: block; }
+        .user small { color: rgba(255,255,255,0.4); font-weight: 700; }
+
+        .score {
+            background: rgba(74, 55, 182, 0.15);
+            color: #8b7cf0;
+            border-radius: 14px;
+            padding: 8px 12px;
+            font-size: 13px;
+            font-weight: 900;
+        }
+
+        .screen-time {
+            background: linear-gradient(135deg, #1a0f4e, #4a37b6);
+            border-radius: 26px;
+            color: white;
+            padding: 26px;
+            margin: 10px 0 16px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .screen-time:after {
+            content: "";
+            position: absolute;
+            right: -34px;
+            bottom: -44px;
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.08);
+        }
+
+        .screen-time small { opacity: .8; font-weight: 700; }
+        .screen-time h3 { font-size: 44px; letter-spacing: -0.05em; margin: 5px 0; }
+        .screen-time p { color: rgba(255,255,255,0.7); font-size: 13px; }
+
+        .bar {
+            height: 10px;
+            background: rgba(255,255,255,0.15);
+            border-radius: 99px;
+            overflow: hidden;
+            margin-top: 14px;
+        }
+
+        .bar i {
+            display: block;
+            width: 68%;
+            height: 100%;
+            background: linear-gradient(90deg, #ab58f4, #6B59D8);
+            border-radius: 99px;
+        }
+
+        .mini-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .mini {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 22px;
+            padding: 18px;
+        }
+
+        .mini span { font-size: 24px; }
+        .mini b { display: block; margin-top: 8px; color: #e8e8e8; }
+        .mini small { color: rgba(255,255,255,0.35); font-weight: 700; }
+
+        .floating {
+            position: absolute;
+            background: rgba(7, 9, 10, 0.9);
+            backdrop-filter: blur(24px);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 20px;
+            padding: 14px 16px;
+            box-shadow: 0 18px 50px rgba(0,0,0,0.3);
+            font-weight: 800;
+            color: #e8e8e8;
+        }
+
+        .float-1 { left: -38px; top: 70px; }
+        .float-2 { right: -26px; bottom: 92px; }
+        .floating small { display: block; color: rgba(255,255,255,0.35); font-weight: 700; }
+
+        /* Sections */
+        section { padding: 80px 0; }
+        section:last-of-type { padding-bottom: 0; }
+
+        .section-head {
+            text-align: center;
+            max-width: 740px;
+            margin: 0 auto 42px;
+        }
+
+        .section-head h2 {
+            font-size: clamp(32px, 4vw, 52px);
+            line-height: 1.05;
+            letter-spacing: -0.055em;
+            margin: 12px 0 14px;
+        }
+
+        .section-head p { color: rgba(255,255,255,0.45); font-size: 18px; }
+
+        /* Features */
+        .features {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 18px;
+        }
+
+        .feature {
+            background: rgba(7, 9, 10, 0.7);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 28px;
+            padding: 28px;
+            transition: .22s ease;
+        }
+
+        .feature:hover {
+            transform: translateY(-4px);
+            border-color: rgba(74, 55, 182, 0.2);
+        }
+
+        .icon {
+            width: 54px;
+            height: 54px;
+            border-radius: 18px;
+            display: grid;
+            place-items: center;
+            background: rgba(74, 55, 182, 0.12);
+            font-size: 26px;
+            line-height: 1;
+            font-size: 25px;
+            margin-bottom: 20px;
+        }
+
+        .feature h3 {
+            font-size: 21px;
+            letter-spacing: -0.03em;
+            margin-bottom: 9px;
+            color: #e8e8e8;
+        }
+
+        .feature p { color: rgba(255,255,255,0.4); }
+
+        /* Split section (how it works) */
+        .split {
+            display: grid;
+            grid-template-columns: 0.95fr 1.05fr;
+            gap: 36px;
+            align-items: center;
+        }
+
+        .panel {
+            background: rgba(7, 9, 10, 0.7);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 34px;
+            padding: 30px;
+        }
+
+        .list { display: grid; gap: 16px; }
+
+        .list-item {
+            display: flex;
+            gap: 14px;
+            align-items: flex-start;
+        }
+
+        .check {
+            width: 28px;
+            height: 28px;
+            min-width: 28px;
+            border-radius: 9px;
+            background: rgba(74, 55, 182, 0.15);
+            color: #8b7cf0;
+            display: grid;
+            place-items: center;
+            font-weight: 900;
+        }
+
+        .list-item b { display: block; margin-bottom: 2px; color: #e8e8e8; }
+        .list-item p { color: rgba(255,255,255,0.4); }
+
+        .mock-window {
+            background: #0a0c0e;
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 30px;
+            padding: 16px;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.3);
+        }
+
+        .window-top {
+            display: flex;
+            gap: 7px;
+            margin: 4px 0 16px;
+        }
+
+        .window-top i {
+            width: 11px;
+            height: 11px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.15);
+        }
+
+        .window-body {
+            background: rgba(7, 9, 10, 0.6);
+            border-radius: 22px;
+            padding: 20px;
+        }
+
+        .window-body h3 { font-size: 24px; letter-spacing: -0.04em; margin-bottom: 16px; }
+
+        .timeline { display: grid; gap: 13px; }
+
+        .event {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 14px;
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 17px;
+        }
+
+        .event strong { font-size: 14px; color: #d0d0d0; }
+
+        .tag {
+            font-size: 12px;
+            font-weight: 900;
+            border-radius: 99px;
+            padding: 6px 10px;
+        }
+
+        .tag.ok { background: rgba(108, 89, 216, 0.15); color: #8b7cf0; }
+        .tag.warn { background: rgba(255, 176, 32, 0.12); color: #ffb020; }
+        .tag.block { background: rgba(239, 68, 68, 0.12); color: #ef4444; }
+
+        /* Pricing */
+        .price-card {
+            max-width: 520px;
+            margin: 0 auto;
+            background: rgba(7, 9, 10, 0.8);
+            backdrop-filter: blur(40px) saturate(180%);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 36px;
+            padding: 34px;
+            box-shadow: 0 24px 70px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .badge {
+            position: absolute;
+            right: 26px;
+            top: 26px;
+            background: linear-gradient(135deg, #4a37b6, #ab58f4);
+            color: #fff;
+            border-radius: 999px;
+            padding: 8px 12px;
+            font-size: 12px;
+            font-weight: 900;
+        }
+
+        .price {
+            display: flex;
+            align-items: flex-end;
+            gap: 8px;
+            margin: 18px 0;
+        }
+
+        .price strong {
+            font-size: 62px;
+            letter-spacing: -0.06em;
+            background: linear-gradient(135deg, #4a37b6, #ab58f4);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .price span { color: rgba(255,255,255,0.35); font-weight: 800; margin-bottom: 14px; }
+
+        .price-card ul {
+            list-style: none;
+            display: grid;
+            gap: 13px;
+            margin: 24px 0 28px;
+        }
+
+        .price-card li {
+            display: flex;
+            gap: 10px;
+            color: rgba(255,255,255,0.6);
+            font-weight: 700;
+        }
+
+        .price-card li:before {
+            content: "?";
+            color: #8b7cf0;
+            font-weight: 900;
+        }
+
+        .price-card .btn { width: 100%; }
+
+        .guarantee {
+            text-align: center;
+            color: rgba(255,255,255,0.3);
+            font-size: 13px;
+            font-weight: 700;
+            margin-top: 16px;
+        }
+
+        /* FAQ */
+        .faq {
+            max-width: 750px;
+            margin: auto;
+            display: grid;
+            gap: 14px;
+        }
+
+        .faq details {
+            background: rgba(7, 9, 10, 0.6);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 22px;
+            padding: 20px 22px;
+        }
+
+        .faq summary {
+            font-weight: 700;
+            cursor: pointer;
+            color: #d0d0d0;
+            transition: color 0.3s ease;
+            list-style: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .faq summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .faq summary::after {
+            content: "+";
+            color: #6B59D8;
+            font-size: 20px;
+            font-weight: 700;
+            margin-left: 12px;
+            transition: transform 0.3s ease;
+        }
+
+        details[open] > .faq summary::after {
+            content: "-";
+        }
+
+        .faq summary:hover { color: #ab58f4; }
+
+        .faq p {
+            color: rgba(255,255,255,0.4);
+            margin-top: 12px;
+            line-height: 1.6;
+        }
+
+        /* CTA */
+        .cta-box {
+            background: linear-gradient(135deg, #1a0f4e, #4a37b6 55%, #ab58f4);
+            border-radius: 38px;
+            padding: 48px;
+            color: #fff;
+            text-align: center;
+            box-shadow: 0 30px 80px rgba(74, 55, 182, 0.25);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .cta-box:before {
+            content: "";
+            position: absolute;
+            inset: -90px auto auto -70px;
+            width: 240px;
+            height: 240px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.08);
+        }
+
+        .cta-box h2 {
+            font-size: clamp(32px, 4vw, 52px);
+            line-height: 1.05;
+            letter-spacing: -0.055em;
+            margin-bottom: 14px;
+        }
+
+        .cta-box p {
+            opacity: .85;
+            max-width: 650px;
+            margin: 0 auto 26px;
+            font-size: 18px;
+        }
+
+        .cta-box .btn {
+            background: #fff;
+            color: #4a37b6;
+        }
+
+        .cta-box .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 24px 44px rgba(0,0,0,0.2);
+        }
+
+        /* Footer */
+        footer {
+            padding: 34px 0;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            color: rgba(255,255,255,0.3);
+            font-size: 14px;
+        }
+
+        .footer-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 18px;
+            flex-wrap: wrap;
+        }
+
+        .footer-links a { color: rgba(255,255,255,0.3); transition: color 0.3s; }
+        .footer-links a:hover { color: #ab58f4; }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .floating { display: none; }
+        }
+
+        @media (max-width: 900px) {
+            .navlinks { display: none; }
+            .hero-grid,
+            .split { grid-template-columns: 1fr; }
+            .hero { padding: 48px 0; }
+            .features { grid-template-columns: 1fr 1fr; }
+            .dashboard-wrap { max-width: 420px; margin: 0 auto; }
+        }
+
+        @media (max-width: 620px) {
+            .features { grid-template-columns: 1fr; }
+            .hero-actions .btn { width: 100%; }
+            .mini-grid { grid-template-columns: 1fr; }
+            .price-card { padding: 26px; }
+            .badge { position: static; display: inline-flex; margin-bottom: 12px; }
+            .cta-box { padding: 34px 22px; }
+            .footer-row { display: grid; gap: 12px; }
+            .price strong { font-size: 48px; }
+            .price span { font-size: 14px; }
+            section { padding: 60px 0; }
+        }
+
+        @media (max-width: 400px) {
+            .hero h1 { font-size: 32px; }
+            .section-head h2 { font-size: 24px; }
+            .price-card { padding: 20px; }
+        }
+    </style>
+    <script src="/js/clarity-id.js"></script>
+    <script src="/js/zs-analytics.js" defer></script>
+</head>
+<body>
+
+    <canvas id="matrix-canvas"></canvas>
+
+    <header>
+        <div class="container nav">
+            <a href="#" class="brand"><span class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg></span> Famguard</a>
+            <nav class="navlinks">
+                <a href="#features">Features</a>
+                <a href="#how">How it works</a>
+                <a href="#pricing">Pricing</a>
+                <a href="#faq">FAQ</a>
+            </nav>
+            <a class="btn btn-primary" href="https://pay.mycheckoutt.com/019ada55-17e9-7319-bb0e-2b61b337a943">Get Started</a>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="container hero-grid">
+                <div>
+                    <span class="pill">⭐ Trusted by 12,000+ parents worldwide</span>
+                    <h1>Raise digitally confident kids with <span class="gradient-text">Famguard</span>.</h1>
+                    <p class="lead">Famguard helps families build balanced digital habits. Manage screen time, discover educational apps, and stay connected with your child's online world.</p>
+                    <div class="hero-actions">
+                        <a class="btn btn-primary" href="https://pay.mycheckoutt.com/019ada55-17e9-7319-bb0e-2b61b337a943">Get Famguard for $47</a>
+                        <a class="btn btn-secondary" href="#features">See How It Works</a>
+                    </div>
+                    <div class="micro">
+                        <span><i class="dot"></i> 30-day money-back guarantee</span>
+                        <span><i class="dot"></i> Setup in under 5 minutes</span>
+                        <span><i class="dot"></i> No monthly subscriptions</span>
+                    </div>
+                </div>
+
+                <div class="dashboard-wrap">
+                    <div class="blob"></div>
+                    <div class="floating float-1">Safe search: ON <small>Web safety active</small></div>
+                    <div class="floating float-2">3 updates today <small>View summary</small></div>
+                    <div class="phone-card">
+                        <div class="app-top">
+                            <div class="user">
+                                <div class="avatar">📱</div>
+                                <div><b>Emma's Device</b><small>Online · Connected</small></div>
+                            </div>
+                            <div class="score">Safe</div>
+                        </div>
+                        <div class="screen-time">
+                            <small>Today's screen time</small>
+                            <h3>2h 14m</h3>
+                            <p>Daily limit set to 3 hours</p>
+                            <div class="bar"><i></i></div>
+                        </div>
+                        <div class="mini-grid">
+                            <div class="mini"><span>🛡️</span><b>Web safety</b><small>14 categories filtered</small></div>
+                            <div class="mini"><span>📍</span><b>Check-in</b><small>Arrived: Home</small></div>
+                            <div class="mini"><span>🎮</span><b>Apps</b><small>Games on schedule</small></div>
+                            <div class="mini"><span>📊</span><b>Insights</b><small>Daily summary ready</small></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="features">
+            <div class="container">
+                <div class="section-head">
+                    <span class="pill">Digital wellness tools</span>
+                    <h2>Everything you need to raise digitally confident kids.</h2>
+                    <p>Simple, family-friendly tools that help you guide screen time, encourage healthy habits, and stay connected with what matters most.</p>
+                </div>
+                <div class="features">
+                    <div class="feature"><div class="icon">⏱️</div><h3>Screen Time Balance</h3><p>Set daily routines that adapt to school days, weekends and bedtime. Help your child build a healthy relationship with screens, naturally.</p></div>
+                    <div class="feature"><div class="icon">📱</div><h3>App Management</h3><p>Choose which apps are available during homework or rest hours. Simple schedules that the whole family can agree on.</p></div>
+                    <div class="feature"><div class="icon">🛡️</div><h3>Web Safety</h3><p>Automatically filter inappropriate content with 35+ safety categories. Just set it and forget it.</p></div>
+                    <div class="feature"><div class="icon">🔔</div><h3>Friendly Notifications</h3><p>Receive helpful updates about new apps, screen time milestones, and content that may need a conversation.</p></div>
+                    <div class="feature"><div class="icon">📍</div><h3>Family Check-In</h3><p>Know when your child arrives at school or a friend's house. Peace of mind for busy parents.</p></div>
+                    <div class="feature"><div class="icon">📊</div><h3>Daily Insights</h3><p>Get a simple overview of screen time, favorite apps and browsing habits. Stay informed without the complexity.</p></div>
+                </div>
+            </div>
+        </section>
+
+        <section id="how">
+            <div class="container split">
+                <div class="panel">
+                    <span class="pill">Built for busy parents</span>
+                    <div style="height:16px"></div>
+                    <h2 style="font-size:clamp(28px,3.5vw,42px);line-height:1.08;letter-spacing:-.05em;margin-bottom:18px">Set up in 5 minutes. Start today.</h2>
+                    <div class="list">
+                        <div class="list-item"><span class="check">1</span><div><b>Create your family profile</b><p>Add each child and their device. Famguard suggests age-appropriate settings automatically.</p></div></div>
+                        <div class="list-item"><span class="check">2</span><div><b>Install the app</b><p>Download Famguard on their device and follow the simple 3-step setup with on-screen guidance.</p></div></div>
+                        <div class="list-item"><span class="check">3</span><div><b>Customize preferences</b><p>Adjust screen time, bedtime schedules, content filters and family check-in preferences.</p></div></div>
+                        <div class="list-item"><span class="check">4</span><div><b>Stay informed daily</b><p>Receive a clear daily overview. Know how your family is doing digitally, without guesswork.</p></div></div>
+                    </div>
+                </div>
+                <div class="mock-window">
+                    <div class="window-top"><i></i><i></i><i></i></div>
+                    <div class="window-body">
+                        <h3>Today's family activity</h3>
+                        <div class="timeline">
+                            <div class="event"><strong>Educational apps used for 42 minutes</strong><span class="tag ok">Balanced</span></div>
+                            <div class="event"><strong>Gaming time reached 35 minute limit</strong><span class="tag warn">Paused</span></div>
+                            <div class="event"><strong>Adult content category filtered</strong><span class="tag block">Filtered</span></div>
+                            <div class="event"><strong>Arrived at home</strong><span class="tag ok">Check-in</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="pricing">
+            <div class="container">
+                <div class="section-head">
+                    <span class="pill">One simple plan</span>
+                    <h2>Start your family's digital wellness journey today.</h2>
+                    <p>No monthly bills. One payment unlocks everything for your whole family, forever.</p>
+                </div>
+                <div class="price-card">
+                    <span class="badge">Best value</span>
+                    <h3 style="font-size:28px;letter-spacing:-.04em">Famguard Family Plan</h3>
+                    <p style="color:rgba(255,255,255,0.4);margin-top:6px">Digital wellness tools for the whole family.</p>
+                    <div class="price"><strong>$47</strong><span>one-time   lifetime access</span></div>
+                    <ul>
+                        <li>Screen time balance and routines</li>
+                        <li>Web safety (35+ categories)</li>
+                        <li>App management tools</li>
+                        <li>Family check-in feature</li>
+                        <li>Daily insights & friendly notifications</li>
+                        <li>Works on unlimited devices</li>
+                        <li>Free updates forever</li>
+                    </ul>
+                    <a class="btn btn-primary" href="https://pay.mycheckoutt.com/019ada55-17e9-7319-bb0e-2b61b337a943">Get Famguard for $47</a>
+                    <p class="guarantee">✅ 30-day money-back guarantee · Secure checkout · Instant access</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="faq">
+            <div class="container">
+                <div class="section-head">
+                    <span class="pill">Questions</span>
+                    <h2>Frequently asked questions</h2>
+                </div>
+                <div class="faq">
+                    <details open><summary>Will my child know I'm using Famguard?</summary><p>Famguard is designed for open communication. We encourage parents to talk with their children about digital wellness. The goal is guidance and trust, not secrecy.</p></details>
+                    <details><summary>Can Famguard access private messages or photos?</summary><p>No. Famguard does not read messages, view photos, or access private conversations. We believe in respectful parenting. You get insights into screen time, apps used and websites visited.</p></details>
+                    <details><summary>Does this work on both iPhone and Android?</summary><p>Yes. Famguard works on iOS and Android devices. Setup takes less than 5 minutes on both platforms with simple on-screen instructions.</p></details>
+                    <details><summary>What if I'm not satisfied?</summary><p>We offer a 30-day money-back guarantee. If Famguard doesn't meet your expectations, we'll refund 100% of your payment.</p></details>
+                    <details><summary>Is it a subscription? Will I be charged again?</summary><p>No. Famguard is a one-time payment of $47. No monthly fees, no renewals. Lifetime access with free updates forever.</p></details>
+                    <details><summary>Can I use Famguard for multiple children?</summary><p>Yes. Your single purchase covers unlimited devices. Add each child with their own personalized settings and separate daily insights.</p></details>
+                </div>
+            </div>
+        </section>
+
+        <section class="cta">
+            <div class="container">
+                <div class="cta-box">
+                    <h2>Your family's digital wellness starts today.</h2>
+                    <p>Join 12,000+ families who already use Famguard. One payment. Lifetime access. 30-day risk-free guarantee.</p>
+                    <a class="btn" href="https://pay.mycheckoutt.com/019ada55-17e9-7319-bb0e-2b61b337a943">Get Famguard for $47</a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container footer-row">
+            <p>&copy; 2026 Famguard. All rights reserved.</p>
+            <div class="footer-links">
+                <a href="#">Privacy Policy</a>
+                <a href="#">Terms</a>
+                <a href="#">Support</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Matrix Rain Effect
+        (function() {
+            var canvas = document.getElementById('matrix-canvas');
+            var ctx = canvas.getContext('2d');
+            var w, h, columns, drops;
+
+            function resize() {
+                w = canvas.width = window.innerWidth;
+                h = canvas.height = window.innerHeight;
+                columns = Math.floor(w / 14);
+                drops = Array(columns).fill(1);
+            }
+
+            resize();
+            window.addEventListener('resize', resize);
+
+            var chars = 'ｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝ0123456789';
+
+            function draw() {
+                ctx.fillStyle = 'rgba(4, 6, 7, 0.05)';
+                ctx.fillRect(0, 0, w, h);
+                ctx.fillStyle = '#6B59D8';
+                ctx.font = '13px monospace';
+
+                for (var i = 0; i < drops.length; i++) {
+                    var char = chars[Math.floor(Math.random() * chars.length)];
+                    ctx.fillText(char, i * 14, drops[i] * 14);
+                    if (drops[i] * 14 > h && Math.random() > 0.975) {
+                        drops[i] = 0;
+                    }
+                    drops[i]++;
+                }
+            }
+
+            setInterval(draw, 45);
+        })();
+
+        // Smooth scroll
+        document.querySelectorAll('a[href^="#"]').forEach(function(a) {
+            a.addEventListener('click', function(e) {
+                e.preventDefault();
+                var target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        });
+    </script>
+
+<script src="/js/zs-analytics.js" defer></script></body>
+</html>

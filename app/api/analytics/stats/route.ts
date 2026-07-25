@@ -1,0 +1,863 @@
+import { NextRequest, NextResponse } from "next/server";
+import {
+  getPresenceList,
+  getEventsInRange,
+  FUNNEL_ORDER,
+  STAGE_LABELS,
+  STAGE_RANK,
+  maxStageOf,
+  getStorageBackend,
+  normalizePagePath,
+} from "@/lib/analytics/store";
+import { REASON_LABELS } from "@/utils/ContentFilter";
+import { displayReasonFallback } from "@/lib/analytics/reason";
+
+export const dynamic = "force-dynamic";
+
+function unauthorized() {
+  return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+}
+
+/** Read utm_* from a path+query string when stored fields are empty */
+function utmsFromPage(page?: string): {
+  source: string;
+  medium: string;
+  campaign: string;
+  content: string;
+  term: string;
+} {
+  const empty = { source: "", medium: "", campaign: "", content: "", term: "" };
+  if (!page) return empty;
+  try {
+    const q = page.includes("?") ? page.slice(page.indexOf("?")) : page;
+    const sp = new URLSearchParams(
+      q.startsWith("?") ? q : page.includes("=") ? `?${q}` : ""
+    );
+    return {
+      source: sp.get("utm_source") || "",
+      medium: sp.get("utm_medium") || "",
+      campaign: sp.get("utm_campaign") || "",
+      content: sp.get("utm_content") || "",
+      term: sp.get("utm_term") || "",
+    };
+  } catch {
+    return empty;
+  }
+}
+
+function resolveUtms(row: {
+  utmSource?: string;
+  utmMedium?: string;
+  utmCampaign?: string;
+  source?: string;
+  page?: string;
+  landing?: string;
+}) {
+  const fromPage = utmsFromPage(row.page || row.landing || "");
+  const source =
+    row.utmSource || fromPage.source || row.source || "direct" || "";
+  const medium = row.utmMedium || fromPage.medium || "";
+  // Decode common double-encoded campaign names for readability
+  let campaign = row.utmCampaign || fromPage.campaign || "";
+  try {
+    campaign = decodeURIComponent(campaign.replace(/\+/g, " "));
+  } catch {
+    /* keep raw */
+  }
+  let content = fromPage.content || "";
+  let term = fromPage.term || "";
+  try {
+    content = content ? decodeURIComponent(content.replace(/\+/g, " ")) : "";
+    term = term ? decodeURIComponent(term.replace(/\+/g, " ")) : "";
+  } catch {
+    /* keep */
+  }
+  return {
+    source: source || "—",
+    medium: medium || "—",
+    campaign: campaign || "—",
+    content: content || "—",
+    term: term || "—",
+  };
+}
+
+function checkAuth(req: NextRequest): boolean {
+  const secret = process.env.DASHBOARD_SECRET || "1234";
+  const header = req.headers.get("x-dashboard-secret") || "";
+  const q = req.nextUrl.searchParams.get("key") || "";
+  return header === secret || q === secret;
+}
+
+/** Calendar day bounds in America/Sao_Paulo (avoids UTC "hoje" wiping history) */
+function dayBoundsInTZ(
+  dayOffset: number,
+  timeZone = "America/Sao_Paulo"
+): { from: number; to: number } {
+  const now = new Date();
+  const fmt = new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+  // en-CA → YYYY-MM-DD
+  const parts = fmt.formatToParts(now);
+  const y = Number(parts.find((p) => p.type === "year")?.value);
+  const m = Number(parts.find((p) => p.type === "month")?.value);
+  const d = Number(parts.find((p) => p.type === "day")?.value);
+  // Build noon UTC then shift by dayOffset, then get that calendar day in TZ via offset
+  const base = new Date(Date.UTC(y, m - 1, d + dayOffset, 12, 0, 0));
+  const ymd = fmt.format(base); // YYYY-MM-DD in Sao Paulo
+  // Approximate: SP is UTC-3 (no need DST precision for panel ranges)
+  const from = new Date(`${ymd}T00:00:00-03:00`).getTime();
+  const to = new Date(`${ymd}T23:59:59.999-03:00`).getTime();
+  return { from, to };
+}
+
+function resolveRange(req: NextRequest): { from: number; to: number; range: string } {
+  const now = Date.now();
+  const range = req.nextUrl.searchParams.get("range") || "today";
+  const fromQ = req.nextUrl.searchParams.get("from");
+  const toQ = req.nextUrl.searchParams.get("to");
+
+  if (range === "custom" && fromQ && toQ) {
+    const from = new Date(fromQ + "T00:00:00-03:00").getTime();
+    const to = new Date(toQ + "T23:59:59.999-03:00").getTime();
+    return { from, to, range: "custom" };
+  }
+
+  if (range === "yesterday") {
+    const { from, to } = dayBoundsInTZ(-1);
+    return { from, to, range };
+  }
+  if (range === "7d") {
+    return { from: now - 7 * 24 * 60 * 60 * 1000, to: now, range };
+  }
+  if (range === "14d") {
+    return { from: now - 14 * 24 * 60 * 60 * 1000, to: now, range };
+  }
+  if (range === "all") {
+    return { from: 0, to: now, range: "all" };
+  }
+  // today (America/Sao_Paulo)
+  const { from } = dayBoundsInTZ(0);
+  return { from, to: now, range: "today" };
+}
+
+export async function GET(req: NextRequest) {
+  if (!checkAuth(req)) return unauthorized();
+
+  const { from, to, range } = resolveRange(req);
+  const presence = await getPresenceList();
+  // Load by range in DB (not "last N global") so yesterday never vanishes under today's volume
+  const events = await getEventsInRange(from, to, 15_000);
+  const now = Date.now();
+  const storage = getStorageBackend();
+
+  // Online by stage
+  const onlineByStage: Record<string, number> = {};
+  const onlineByLayer = { white: 0, black: 0, unknown: 0 };
+  const onlineBySource: Record<string, number> = {};
+  for (const p of presence) {
+    onlineByStage[p.stage] = (onlineByStage[p.stage] || 0) + 1;
+    onlineByLayer[p.layer] = (onlineByLayer[p.layer] || 0) + 1;
+    const src = p.utmSource || p.source || "direct";
+    onlineBySource[src] = (onlineBySource[src] || 0) + 1;
+  }
+
+  // Unique visitors who hit each stage in range
+  const stageVisitors: Record<string, Set<string>> = {};
+  const layerCounts = { white: 0, black: 0, unknown: 0 };
+  const layerVisitors = {
+    white: new Set<string>(),
+    black: new Set<string>(),
+    unknown: new Set<string>(),
+  };
+  // All breakdowns = unique visitors (never double-count the same person)
+  const sourceVisitors: Record<string, Set<string>> = {};
+  const campaignVisitors: Record<string, Set<string>> = {};
+  const landingVisitors: Record<string, Set<string>> = {};
+  const reasonVisitors: Record<string, Set<string>> = {};
+  const botHumanVisitors = {
+    bot: new Set<string>(),
+    human: new Set<string>(),
+    unknown: new Set<string>(),
+  };
+  const paramVisitors = {
+    withParam: new Set<string>(),
+    withoutParam: new Set<string>(),
+  };
+  /** Unique black-layer visitors per country code */
+  const blackCountryVisitors: Record<string, Set<string>> = {};
+  /** Unique pageviews: visitorId + path (one view per person per page) */
+  const uniquePageviewKeys = new Set<string>();
+  /** Latest event per visitor (for unique feed) — events are newest-first */
+  const latestByVisitor = new Map<string, (typeof events)[0]>();
+
+  /** Real offer checkout only (step6 / CTA — not earlier funnel steps) */
+  function isRealCheckoutEvent(e: (typeof events)[0]): boolean {
+    const page = (e.page || "").toLowerCase();
+    if (
+      page.includes("step2") ||
+      page.includes("step3") ||
+      page.includes("step4") ||
+      page.includes("step5") ||
+      page.includes("conversas") ||
+      page.includes("/chat") ||
+      page.includes("phone.html")
+    ) {
+      return false;
+    }
+    const onCta =
+      page.includes("step6") ||
+      page.includes("cta-unified") ||
+      page.includes("/cta") ||
+      page.includes("offer") ||
+      page.includes("backredirect");
+    if (e.type === "checkout_click" && (onCta || e.stage === "checkout" || e.stage === "cta"))
+      return true;
+    if (e.stage === "checkout" && e.type === "pageview" && onCta) {
+      const m = e.meta || {};
+      return (
+        m.value != null ||
+        m.tier != null ||
+        m.planLabel != null ||
+        m.checkoutValue != null
+      );
+    }
+    return false;
+  }
+
+  function effectiveStage(e: (typeof events)[0]): string {
+    // Demote false checkout stages from conversas "unlock" clicks
+    if (e.stage === "checkout" && !isRealCheckoutEvent(e)) {
+      const page = (e.page || "").toLowerCase();
+      if (page.includes("conversas")) return "conversas";
+      if (page.includes("chat")) return "chat";
+      if (page.includes("phone")) return "phone";
+      return "cta";
+    }
+    return e.stage;
+  }
+
+  /** Black funnel + not bot (human / unknown device, never Bot) */
+  function isBlackHumanEvent(e: (typeof events)[0]): boolean {
+    if (e.layer !== "black") return false;
+    if (e.isBot === true) return false;
+    if (e.meta?.isBot === true) return false;
+    if (e.device === "Bot") return false;
+    return true;
+  }
+
+  // Max stage per visitor (for cumulative funnel)
+  const visitorMaxStage: Record<string, string> = {};
+  for (const e of events) {
+    const st = effectiveStage(e);
+    const cur = visitorMaxStage[e.visitorId];
+    visitorMaxStage[e.visitorId] = cur ? maxStageOf(cur, st) : st;
+  }
+
+  for (const e of events) {
+    const st = effectiveStage(e);
+    if (!stageVisitors[st]) stageVisitors[st] = new Set();
+    stageVisitors[st].add(e.visitorId);
+
+    if (e.type === "layer" || e.type === "pageview") {
+      layerVisitors[e.layer]?.add(e.visitorId);
+    }
+
+    // Black page access ranking by country (unique people)
+    if (e.layer === "black") {
+      const cc = (e.country || "??").toUpperCase().slice(0, 8) || "??";
+      if (!blackCountryVisitors[cc]) blackCountryVisitors[cc] = new Set();
+      blackCountryVisitors[cc].add(e.visitorId);
+    }
+
+    if (e.type === "pageview") {
+      uniquePageviewKeys.add(
+        `${e.visitorId}|${normalizePagePath(e.page || e.landing || "/")}`
+      );
+    }
+
+    if (e.type === "layer") {
+      const reason = String(
+        e.reasonLabel ||
+          e.reason ||
+          e.meta?.reasonLabel ||
+          e.meta?.reason ||
+          "unknown"
+      );
+      const key = String(REASON_LABELS[reason] || reason);
+      if (!reasonVisitors[key]) reasonVisitors[key] = new Set();
+      reasonVisitors[key].add(e.visitorId);
+
+      if (e.isBot === true || e.meta?.isBot === true) {
+        botHumanVisitors.bot.add(e.visitorId);
+      } else if (e.meta?.isHuman === true) {
+        botHumanVisitors.human.add(e.visitorId);
+      } else {
+        botHumanVisitors.unknown.add(e.visitorId);
+      }
+
+      if (
+        e.hasParam === true ||
+        e.meta?.hasCatParam === true ||
+        e.meta?.hasCatCookie === true
+      ) {
+        paramVisitors.withParam.add(e.visitorId);
+      } else {
+        paramVisitors.withoutParam.add(e.visitorId);
+      }
+    }
+
+    // Attribute source/landing once per visitor (first/newest event wins for sets)
+    const utm = resolveUtms(e);
+    if (!sourceVisitors[utm.source]) sourceVisitors[utm.source] = new Set();
+    sourceVisitors[utm.source].add(e.visitorId);
+
+    const land = e.landing || e.page || "/";
+    if (!landingVisitors[land]) landingVisitors[land] = new Set();
+    landingVisitors[land].add(e.visitorId);
+
+    // One feed row per unique visitor (events already newest-first)
+    if (!latestByVisitor.has(e.visitorId)) {
+      latestByVisitor.set(e.visitorId, e);
+    }
+  }
+
+  // Campaigns: unique black humans only.
+  // Campaign can sit on any of their events (newest wins); visitor must have black+human hit.
+  const blackHumanIds = new Set<string>();
+  for (const e of events) {
+    if (isBlackHumanEvent(e)) blackHumanIds.add(e.visitorId);
+  }
+  const campaignByVisitor = new Map<string, string>();
+  const eventsNewest = [...events].sort((a, b) => b.ts - a.ts);
+  for (const e of eventsNewest) {
+    if (campaignByVisitor.has(e.visitorId)) continue;
+    const utm = resolveUtms(e);
+    if (utm.campaign && utm.campaign !== "—") {
+      campaignByVisitor.set(e.visitorId, utm.campaign);
+    }
+  }
+  for (const [vid, camp] of campaignByVisitor) {
+    if (!blackHumanIds.has(vid)) continue;
+    if (!campaignVisitors[camp]) campaignVisitors[camp] = new Set();
+    campaignVisitors[camp].add(vid);
+  }
+
+  const sourceHistory: Record<string, number> = {};
+  for (const [k, set] of Object.entries(sourceVisitors)) {
+    sourceHistory[k] = set.size;
+  }
+  const campaignHistory: Record<string, number> = {};
+  for (const [k, set] of Object.entries(campaignVisitors)) {
+    campaignHistory[k] = set.size;
+  }
+  const landingHistory: Record<string, number> = {};
+  for (const [k, set] of Object.entries(landingVisitors)) {
+    landingHistory[k] = set.size;
+  }
+  const reasonCounts: Record<string, number> = {};
+  for (const [k, set] of Object.entries(reasonVisitors)) {
+    reasonCounts[k] = set.size;
+  }
+  const botHuman = {
+    bot: botHumanVisitors.bot.size,
+    human: botHumanVisitors.human.size,
+    unknown: botHumanVisitors.unknown.size,
+  };
+  const paramStats = {
+    withParam: paramVisitors.withParam.size,
+    withoutParam: paramVisitors.withoutParam.size,
+  };
+  // Unique visitors only in history feed (max 100 people)
+  const recent = Array.from(latestByVisitor.values())
+    .sort((a, b) => b.ts - a.ts)
+    .slice(0, 100);
+
+  for (const k of Object.keys(layerVisitors) as (keyof typeof layerVisitors)[]) {
+    layerCounts[k] = layerVisitors[k].size;
+  }
+
+  // Cumulative funnel: if user reached CTA, count them in phone/conversas/chat too
+  const funnelStageSets: Record<string, Set<string>> = {};
+  for (const st of FUNNEL_ORDER) funnelStageSets[st] = new Set();
+
+  for (const [vid, maxSt] of Object.entries(visitorMaxStage)) {
+    const maxRank = STAGE_RANK[maxSt] ?? 0;
+    // Also count checkout_click as checkout stage
+    for (const st of FUNNEL_ORDER) {
+      const r = STAGE_RANK[st] ?? 0;
+      if (r > 0 && r <= maxRank) {
+        funnelStageSets[st].add(vid);
+      }
+    }
+  }
+  // Real CTA checkouts advance funnel to checkout (ignore conversas false positives)
+  for (const e of events) {
+    if (!isRealCheckoutEvent(e)) continue;
+    for (const st of FUNNEL_ORDER) {
+      const r = STAGE_RANK[st] ?? 0;
+      if (r > 0 && r <= (STAGE_RANK.checkout ?? 7)) {
+        funnelStageSets[st].add(e.visitorId);
+      }
+    }
+  }
+
+  const funnel = FUNNEL_ORDER.map((stage) => {
+    // Prefer cumulative; fall back to raw stage hits
+    const cum = funnelStageSets[stage]?.size || 0;
+    const raw = stageVisitors[stage]?.size || 0;
+    return {
+      stage,
+      label: STAGE_LABELS[stage] || stage,
+      unique: Math.max(cum, raw),
+    };
+  });
+  // Use first non-zero step as top for rates (entry often empty when black starts at phone)
+  const top =
+    funnel.find((f) => f.unique > 0)?.unique || funnel[0]?.unique || 0;
+  const funnelWithRate = funnel.map((f, i) => ({
+    ...f,
+    rateFromStart: top ? Math.round((f.unique / top) * 1000) / 10 : 0,
+    rateFromPrev:
+      i === 0
+        ? 100
+        : funnel[i - 1].unique
+          ? Math.round((f.unique / funnel[i - 1].unique) * 1000) / 10
+          : 0,
+  }));
+
+  // ALWAYS unique — never raw event counts
+  const uniques = new Set(events.map((e) => e.visitorId)).size;
+  const pageviews = uniquePageviewKeys.size; // 1× por visitante+página
+  const layerDecisions = new Set([
+    ...layerVisitors.white,
+    ...layerVisitors.black,
+    ...layerVisitors.unknown,
+  ]).size;
+
+  // --- Checkout: only REAL offer clicks (cta-unified) ---
+  const rawCheckoutClicks = events
+    .filter(isRealCheckoutEvent)
+    .sort((a, b) => b.ts - a.ts); // newest first
+
+  // Keep first seen (newest) event per visitorId
+  const checkoutByVisitor = new Map<string, (typeof rawCheckoutClicks)[0]>();
+  for (const e of rawCheckoutClicks) {
+    if (!checkoutByVisitor.has(e.visitorId)) {
+      checkoutByVisitor.set(e.visitorId, e);
+    }
+  }
+  const checkoutEvents = Array.from(checkoutByVisitor.values()).sort(
+    (a, b) => b.ts - a.ts
+  );
+  // Both metrics = unique people (one click per person)
+  const checkouts = checkoutEvents.length;
+  const checkoutUniques = checkoutEvents.length;
+
+  // Checkout history by day (YYYY-MM-DD) — unique people only
+  const checkoutByDayMap: Record<
+    string,
+    { clicks: number; uniques: Set<string> }
+  > = {};
+  for (const e of checkoutEvents) {
+    const day = new Date(e.ts).toISOString().slice(0, 10);
+    if (!checkoutByDayMap[day]) {
+      checkoutByDayMap[day] = { clicks: 0, uniques: new Set() };
+    }
+    checkoutByDayMap[day].clicks += 1;
+    checkoutByDayMap[day].uniques.add(e.visitorId);
+  }
+  const checkoutByDay = Object.entries(checkoutByDayMap)
+    .sort((a, b) => (a[0] < b[0] ? 1 : -1))
+    .map(([day, v]) => ({
+      day,
+      clicks: v.clicks,
+      uniquePeople: v.uniques.size,
+    }));
+
+  /**
+   * Prefer ad placement (Instagram_Feed, Facebook_Mobile_Reels…) over generic utm_source (fb).
+   * Reads meta.placement, URL params, or utm_content when it looks like Meta placement.
+   */
+  function looksLikePlacementLabel(s: string): boolean {
+    return /instagram|facebook|messenger|audience_network|an_|reels|stories|feed|right_hand|marketplace|video_feeds|instant_article|search|tech_other|mobile_feed|desktop_feed|explore|profile_feed|facebook_mobile|facebook_desktop|ig_|fb_/i.test(
+      s
+    );
+  }
+
+  function resolveCheckoutPlacement(e: (typeof checkoutEvents)[0]): string {
+    const meta = (e.meta || {}) as Record<string, unknown>;
+    const fromMeta = String(
+      meta.placement || meta.utm_placement || meta.adPlacement || ""
+    ).trim();
+    if (fromMeta) return fromMeta;
+
+    const fromPage = (() => {
+      try {
+        const raw = e.page || e.landing || "";
+        const q = raw.includes("?") ? raw.slice(raw.indexOf("?")) : "";
+        const sp = new URLSearchParams(q.startsWith("?") ? q : `?${q}`);
+        return (
+          sp.get("placement") ||
+          sp.get("utm_placement") ||
+          sp.get("publisher_platform") ||
+          sp.get("site_source_name") ||
+          ""
+        );
+      } catch {
+        return "";
+      }
+    })();
+    if (fromPage) return fromPage;
+
+    const u = resolveUtms(e);
+    const content = String(meta.utmContent || u.content || "").trim();
+    if (content && content !== "—" && looksLikePlacementLabel(content)) {
+      return content;
+    }
+
+    // Fallback: generic source only if no placement known
+    return u.source || e.utmSource || e.source || "direct";
+  }
+
+  // Checkout by placement / source — unique people (posicionamento Meta)
+  const checkoutBySourceMap: Record<string, number> = {};
+  for (const e of checkoutEvents) {
+    const src = resolveCheckoutPlacement(e);
+    checkoutBySourceMap[src] = (checkoutBySourceMap[src] || 0) + 1;
+  }
+
+  // Checkout by country — unique people who clicked offer checkout
+  const checkoutCountryVisitors: Record<string, Set<string>> = {};
+  for (const e of checkoutEvents) {
+    const cc = (e.country || "??").toUpperCase().slice(0, 8) || "??";
+    if (!checkoutCountryVisitors[cc]) checkoutCountryVisitors[cc] = new Set();
+    checkoutCountryVisitors[cc].add(e.visitorId);
+  }
+  const checkoutByCountry = Object.entries(checkoutCountryVisitors)
+    .map(([code, set]) => ({
+      code,
+      name: code,
+      count: set.size,
+    }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 30);
+
+  // Checkout by plan ($47 basic / $67 complete) — unique people
+  function resolvePlan(e: (typeof checkoutEvents)[0]): {
+    key: string;
+    label: string;
+    value: number | null;
+    tier: string | null;
+  } {
+    const meta = (e.meta || {}) as {
+      value?: number | string;
+      tier?: string;
+      planLabel?: string;
+      checkoutValue?: number | string;
+      checkoutTier?: string;
+      code?: string;
+    };
+    let value: number | null = null;
+    const rawVal = meta.value ?? meta.checkoutValue;
+    if (typeof rawVal === "number") value = rawVal;
+    else if (rawVal != null && rawVal !== "") value = Number(rawVal);
+    if (value != null && isNaN(value)) value = null;
+
+    let tier = (meta.tier || meta.checkoutTier || null) as string | null;
+    if (value == null && tier === "basic") value = 37;
+    if (value == null && tier === "complete") value = 67;
+    if (!tier && (value === 37 || value === 47)) tier = "basic";
+    if (!tier && value === 67) tier = "complete";
+    // Infer from page/code if still missing
+    if (value == null) {
+      const page = (e.page || "").toLowerCase();
+      const code = String(meta.code || "");
+      if (code.includes("EHD1") || page.includes("basic")) value = 37;
+      if (code.includes("94FJ") || code.includes("E961") || page.includes("complete"))
+        value = 67;
+    }
+    if (!tier && (value === 37 || value === 47)) tier = "basic";
+    if (!tier && value === 67) tier = "complete";
+
+    const label =
+      meta.planLabel ||
+      (value === 37 || value === 47
+        ? `$${value} Essentials`
+        : value === 67
+          ? "$67 Complete"
+          : value != null
+            ? `$${value}`
+            : tier || "Desconhecido");
+    const key =
+      value === 37 || value === 47
+        ? "37"
+        : value === 67
+          ? "67"
+          : tier || label || "unknown";
+    return { key, label, value, tier };
+  }
+
+  const checkoutByPlanMap: Record<
+    string,
+    { label: string; clicks: number; uniques: Set<string>; value: number | null }
+  > = {};
+  for (const e of checkoutEvents) {
+    const plan = resolvePlan(e);
+    if (!checkoutByPlanMap[plan.key]) {
+      checkoutByPlanMap[plan.key] = {
+        label: plan.label,
+        clicks: 0,
+        uniques: new Set(),
+        value: plan.value,
+      };
+    }
+    // already unique per visitor in checkoutEvents
+    checkoutByPlanMap[plan.key].clicks += 1;
+    checkoutByPlanMap[plan.key].uniques.add(e.visitorId);
+  }
+  const checkoutByPlan = Object.entries(checkoutByPlanMap)
+    .map(([key, v]) => ({
+      key,
+      label: v.label,
+      value: v.value,
+      clicks: v.clicks,
+      uniquePeople: v.uniques.size,
+    }))
+    .sort((a, b) => b.clicks - a.clicks);
+
+  // Feed: one row per unique person
+  const checkoutFeed = checkoutEvents.slice(0, 50).map((e) => {
+    const plan = resolvePlan(e);
+    const u = resolveUtms(e);
+    const placement = resolveCheckoutPlacement(e);
+    return {
+      id: e.id,
+      visitorId: e.visitorId.slice(0, 12),
+      page: e.page,
+      source: placement, // show placement (Instagram_Feed…) not only "fb"
+      placement,
+      utmSource: u.source,
+      utmCampaign: u.campaign,
+      utmMedium: u.medium,
+      country: e.country,
+      tier: plan.tier,
+      value: plan.value,
+      planLabel: plan.label,
+      ts: e.ts,
+    };
+  });
+
+
+  // Max stage per visitor in range (for history enrichment)
+  const maxStageByVisitor: Record<string, string> = {};
+  for (const e of events) {
+    const cur = maxStageByVisitor[e.visitorId];
+    maxStageByVisitor[e.visitorId] = cur
+      ? maxStageOf(cur, e.stage)
+      : e.stage;
+  }
+
+  // Latest layer decision reason per visitor (backfill for old presence)
+  const latestLayerByVisitor: Record<
+    string,
+    {
+      reason: string;
+      reasonLabel: string;
+      isBot: boolean | null;
+      hasParam: boolean | null;
+      layer: string;
+    }
+  > = {};
+  for (const e of events) {
+    if (e.type !== "layer") continue;
+    if (latestLayerByVisitor[e.visitorId]) continue; // events are newest-first
+    latestLayerByVisitor[e.visitorId] = {
+      reason: e.reason || String(e.meta?.reason || ""),
+      reasonLabel:
+        e.reasonLabel ||
+        String(e.meta?.reasonLabel || e.meta?.reason || ""),
+      isBot:
+        e.isBot ??
+        (typeof e.meta?.isBot === "boolean" ? (e.meta.isBot as boolean) : null),
+      hasParam:
+        e.hasParam ??
+        (typeof e.meta?.hasCatParam === "boolean"
+          ? (e.meta.hasCatParam as boolean)
+          : typeof e.meta?.hasCatCookie === "boolean"
+            ? (e.meta.hasCatCookie as boolean)
+            : null),
+      layer: e.layer,
+    };
+  }
+
+  const liveFeed = presence
+    .slice()
+    .sort((a, b) => b.ts - a.ts)
+    .slice(0, 50)
+    .map((p) => {
+      const back = latestLayerByVisitor[p.visitorId];
+      const layer = p.layer || back?.layer || "unknown";
+      const isBot =
+        p.isBot ??
+        back?.isBot ??
+        (p.device === "Bot" ? true : null);
+      const hasParam = p.hasParam ?? back?.hasParam ?? null;
+      const rawReason =
+        p.reasonLabel ||
+        p.reason ||
+        back?.reasonLabel ||
+        back?.reason ||
+        "";
+      const reasonLabel =
+        (rawReason && rawReason !== "—"
+          ? REASON_LABELS[rawReason] || rawReason
+          : "") ||
+        displayReasonFallback(layer, isBot, hasParam, p.device);
+      return {
+        visitorId: p.visitorId.slice(0, 14),
+        page: p.page,
+        stage: p.stage,
+        stageLabel: STAGE_LABELS[p.stage] || p.stage,
+        maxStage: p.maxStage || p.stage,
+        maxStageLabel:
+          STAGE_LABELS[p.maxStage || p.stage] || p.maxStage || p.stage,
+        layer,
+        ...(() => {
+          const u = resolveUtms(p);
+          return {
+            source: u.source,
+            utmSource: u.source,
+            utmMedium: u.medium,
+            utmCampaign: u.campaign,
+            utmContent: u.content,
+            utmTerm: u.term,
+          };
+        })(),
+        country: p.country || "—",
+        domain: p.domain || "—",
+        ip: p.ip || "—",
+        device: p.device || "—",
+        reason: reasonLabel,
+        isBot,
+        hasParam,
+        ts: p.ts,
+        when: new Date(p.ts).toISOString(),
+        agoSec: Math.round((now - p.ts) / 1000),
+      };
+    });
+
+  const historyFeed = recent.map((e) => {
+    const maxSt = maxStageByVisitor[e.visitorId] || e.stage;
+    const isBot =
+      e.isBot ??
+      (typeof e.meta?.isBot === "boolean" ? (e.meta.isBot as boolean) : null) ??
+      (e.device === "Bot" ? true : null);
+    const hasParam =
+      e.hasParam ??
+      (typeof e.meta?.hasCatParam === "boolean"
+        ? (e.meta.hasCatParam as boolean)
+        : typeof e.meta?.hasCatCookie === "boolean"
+          ? (e.meta.hasCatCookie as boolean)
+          : null);
+    const rawReason =
+      e.reasonLabel ||
+      e.reason ||
+      (e.meta?.reasonLabel as string) ||
+      (e.meta?.reason as string) ||
+      "";
+    const reason =
+      (rawReason && rawReason !== "—"
+        ? REASON_LABELS[rawReason] || rawReason
+        : "") ||
+      displayReasonFallback(e.layer, isBot, hasParam, e.device);
+    const u = resolveUtms(e);
+    return {
+      id: e.id,
+      type: e.type,
+      visitorId: e.visitorId.slice(0, 14),
+      page: e.page,
+      stage: e.stage,
+      stageLabel: STAGE_LABELS[e.stage] || e.stage,
+      maxStage: maxSt,
+      maxStageLabel: STAGE_LABELS[maxSt] || maxSt,
+      layer: e.layer,
+      source: u.source,
+      utmSource: u.source,
+      utmMedium: u.medium,
+      utmCampaign: u.campaign,
+      utmContent: u.content,
+      utmTerm: u.term,
+      landing: e.landing,
+      country: e.country || "—",
+      domain: e.domain || "—",
+      ip: e.ip || "—",
+      device: e.device || "—",
+      reason,
+      isBot,
+      hasParam,
+      ts: e.ts,
+      when: new Date(e.ts).toISOString(),
+    };
+  });
+
+  const sortObj = (o: Record<string, number>) =>
+    Object.entries(o)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 20)
+      .map(([name, count]) => ({ name, count }));
+
+  return NextResponse.json({
+    ok: true,
+    now,
+    storage,
+    range: { key: range, from, to, eventCount: events.length },
+    online: {
+      total: presence.length,
+      byStage: Object.entries(onlineByStage)
+        .map(([stage, count]) => ({
+          stage,
+          label: STAGE_LABELS[stage] || stage,
+          count,
+        }))
+        .sort((a, b) => b.count - a.count),
+      byLayer: onlineByLayer,
+      bySource: sortObj(onlineBySource),
+      liveFeed,
+    },
+    history: {
+      uniques,
+      pageviews,
+      checkouts,
+      checkoutUniques,
+      checkoutByDay,
+      checkoutBySource: sortObj(checkoutBySourceMap),
+      checkoutByCountry,
+      checkoutByPlan,
+      checkoutFeed,
+      layerDecisions,
+      layerUniques: layerCounts,
+      funnel: funnelWithRate,
+      sources: sortObj(sourceHistory),
+      campaigns: sortObj(campaignHistory),
+      blackCountries: Object.entries(blackCountryVisitors)
+        .map(([code, set]) => ({
+          code,
+          name: code,
+          count: set.size,
+        }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 30),
+      landings: sortObj(landingHistory),
+      reasons: sortObj(reasonCounts),
+      botHuman,
+      paramStats,
+      feed: historyFeed,
+    },
+    stageLabels: STAGE_LABELS,
+    reasonLabels: REASON_LABELS,
+  });
+}

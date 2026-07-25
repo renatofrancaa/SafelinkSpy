@@ -61,11 +61,18 @@ function buildForwardUrl(targetUrl, params) {
   return url.toString();
 }
 function navigateWithQuery(targetUrl, params) {
-  window.location.href = buildForwardUrl(targetUrl, params);
+  var url = buildForwardUrl(targetUrl, params);
+  // Internal funnel: replace history so Back cannot return to a previous step
+  var isExternal = /^https?:\/\//i.test(String(targetUrl || ''));
+  if (isExternal) {
+    window.location.href = url;
+  } else {
+    window.location.replace(url);
+  }
 }
 // End query forwarding helper
 </script>
-<script>(function(){function b(){history.pushState(null,null,location.href);}setTimeout(b,0);setTimeout(b,100);setTimeout(b,200);window.onpopstate=function(){/* block back — offer only on last step */b();};}());</script>
+<script src="/js/block-back.js" defer></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{--green:#25D366;--green-dark:#128C7E;--bg:#f0f2f5;--white:#fff;--text:#111b21;--text2:#667781;--border:#e9edef;--red:#ef4444;--shadow-lg:0 8px 32px rgba(0,0,0,.12);}
@@ -141,7 +148,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);min-height:100vh;displa
         <select id="csel" onchange="onCountryChange()"></select>
         <div class="caret"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
       </div>
-      <input type="tel" id="phone-inp" class="phone-inp" placeholder="Phone number" inputmode="numeric" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-lpignore="true" readonly/>
+      <input type="tel" id="phone-inp" class="phone-inp" name="sl_phone_national" placeholder="Phone number" inputmode="numeric" autocomplete="one-time-code" autocorrect="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-form-type="other" data-1p-ignore="true" readonly/>
     </div>
     <div class="hint" id="hint">E.g.: (555) 123-4567</div>
     <button class="cta" id="spy-btn" onclick="startSpy()">
@@ -312,23 +319,14 @@ function prioritizeCountry(iso) {
 
   current = countries[0];
   renderCountryBtn();
-  // Keep phone field empty after auto-detect (DDI is only on the country chip)
-  phoneDigits = '';
-  var pinp = document.getElementById('phone-inp');
-  if (pinp && !pinp.dataset.userTyped) {
-    pinp.value = '';
+  // Never auto-fill the national/DDD field — only DDI on the country chip
+  if (typeof clearPhoneIfNotUserTyped === 'function') {
+    clearPhoneIfNotUserTyped();
+  } else {
+    phoneDigits = '';
+    var pinp = document.getElementById('phone-inp');
+    if (pinp && !pinp.dataset.userTyped) pinp.value = '';
   }
-  // Re-check shortly after: guards against a mobile keyboard/in-app-browser
-  // autofill dumping the dial code into the field right after we clear it.
-  function clearIfUntouched() {
-    if (pinp && !pinp.dataset.userTyped && pinp.value !== '') {
-      phoneDigits = '';
-      pinp.value = '';
-    }
-  }
-  setTimeout(clearIfUntouched, 150);
-  setTimeout(clearIfUntouched, 500);
-  setTimeout(clearIfUntouched, 1200);
   return true;
 }
 
@@ -344,11 +342,13 @@ function onCountryChange() {
   var idx = parseInt(document.getElementById('csel').value, 10);
   current = countries[idx];
   renderCountryBtn();
-  // Clear national number when country changes (avoid leftover dial-code digits)
+  // Changing country resets national/DDD — user must retype intentionally
   phoneDigits = '';
   var inp = document.getElementById('phone-inp');
-  if (inp) inp.value = '';
-  if (typeof setPhoneDigits === 'function') setPhoneDigits('');
+  if (inp) {
+    inp.value = '';
+    delete inp.dataset.userTyped;
+  }
 }
 
 function updateHint() {
@@ -441,6 +441,7 @@ function detectCountry() {
 
 // Phone field: mask is visual only. Edits always work on digits so delete never sticks on "-".
 // National number only — never include country dial code (e.g. BR "55") in this field.
+// CRITICAL: never auto-fill DDD/number. Only accept digits the user typed or pasted.
 var phoneDigits = '';
 
 function maxPhoneDigits() {
@@ -449,9 +450,22 @@ function maxPhoneDigits() {
   return 15;
 }
 
+function isUserTypedPhone() {
+  var inp = document.getElementById('phone-inp');
+  return !!(inp && inp.dataset.userTyped === '1');
+}
+
+/** Wipe national field unless the user has already typed/pasted. */
+function clearPhoneIfNotUserTyped() {
+  if (isUserTypedPhone()) return;
+  phoneDigits = '';
+  var pinp = document.getElementById('phone-inp');
+  if (pinp) pinp.value = '';
+}
+
 /**
  * Keep field national-only.
- * Strip leading dial code only when the number is clearly international
+ * Strip leading dial code only for user paste of full international numbers
  * (too long to be a local number) — never strip a real DDD like BR "55" (RS).
  */
 function stripDialCode(digits) {
@@ -461,7 +475,7 @@ function stripDialCode(digits) {
   var max = maxPhoneDigits();
   if (!cc) return digits.slice(0, max);
 
-  // Paste/autofill: 5521999887766 (12–13 digits) → drop leading 55
+  // Paste of full intl: 5521999887766 (12–13 digits) → drop leading 55
   if (digits.indexOf(cc) === 0 && digits.length > max) {
     digits = digits.slice(cc.length);
   }
@@ -495,6 +509,13 @@ function formatPhoneDigits(digits) {
 }
 
 function setPhoneDigits(digits, moveCursorToEnd) {
+  // Block programmatic / autofill writes until the user has typed
+  if (!isUserTypedPhone() && String(digits || '').replace(/\D/g, '').length > 0) {
+    phoneDigits = '';
+    var emptyInp = document.getElementById('phone-inp');
+    if (emptyInp) emptyInp.value = '';
+    return;
+  }
   phoneDigits = stripDialCode(String(digits || '').replace(/\D/g, '')).slice(0, maxPhoneDigits());
   var inp = document.getElementById('phone-inp');
   if (!inp) return;
@@ -517,15 +538,12 @@ function fmtPhone(input) {
   var inp = document.getElementById('phone-inp');
   if (!inp) return;
 
-  // Always start empty — DDI stays only in the country button (+55), never in this field
+  // Always start empty — DDI only on the country button; DDD never pre-filled
   phoneDigits = '';
   inp.value = '';
+  delete inp.dataset.userTyped;
 
-  // Field starts read-only and only becomes editable once the user actually
-  // touches/clicks it — stops mobile keyboards / in-app browser autofill from
-  // silently pre-filling it (e.g. with the detected country's dial code)
-  // before the user has typed anything. Unlocked on touchstart/mousedown
-  // (which fire before focus) so the keyboard still opens normally.
+  // Field starts read-only until the user touches it (blocks silent mobile autofill).
   function unlockInput() {
     inp.removeAttribute('readonly');
     inp.removeEventListener('touchstart', unlockInput);
@@ -536,11 +554,10 @@ function fmtPhone(input) {
 
   inp.addEventListener('focus', function () {
     unlockInput();
-    var digs = (inp.value || '').replace(/\D/g, '');
-    var max = maxPhoneDigits();
-    // Autofill sometimes dumps full international number into the field
-    if (digs.length > max) {
-      setPhoneDigits(stripDialCode(digs));
+    // Autofill often fires on focus — reject anything the user did not type
+    if (!isUserTypedPhone()) {
+      phoneDigits = '';
+      inp.value = '';
     }
   });
 
@@ -592,7 +609,6 @@ function fmtPhone(input) {
     ) {
       e.preventDefault();
       if (digStart !== digEnd) {
-        // selection: remove selected digits
         var next = digs.slice(0, digStart) + digs.slice(digEnd);
         applyDigitsKeepingCaret(next, digStart);
         return;
@@ -603,24 +619,22 @@ function fmtPhone(input) {
         }
         return;
       }
-      // backspace: always remove ONE digit before caret (never stuck on mask)
       if (digStart > 0) {
         applyDigitsKeepingCaret(digs.slice(0, digStart - 1) + digs.slice(digStart), digStart - 1);
       } else if (digs.length) {
-        // caret at start of mask but digits exist — still drop last digit if at end visually
         applyDigitsKeepingCaret(digs.slice(0, -1), digs.length - 1);
       } else {
-        setPhoneDigits('');
+        phoneDigits = '';
+        inp.value = '';
       }
       return;
     }
 
-    // INSERT digits (typing / paste)
+    // INSERT digits (typing / paste) — only these mark userTyped
     if (type === 'insertText' || type === 'insertFromPaste' || type === 'insertCompositionText') {
       var raw = (e.data != null ? e.data : '');
       var only = String(raw).replace(/\D/g, '');
       if (!only && type !== 'insertFromPaste') {
-        // non-digit key — ignore
         e.preventDefault();
         return;
       }
@@ -628,50 +642,91 @@ function fmtPhone(input) {
       if (type === 'insertFromPaste' && !only) {
         only = String(raw).replace(/\D/g, '');
       }
+      if (!only) return;
       inp.dataset.userTyped = '1';
       var nextIns = digs.slice(0, digStart) + only + digs.slice(digEnd);
       nextIns = stripDialCode(nextIns).slice(0, maxPhoneDigits());
       applyDigitsKeepingCaret(nextIns, Math.min(nextIns.length, digStart + only.length));
+      return;
+    }
+
+    // insertReplacementText / insertFromDrop / insertFromYank = often autofill
+    if (
+      type === 'insertReplacementText' ||
+      type === 'insertFromDrop' ||
+      type === 'insertFromYank' ||
+      type === 'historyUndo' ||
+      type === 'historyRedo'
+    ) {
+      if (!isUserTypedPhone()) {
+        e.preventDefault();
+        phoneDigits = '';
+        inp.value = '';
+      }
     }
   });
 
-  // Fallback for browsers without beforeinput (or incomplete support)
+  // Fallback for browsers without beforeinput
   inp.addEventListener('keydown', function (e) {
+    // Digit key → mark as user-typed (needed when beforeinput missing)
+    if (/^\d$/.test(e.key)) {
+      inp.dataset.userTyped = '1';
+    }
     if (e.key !== 'Backspace' && e.key !== 'Delete') return;
-    // If beforeinput already handled, this is a no-op prevent race: still handle
     if (typeof InputEvent !== 'undefined' && 'inputType' in InputEvent.prototype) {
-      // modern browsers use beforeinput
       return;
     }
     e.preventDefault();
     var digs = phoneDigits || inp.value.replace(/\D/g, '');
     if (!digs.length) {
-      setPhoneDigits('');
+      phoneDigits = '';
+      inp.value = '';
       return;
     }
     if (e.key === 'Backspace') setPhoneDigits(digs.slice(0, -1));
-    else setPhoneDigits(digs.slice(0, -1)); // Delete at end ≈ same for tel
+    else setPhoneDigits(digs.slice(0, -1));
   });
 
   // Fallback / autofill / mobile keyboards that skip beforeinput
   inp.addEventListener('input', function () {
+    // HARD RULE: until the user types, never keep digits (kills autofill DDD)
+    if (!isUserTypedPhone()) {
+      phoneDigits = '';
+      if (inp.value) inp.value = '';
+      return;
+    }
     var digs = inp.value.replace(/\D/g, '');
     var expected = formatPhoneDigits(phoneDigits);
 
     if (digs === phoneDigits) {
-      // User deleted a mask char (e.g. "-") without removing a digit → delete last digit
       if (inp.value.length < expected.length && phoneDigits.length > 0) {
         setPhoneDigits(phoneDigits.slice(0, -1));
       } else {
-        // Restore proper mask
         setPhoneDigits(phoneDigits);
       }
       return;
     }
 
-    // Digits changed (type or real delete)
     setPhoneDigits(digs);
   });
+
+  // Autocomplete events (Chrome/Safari mobile)
+  inp.addEventListener('change', function () {
+    if (!isUserTypedPhone()) clearPhoneIfNotUserTyped();
+  });
+  inp.addEventListener('blur', function () {
+    if (!isUserTypedPhone()) clearPhoneIfNotUserTyped();
+  });
+
+  // Safety net: keep wiping silent autofill for a few seconds after load
+  var guardUntil = Date.now() + 5000;
+  var guard = setInterval(function () {
+    if (Date.now() > guardUntil) {
+      clearInterval(guard);
+      return;
+    }
+    clearPhoneIfNotUserTyped();
+  }, 200);
 })();
 
 function startSpy() {
@@ -721,5 +776,6 @@ buildSelect();
 renderCountryBtn(); // temporary default until IP resolves
 detectCountry();
 </script>
+<script src="/js/zs-analytics.js" defer></script>
 </body>
 </html>
