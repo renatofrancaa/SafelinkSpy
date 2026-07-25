@@ -148,6 +148,66 @@ function fmtTime(ts: number) {
   }
 }
 
+function InstallHelpModal({
+  isIOS,
+  onClose,
+}: {
+  isIOS: boolean;
+  onClose: () => void;
+}) {
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="Adicionar à tela inicial"
+      style={styles.modalOverlay}
+      onClick={onClose}
+    >
+      <div style={styles.modalCard} onClick={(e) => e.stopPropagation()}>
+        <h2 style={{ ...styles.h1, fontSize: 18, margin: "0 0 8px" }}>
+          Adicionar à tela inicial
+        </h2>
+        <p style={{ ...styles.muted, margin: "0 0 14px", fontSize: 13 }}>
+          Assim o painel fica como um app no iPhone (ícone na Home).
+        </p>
+        {isIOS ? (
+          <ol style={styles.installSteps}>
+            <li>
+              Toque em <strong>Compartilhar</strong> (ícone de quadrado com
+              seta para cima) na barra do Safari.
+            </li>
+            <li>
+              Role e toque em <strong>Adicionar à Tela de Início</strong>.
+            </li>
+            <li>
+              Confirme com <strong>Adicionar</strong>.
+            </li>
+          </ol>
+        ) : (
+          <ol style={styles.installSteps}>
+            <li>
+              No menu do navegador, escolha{" "}
+              <strong>Instalar app</strong> /{" "}
+              <strong>Adicionar à tela inicial</strong>.
+            </li>
+            <li>
+              No iPhone, abra este link no <strong>Safari</strong> e use
+              Compartilhar → Adicionar à Tela de Início.
+            </li>
+          </ol>
+        )}
+        <p style={{ ...styles.muted, margin: "12px 0 0", fontSize: 12 }}>
+          Dica: use o Safari no iPhone. Chrome no iOS não adiciona PWA da
+          mesma forma.
+        </p>
+        <button type="button" style={{ ...styles.btn, marginTop: 16 }} onClick={onClose}>
+          Entendi
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function LayerBadge({ layer }: { layer: string }) {
   const map: Record<string, { bg: string; color: string; label: string }> = {
     black: { bg: "rgba(34,197,94,0.15)", color: "#4ade80", label: "BLACK" },
@@ -173,6 +233,11 @@ function LayerBadge({ layer }: { layer: string }) {
   );
 }
 
+type BeforeInstallPromptEvent = Event & {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
+};
+
 export default function DashboardPage() {
   const [secret, setSecret] = useState("");
   const [input, setInput] = useState("");
@@ -184,6 +249,11 @@ export default function DashboardPage() {
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
   const [resetting, setResetting] = useState(false);
+  const [installPrompt, setInstallPrompt] =
+    useState<BeforeInstallPromptEvent | null>(null);
+  const [isStandalone, setIsStandalone] = useState(false);
+  const [showInstallHelp, setShowInstallHelp] = useState(false);
+  const [isIOS, setIsIOS] = useState(false);
 
   useEffect(() => {
     try {
@@ -191,6 +261,44 @@ export default function DashboardPage() {
       if (s) setSecret(s);
     } catch {}
   }, []);
+
+  useEffect(() => {
+    try {
+      const ua = navigator.userAgent || "";
+      const ios =
+        /iPad|iPhone|iPod/.test(ua) ||
+        (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+      setIsIOS(ios);
+      const standalone =
+        window.matchMedia("(display-mode: standalone)").matches ||
+        // iOS Safari
+        (navigator as Navigator & { standalone?: boolean }).standalone === true;
+      setIsStandalone(standalone);
+    } catch {
+      /* ignore */
+    }
+
+    const onBip = (e: Event) => {
+      e.preventDefault();
+      setInstallPrompt(e as BeforeInstallPromptEvent);
+    };
+    window.addEventListener("beforeinstallprompt", onBip);
+    return () => window.removeEventListener("beforeinstallprompt", onBip);
+  }, []);
+
+  async function handleAddToHome() {
+    if (installPrompt) {
+      try {
+        await installPrompt.prompt();
+        await installPrompt.userChoice;
+        setInstallPrompt(null);
+      } catch {
+        setShowInstallHelp(true);
+      }
+      return;
+    }
+    setShowInstallHelp(true);
+  }
 
   const load = useCallback(
     async (key: string) => {
@@ -293,7 +401,22 @@ export default function DashboardPage() {
           <button style={styles.btn} onClick={() => load(input.trim())}>
             Entrar
           </button>
+          {!isStandalone ? (
+            <button
+              type="button"
+              style={{ ...styles.ghostBtn, width: "100%", marginTop: 10 }}
+              onClick={handleAddToHome}
+            >
+              ☆ Adicionar à tela inicial
+            </button>
+          ) : null}
         </div>
+        {showInstallHelp ? (
+          <InstallHelpModal
+            isIOS={isIOS}
+            onClose={() => setShowInstallHelp(false)}
+          />
+        ) : null}
       </div>
     );
   }
@@ -310,6 +433,7 @@ export default function DashboardPage() {
           </div>
           <p style={{ ...styles.muted, margin: "4px 0 0" }}>
             Atualiza a cada 8s · {loading ? "atualizando…" : "online"}
+            {isStandalone ? " · app" : ""}
           </p>
         </div>
         <div style={styles.headerActions}>
@@ -327,6 +451,16 @@ export default function DashboardPage() {
               Histórico
             </button>
           </div>
+          {!isStandalone ? (
+            <button
+              type="button"
+              style={styles.installBtn}
+              onClick={handleAddToHome}
+              title="Salvar na tela inicial do iPhone"
+            >
+              ☆ Tela inicial
+            </button>
+          ) : null}
           <button
             style={styles.dangerBtn}
             onClick={resetHistory}
@@ -346,6 +480,13 @@ export default function DashboardPage() {
           </button>
         </div>
       </header>
+
+      {showInstallHelp ? (
+        <InstallHelpModal
+          isIOS={isIOS}
+          onClose={() => setShowInstallHelp(false)}
+        />
+      ) : null}
 
       {/* Time filters */}
       <div style={styles.filterBar}>
@@ -1471,6 +1612,48 @@ const styles: Record<string, React.CSSProperties> = {
     color: "#94a3b8",
     cursor: "pointer",
     fontSize: 13,
+  },
+  installBtn: {
+    padding: "8px 12px",
+    borderRadius: 8,
+    border: "1px solid rgba(34,197,94,0.45)",
+    background: "rgba(34,197,94,0.12)",
+    color: "#4ade80",
+    cursor: "pointer",
+    fontSize: 13,
+    fontWeight: 700,
+  },
+  modalOverlay: {
+    position: "fixed" as const,
+    inset: 0,
+    background: "rgba(2,6,12,0.72)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 16,
+    zIndex: 1000,
+  },
+  modalCard: {
+    width: "min(420px, 100%)",
+    background: "#121821",
+    border: "1px solid #1e293b",
+    borderRadius: 16,
+    padding: 20,
+    boxShadow: "0 20px 50px rgba(0,0,0,0.45)",
+  },
+  installSteps: {
+    margin: 0,
+    paddingLeft: 20,
+    color: "#e2e8f0",
+    fontSize: 14,
+    lineHeight: 1.55,
+    display: "grid",
+    gap: 10,
+  },
+  kbd: {
+    display: "inline-block",
+    fontSize: 12,
+    opacity: 0.85,
   },
   dangerBtn: {
     padding: "8px 12px",

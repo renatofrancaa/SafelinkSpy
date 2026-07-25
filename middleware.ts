@@ -186,12 +186,14 @@ export async function middleware(req: NextRequest) {
   const testParam = searchParams.get("test") || "";
   const forceBlackCookie = req.cookies.get("force_black")?.value === "1";
 
-  // Never cloak dashboard / analytics APIs
+  // Never cloak dashboard / analytics / PWA assets
   if (
     pathname.startsWith("/dashboard") ||
     pathname.startsWith("/api/analytics") ||
     pathname.startsWith("/api/probe") ||
-    pathname.startsWith("/api/public-config")
+    pathname.startsWith("/api/public-config") ||
+    pathname.startsWith("/icons/") ||
+    pathname === "/manifest-dashboard.webmanifest"
   ) {
     return NextResponse.next({
       request: { headers: requestHeaders },
@@ -329,6 +331,6 @@ export async function middleware(req: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|css|js|mp4|webm|woff2?)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|manifest-dashboard\\.webmanifest|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|css|js|mp4|webm|woff2?|webmanifest)$).*)",
   ],
 };
