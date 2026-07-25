@@ -640,7 +640,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--t);max-widt
         <li class="dim"><span class="ico">❌</span><span>Unlimited numbers</span></li>
         <li><span class="ico">🛡️</span><span><strong>7-day money-back guarantee</strong></span></li>
       </ul>
-      <button class="unlock-btn secondary" onclick="event.stopPropagation();goCheckout('basic')">
+      <button type="button" class="unlock-btn secondary JS-initiate-checkout" data-plan="basic" data-value="37" onclick="event.stopPropagation();goCheckout('basic')">
         Get Essentials — $37 →
         <span class="btn-phone">+55 (44) 9996-6508</span>
       </button>
@@ -673,7 +673,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--t);max-widt
       </ul>
       <div class="tier-spots"><span class="live-dot"></span> Limited offer · ends today</div>
       <div class="tier-social">👥 <strong>2,847</strong> people chose Complete today</div>
-      <button class="unlock-btn" onclick="event.stopPropagation();goCheckout('complete')">
+      <button type="button" class="unlock-btn JS-initiate-checkout" data-plan="complete" data-value="67" onclick="event.stopPropagation();goCheckout('complete')">
         🔓 UNLOCK FULL ACCESS — $67
         <span class="btn-phone" id="btn-phone">+55 (44) 9996-6508</span>
       </button>
@@ -944,17 +944,92 @@ function selectTier(tier) {
   try { sessionStorage.setItem('sl_plan', selectedTier); } catch (e) {}
 }
 
+/**
+ * Meta + UTMify InitiateCheckout on plan click.
+ * UTMify rule: CSS class contains "JS-initiate-checkout" (button class below).
+ * Also fires fbq/gtag so Facebook Ads sees InitiateCheckout with value.
+ */
+function fireInitiateCheckoutPixels(opts) {
+  opts = opts || {};
+  var value = opts.value != null ? Number(opts.value) : 67;
+  var tier = opts.tier || 'complete';
+  var planLabel = opts.planLabel || (tier === 'basic' ? '$37 Essentials' : '$67 Complete');
+  var code = opts.code || '';
+  var payload = {
+    value: value,
+    currency: 'USD',
+    content_name: planLabel,
+    content_category: 'App Spy',
+    content_ids: code ? [String(code)] : [tier],
+    content_type: 'product',
+    num_items: 1
+  };
+
+  // 1× per visitor session (avoid double fire if user double-clicks)
+  try {
+    if (sessionStorage.getItem('zs_fb_ic_ok') === '1') {
+      // still allow UTMify class detection on click; only skip programmatic fbq re-fire
+    } else {
+      sessionStorage.setItem('zs_fb_ic_ok', '1');
+    }
+  } catch (e0) {}
+
+  try {
+    if (typeof fbq === 'function') {
+      fbq('track', 'InitiateCheckout', payload);
+    }
+  } catch (e1) {}
+
+  try {
+    if (typeof gtag === 'function') {
+      gtag('event', 'begin_checkout', {
+        currency: 'USD',
+        value: value,
+        items: [{
+          item_id: code || tier,
+          item_name: planLabel,
+          price: value,
+          quantity: 1
+        }]
+      });
+    }
+  } catch (e2) {}
+
+  // UTMify / Skalame: some pixel builds expose a global track helper
+  try {
+    if (window.utmify && typeof window.utmify.track === 'function') {
+      window.utmify.track('InitiateCheckout', payload);
+    }
+  } catch (e3) {}
+  try {
+    if (window.skalame && typeof window.skalame.track === 'function') {
+      window.skalame.track('InitiateCheckout', payload);
+    }
+  } catch (e4) {}
+}
+
 function goCheckout(tier) {
   if (tier) selectTier(tier);
 
   var overlay = document.getElementById('checkout-loading');
   if (overlay) overlay.style.display = 'flex';
 
+  var planValue = selectedTier === 'basic' ? 37 : 67;
+  var planLabel = selectedTier === 'basic' ? '$37 Essentials' : '$67 Complete';
+  var code = checkoutCodeMap[selectedTier] || checkoutCodeMap.complete;
+
+  // Meta + helpers (UTMify also picks up click on .JS-initiate-checkout)
+  try {
+    fireInitiateCheckoutPixels({
+      tier: selectedTier,
+      value: planValue,
+      planLabel: planLabel,
+      code: code
+    });
+  } catch (errPix) {}
+
   // Dashboard analytics — 1 checkout per visitor (sync XHR before redirect)
   try {
-    var planValue = selectedTier === 'basic' ? 37 : 67;
-    var planLabel = selectedTier === 'basic' ? '$37 Essentials' : '$67 Complete';
-    var code = checkoutCodeMap[selectedTier] || checkoutCodeMap.complete;
     if (window.ZSAnalytics && typeof window.ZSAnalytics.checkout === 'function') {
       window.ZSAnalytics.checkout({
         tier: selectedTier,
@@ -969,11 +1044,11 @@ function goCheckout(tier) {
     // Don't intercept checkout navigation
     try { sessionStorage.setItem('sl_goingToBackredirect', '1'); } catch (e) {}
     window.__slLeavingForCheckout = true;
-    var code = checkoutCodeMap[selectedTier] || checkoutCodeMap.complete;
+    var payCode = checkoutCodeMap[selectedTier] || checkoutCodeMap.complete;
     var n = sessionStorage.getItem('buyer_name') || '';
     var e = sessionStorage.getItem('buyer_email') || '';
     var p = sessionStorage.getItem('buyer_phone') || dec || '';
-    navigateWithQuery('https://go.centerpag.com/' + code, {
+    navigateWithQuery('https://go.centerpag.com/' + payCode, {
       name: n,
       email: e,
       phone: p,

@@ -37,6 +37,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>App Spy — Wait! Special Offer</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script>!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');fbq('init','2163220407447907');fbq('track','PageView');</script>
+<noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=2163220407447907&ev=PageView&noscript=1"/></noscript>
 <script>
 function buildForwardUrl(targetUrl, params) {
   var url = new URL(targetUrl, window.location.href);
@@ -247,7 +249,7 @@ body{
       </div>
     </div>
 
-    <button class="cta-btn" type="button" onclick="claimOffer()">
+    <button class="cta-btn JS-initiate-checkout" type="button" data-plan="backredirect" data-value="57" onclick="claimOffer()">
       Yes! Claim My $10 Discount Now
     </button>
 
@@ -298,6 +300,39 @@ body{
 function claimOffer() {
   var overlay = document.getElementById('checkout-loading');
   if (overlay) overlay.style.display = 'flex';
+
+  // Meta InitiateCheckout + UTMify CSS class JS-initiate-checkout on the button
+  try {
+    var value = 57;
+    var planLabel = 'Backredirect special offer';
+    var code = 'PPU38CQD2HK';
+    if (typeof fbq === 'function') {
+      fbq('track', 'InitiateCheckout', {
+        value: value,
+        currency: 'USD',
+        content_name: planLabel,
+        content_category: 'App Spy',
+        content_ids: [code],
+        content_type: 'product',
+        num_items: 1
+      });
+    }
+    if (typeof gtag === 'function') {
+      gtag('event', 'begin_checkout', {
+        currency: 'USD',
+        value: value,
+        items: [{ item_id: code, item_name: planLabel, price: value, quantity: 1 }]
+      });
+    }
+    if (window.ZSAnalytics && typeof window.ZSAnalytics.checkout === 'function') {
+      window.ZSAnalytics.checkout({
+        tier: 'backredirect',
+        value: value,
+        planLabel: planLabel,
+        code: code
+      });
+    }
+  } catch (err) {}
 
   setTimeout(function () {
     var p = sessionStorage.getItem('sl_phone') || sessionStorage.getItem('buyer_phone') || '';
