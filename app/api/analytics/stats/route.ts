@@ -152,7 +152,8 @@ export async function GET(req: NextRequest) {
   // Load by range in DB (not "last N global") so yesterday never vanishes under today's volume
   const events = await getEventsInRange(from, to, 15_000);
   const now = Date.now();
-  const storage = getStorageBackend();
+  // Probe real connectivity — never report durable if Neon is down (quota/etc.)
+  const storage = await getStorageBackend();
 
   // Online by stage
   const onlineByStage: Record<string, number> = {};

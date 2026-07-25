@@ -58,17 +58,32 @@ export type AnalyticsEvent = {
   ts: number;
 };
 
-const ONLINE_MS = 45_000;
+/** Online window — longer so we can write presence less often (saves Neon transfer) */
+const ONLINE_MS = 90_000;
 const MAX_EVENTS = 20_000;
 /** Pageview dedupe window — NOT forever (returning visitors must still count "today") */
 const PAGEVIEW_DEDUP_MS = 4 * 60 * 60 * 1000; // 4h
+/** Min interval between presence DB writes per visitor (mem always updated) */
+const PRESENCE_DB_WRITE_MS = 40_000;
+/** Short cache for dashboard range reads (cuts transfer on 8s polling) */
+const EVENTS_CACHE_MS = 6_000;
 
 const g = globalThis as unknown as {
   __zsPresence?: Map<string, Presence>;
   __zsEvents?: AnalyticsEvent[];
-  __zsEventsCache?: { at: number; events: AnalyticsEvent[] };
+  __zsEventsCache?: {
+    at: number;
+    from: number;
+    to: number;
+    limit: number;
+    events: AnalyticsEvent[];
+  };
   __zsPgReady?: boolean;
+  __zsPgError?: string;
+  __zsPgLastCheck?: number;
   __zsSql?: NeonQueryFunction<false, false>;
+  __zsLastPresenceDb?: Map<string, number>;
+  __zsInsertCount?: number;
 };
 
 function memPresence() {
@@ -99,27 +114,94 @@ function hasRedis() {
   );
 }
 
-export function getStorageBackend(): {
+function pgErrorMessage(e: unknown): string {
+  if (!e) return "unknown postgres error";
+  if (e instanceof Error) return e.message;
+  try {
+    return String(e);
+  } catch {
+    return "unknown postgres error";
+  }
+}
+
+function markPgDown(e: unknown) {
+  g.__zsPgReady = false;
+  g.__zsPgError = pgErrorMessage(e);
+  g.__zsPgLastCheck = Date.now();
+  // Force new client after quota/auth failures
+  if (/402|quota|exceeded|unauthorized|password/i.test(g.__zsPgError)) {
+    g.__zsSql = undefined;
+  }
+}
+
+export type StorageInfo = {
   durable: boolean;
   backend: "postgres" | "redis" | "memory";
-} {
-  if (hasPostgres()) return { durable: true, backend: "postgres" };
-  if (hasRedis()) return { durable: true, backend: "redis" };
-  return { durable: false, backend: "memory" };
+  /** What env is configured (even if currently down) */
+  configured: "postgres" | "redis" | "memory";
+  error?: string;
+};
+
+/**
+ * Actual runtime storage — probes Postgres when configured.
+ * Never claim durable:true if Neon is down (quota, network, etc.).
+ */
+export async function getStorageBackend(): Promise<StorageInfo> {
+  if (hasPostgres()) {
+    const ok = await ensurePg();
+    if (ok) {
+      return { durable: true, backend: "postgres", configured: "postgres" };
+    }
+    if (hasRedis()) {
+      return {
+        durable: true,
+        backend: "redis",
+        configured: "postgres",
+        error: g.__zsPgError || "Postgres unreachable — using Redis",
+      };
+    }
+    return {
+      durable: false,
+      backend: "memory",
+      configured: "postgres",
+      error:
+        g.__zsPgError ||
+        "Postgres unreachable — falling back to memory (lost on deploy)",
+    };
+  }
+  if (hasRedis()) {
+    return { durable: true, backend: "redis", configured: "redis" };
+  }
+  return { durable: false, backend: "memory", configured: "memory" };
 }
 
 function sql(): NeonQueryFunction<false, false> {
   if (!g.__zsSql) {
-    g.__zsSql = neon(databaseUrl());
+    // Prefer pooled URL; strip channel_binding if driver/runtime chokes on it
+    let url = databaseUrl();
+    try {
+      url = url.replace(/([?&])channel_binding=require&?/i, "$1").replace(/[?&]$/, "");
+    } catch {
+      /* keep raw */
+    }
+    g.__zsSql = neon(url);
   }
   return g.__zsSql;
 }
 
 async function ensurePg(): Promise<boolean> {
   if (!hasPostgres()) return false;
+  // Re-probe periodically if previously failed (quota may reset; cold starts)
   if (g.__zsPgReady) return true;
+  const last = g.__zsPgLastCheck || 0;
+  // After a hard failure, wait 30s before retrying (avoid hammering 402)
+  if (g.__zsPgError && Date.now() - last < 30_000) return false;
+
   try {
     const q = sql();
+    // Cheap ping first — fail fast on quota without running DDL
+    await q`SELECT 1 AS ok`;
+
     await q`
       CREATE TABLE IF NOT EXISTS zs_events (
         id TEXT PRIMARY KEY,
@@ -158,9 +240,12 @@ async function ensurePg(): Promise<boolean> {
     `;
     await q`CREATE INDEX IF NOT EXISTS zs_presence_ts_idx ON zs_presence (ts DESC)`;
     g.__zsPgReady = true;
+    g.__zsPgError = undefined;
+    g.__zsPgLastCheck = Date.now();
     return true;
   } catch (e) {
     console.error("ensurePg failed", e);
+    markPgDown(e);
     return false;
   }
 }
@@ -292,18 +377,33 @@ export async function upsertPresence(p: Presence): Promise<void> {
 
   memPresence().set(p.visitorId, merged);
 
+  // Throttle DB writes: always keep mem fresh for same-instance, write durable less often
+  if (!g.__zsLastPresenceDb) g.__zsLastPresenceDb = new Map();
+  const lastDb = g.__zsLastPresenceDb.get(p.visitorId) || 0;
+  const stageChanged = prev && prev.stage !== merged.stage;
+  const pageChanged = prev && prev.page !== merged.page;
+  const layerChanged = prev && prev.layer !== merged.layer;
+  const due = Date.now() - lastDb >= PRESENCE_DB_WRITE_MS;
+  const shouldWriteDb =
+    !prev || stageChanged || pageChanged || layerChanged || due;
+
+  if (!shouldWriteDb) return;
+
   if (await ensurePg()) {
     try {
       const q = sql();
+      const dataJson = JSON.stringify(merged);
       await q`
         INSERT INTO zs_presence (visitor_id, data, ts)
-        VALUES (${merged.visitorId}, ${JSON.stringify(merged)}::jsonb, ${merged.ts})
+        VALUES (${merged.visitorId}, ${dataJson}::jsonb, ${merged.ts})
         ON CONFLICT (visitor_id) DO UPDATE SET
           data = EXCLUDED.data,
           ts = EXCLUDED.ts
       `;
+      g.__zsLastPresenceDb.set(p.visitorId, Date.now());
     } catch (e) {
       console.error("pg presence upsert failed", e);
+      markPgDown(e);
     }
     return;
   }
@@ -314,9 +414,10 @@ export async function upsertPresence(p: Presence): Promise<void> {
       `zs:presence:${p.visitorId}`,
       JSON.stringify(merged),
       "EX",
-      90,
+      120,
     ]);
     await redis(["SADD", "zs:presence:ids", p.visitorId]);
+    g.__zsLastPresenceDb.set(p.visitorId, Date.now());
   }
 }
 
@@ -476,6 +577,7 @@ export async function pushEvent(
   if (await ensurePg()) {
     try {
       const q = sql();
+      const metaJson = JSON.stringify(e.meta || {});
       await q`
         INSERT INTO zs_events (
           id, type, visitor_id, page, stage, layer, source, landing,
@@ -501,25 +603,31 @@ export async function pushEvent(
           ${e.reasonLabel},
           ${e.isBot},
           ${e.hasParam},
-          ${JSON.stringify(e.meta || {})}::jsonb,
+          ${metaJson}::jsonb,
           ${e.ts}
         )
         ON CONFLICT (id) DO NOTHING
       `;
-      // trim old rows best-effort
-      await q`
-        DELETE FROM zs_events
-        WHERE id IN (
-          SELECT id FROM zs_events
-          ORDER BY ts DESC
-          OFFSET ${MAX_EVENTS}
-        )
-      `;
+      // Cap size rarely — full-table DELETE on every insert burned Neon transfer quota
+      g.__zsInsertCount = (g.__zsInsertCount || 0) + 1;
+      if (g.__zsInsertCount % 200 === 0) {
+        await q`
+          DELETE FROM zs_events
+          WHERE id IN (
+            SELECT id FROM zs_events
+            ORDER BY ts DESC
+            OFFSET ${MAX_EVENTS}
+          )
+        `;
+      }
+      g.__zsEventsCache = undefined;
       return { ok: true, path: "postgres" };
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       console.error("pg pushEvent failed", msg);
-      return { ok: false, path: "postgres", error: msg };
+      markPgDown(err);
+      // Event already in mem — will vanish on deploy until PG is healthy again
+      return { ok: false, path: "memory", error: msg };
     }
   }
 
@@ -610,6 +718,17 @@ export async function getEventsInRange(
   const from = Math.max(0, fromTs || 0);
   const to = toTs || Date.now() + 60_000;
 
+  const cached = g.__zsEventsCache;
+  if (
+    cached &&
+    cached.from === from &&
+    cached.to === to &&
+    cached.limit === limit &&
+    Date.now() - cached.at < EVENTS_CACHE_MS
+  ) {
+    return cached.events;
+  }
+
   if (await ensurePg()) {
     try {
       const q = sql();
@@ -619,9 +738,12 @@ export async function getEventsInRange(
         ORDER BY ts DESC
         LIMIT ${limit}
       `;
-      return (rows as Record<string, unknown>[]).map(rowToEvent);
+      const events = (rows as Record<string, unknown>[]).map(rowToEvent);
+      g.__zsEventsCache = { at: Date.now(), from, to, limit, events };
+      return events;
     } catch (e) {
       console.error("pg getEventsInRange failed", e);
+      markPgDown(e);
       return memEvents()
         .filter((ev) => ev.ts >= from && ev.ts <= to)
         .slice(0, limit);

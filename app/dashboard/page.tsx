@@ -9,6 +9,8 @@ type Stats = {
   storage?: {
     durable: boolean;
     backend: "postgres" | "redis" | "blob" | "memory";
+    configured?: "postgres" | "redis" | "memory";
+    error?: string;
   };
   range: { key: string; from: number; to: number; eventCount?: number };
   online: {
@@ -388,12 +390,42 @@ export default function DashboardPage() {
             lineHeight: 1.45,
           }}
         >
-          <strong>Histórico NÃO é permanente</strong> (storage:{" "}
-          <code>{stats.storage.backend}</code>). Em Vercel sem{" "}
-          <code>DATABASE_URL</code> (Neon) os eventos ficam só na memória do
-          servidor e <strong>somem a cada deploy / cold start</strong>. Configure
-          a env <code>DATABASE_URL</code> do Neon no projeto Vercel e faça
-          redeploy.
+          <strong>Histórico NÃO é permanente</strong> (usando:{" "}
+          <code>{stats.storage.backend}</code>
+          {stats.storage.configured
+            ? ` · configurado: ${stats.storage.configured}`
+            : ""}
+          ). Eventos em memória{" "}
+          <strong>somem a cada deploy / cold start</strong>.
+          {stats.storage.error ? (
+            <>
+              <br />
+              <span style={{ opacity: 0.95 }}>
+                Erro: <code>{stats.storage.error.slice(0, 280)}</code>
+              </span>
+              {/402|quota|transfer/i.test(stats.storage.error) ? (
+                <>
+                  <br />
+                  Neon Free estourou a cota de transferência. Crie um{" "}
+                  <strong>novo projeto Neon</strong> (ou aguarde o reset
+                  mensal), atualize <code>DATABASE_URL</code> na Vercel e
+                  redeploy.
+                </>
+              ) : !stats.storage.configured ||
+                stats.storage.configured === "memory" ? (
+                <>
+                  <br />
+                  Configure <code>DATABASE_URL</code> (Neon) no projeto Vercel.
+                </>
+              ) : null}
+            </>
+          ) : (
+            <>
+              {" "}
+              Configure <code>DATABASE_URL</code> (Neon) no projeto Vercel e
+              faça redeploy.
+            </>
+          )}
         </div>
       ) : null}
       {stats?.storage?.durable ? (

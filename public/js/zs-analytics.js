@@ -645,10 +645,10 @@
     track("pageview");
   }
 
-  // Heartbeat every 20s
+  // Heartbeat every 35s (was 20s) — less Neon transfer; presence window is 90s server-side
   setInterval(function () {
     heartbeat();
-  }, 20000);
+  }, 35000);
 
   // On visibility
   document.addEventListener("visibilitychange", function () {
