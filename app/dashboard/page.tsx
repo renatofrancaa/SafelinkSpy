@@ -441,11 +441,6 @@ export default function DashboardPage() {
               accent="#60a5fa"
             />
             <Kpi
-              label="Pageviews únicos"
-              value={String(stats.history.pageviews)}
-              accent="#a78bfa"
-            />
-            <Kpi
               label="Checkout (únicos)"
               value={String(
                 stats.history.checkoutUniques ?? stats.history.checkouts ?? 0
@@ -928,8 +923,8 @@ export default function DashboardPage() {
                 }`}
               >
                 <p style={{ ...styles.muted, margin: "0 0 12px", fontSize: 12 }}>
-                  Uma linha por visitante único (última atividade). Pageviews,
-                  checkouts e funil contam só uniques — nada é duplicado.
+                  Uma linha por visitante único (última atividade). Checkouts e
+                  funil contam só uniques — nada é duplicado.
                 </p>
                 <div style={styles.tableWrap}>
                   <table style={styles.table}>
