@@ -316,9 +316,13 @@
    */
   function bootClarity(projectId) {
     if (!projectId || window.__ZS_CLARITY__) return;
-    // Never track the traffic dashboard itself
+    // Never track dashboard or white/safe page (famguard)
     try {
-      if ((location.pathname || "").indexOf("/dashboard") === 0) return;
+      var path = (location.pathname || "").toLowerCase();
+      if (path.indexOf("/dashboard") === 0) return;
+      if (path.indexOf("famguard") !== -1) return;
+      if (path === "/white" || path === "/white/") return;
+      if (stageFromPath(path) === "white") return;
     } catch (e0) {}
     window.__ZS_CLARITY__ = true;
     (function (c, l, a, r, i, t, y) {
