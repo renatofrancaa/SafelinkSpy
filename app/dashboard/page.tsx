@@ -336,12 +336,11 @@ export default function DashboardPage() {
     [range, fromDate, toDate]
   );
 
+  // Load once on login / when range filters change — no auto polling (saves Supabase egress)
   useEffect(() => {
     if (!secret) return;
     if (range === "custom" && (!fromDate || !toDate)) return;
     load(secret);
-    const t = setInterval(() => load(secret), 8000);
-    return () => clearInterval(t);
   }, [secret, load, range, fromDate, toDate]);
 
   const maxFunnel = useMemo(() => {
@@ -432,7 +431,11 @@ export default function DashboardPage() {
             </h1>
           </div>
           <p style={{ ...styles.muted, margin: "4px 0 0" }}>
-            Atualiza a cada 8s · {loading ? "atualizando…" : "online"}
+            {loading
+              ? "Atualizando…"
+              : stats?.now
+                ? `Atualizado · ${new Date(stats.now).toLocaleTimeString("pt-BR")}`
+                : "Clique em Atualizar para carregar"}
             {isStandalone ? " · app" : ""}
           </p>
         </div>
@@ -451,10 +454,19 @@ export default function DashboardPage() {
               Histórico
             </button>
           </div>
+          <button
+            type="button"
+            style={styles.installBtn}
+            onClick={() => load(secret)}
+            disabled={loading}
+            title="Buscar dados agora"
+          >
+            {loading ? "Atualizando…" : "↻ Atualizar"}
+          </button>
           {!isStandalone ? (
             <button
               type="button"
-              style={styles.installBtn}
+              style={styles.ghostBtn}
               onClick={handleAddToHome}
               title="Salvar na tela inicial do iPhone"
             >
