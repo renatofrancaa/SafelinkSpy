@@ -547,23 +547,23 @@ export default function DashboardPage() {
               {/402|quota|transfer/i.test(stats.storage.error) ? (
                 <>
                   <br />
-                  Neon Free estourou a cota de transferência. Crie um{" "}
-                  <strong>novo projeto Neon</strong> (ou aguarde o reset
-                  mensal), atualize <code>DATABASE_URL</code> na Vercel e
-                  redeploy.
+                  Cota do banco estourada. Use Supabase Free ou outro Postgres
+                  e atualize <code>POSTGRES_URL</code> /{" "}
+                  <code>DATABASE_URL</code> na Vercel.
                 </>
               ) : !stats.storage.configured ||
                 stats.storage.configured === "memory" ? (
                 <>
                   <br />
-                  Configure <code>DATABASE_URL</code> (Neon) no projeto Vercel.
+                  Configure <code>POSTGRES_URL</code> (Supabase) no projeto
+                  Vercel.
                 </>
               ) : null}
             </>
           ) : (
             <>
               {" "}
-              Configure <code>DATABASE_URL</code> (Neon) no projeto Vercel e
+              Configure <code>POSTGRES_URL</code> (Supabase) no projeto Vercel e
               faça redeploy.
             </>
           )}

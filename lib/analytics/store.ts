@@ -1,6 +1,6 @@
 /**
  * Analytics store
- * 1) Neon Postgres (DATABASE_URL / POSTGRES_URL) — durable, preferred
+ * 1) Postgres (DATABASE_URL / POSTGRES_URL) — Supabase / Neon / any PG — durable
  * 2) Upstash Redis — if configured
  * 3) In-memory — last resort (ephemeral on Vercel)
  *
@@ -9,7 +9,7 @@
  *  - hard cap MAX_EVENTS (oldest dropped only when over cap)
  */
 
-import { neon, type NeonQueryFunction } from "@neondatabase/serverless";
+import postgres, { type Sql } from "postgres";
 
 export type Presence = {
   visitorId: string;
@@ -58,7 +58,7 @@ export type AnalyticsEvent = {
   ts: number;
 };
 
-/** Online window — longer so we can write presence less often (saves Neon transfer) */
+/** Online window — longer so we can write presence less often (saves DB transfer) */
 const ONLINE_MS = 90_000;
 const MAX_EVENTS = 20_000;
 /** Pageview dedupe window — NOT forever (returning visitors must still count "today") */
@@ -81,7 +81,7 @@ const g = globalThis as unknown as {
   __zsPgReady?: boolean;
   __zsPgError?: string;
   __zsPgLastCheck?: number;
-  __zsSql?: NeonQueryFunction<false, false>;
+  __zsSql?: Sql;
   __zsLastPresenceDb?: Map<string, number>;
   __zsInsertCount?: number;
 };
@@ -144,7 +144,7 @@ export type StorageInfo = {
 
 /**
  * Actual runtime storage — probes Postgres when configured.
- * Never claim durable:true if Neon is down (quota, network, etc.).
+ * Never claim durable:true if DB is down (quota, network, etc.).
  */
 export async function getStorageBackend(): Promise<StorageInfo> {
   if (hasPostgres()) {
@@ -175,16 +175,25 @@ export async function getStorageBackend(): Promise<StorageInfo> {
   return { durable: false, backend: "memory", configured: "memory" };
 }
 
-function sql(): NeonQueryFunction<false, false> {
+function sql(): Sql {
   if (!g.__zsSql) {
-    // Prefer pooled URL; strip channel_binding if driver/runtime chokes on it
+    // Pooled URL preferred; strip channel_binding (Neon-only) for Supabase/etc.
     let url = databaseUrl();
     try {
-      url = url.replace(/([?&])channel_binding=require&?/i, "$1").replace(/[?&]$/, "");
+      url = url
+        .replace(/([?&])channel_binding=require&?/i, "$1")
+        .replace(/[?&]$/, "");
     } catch {
       /* keep raw */
     }
-    g.__zsSql = neon(url);
+    g.__zsSql = postgres(url, {
+      ssl: "require",
+      max: 1, // serverless-friendly
+      idle_timeout: 20,
+      connect_timeout: 15,
+      prepare: false, // required for Supabase transaction pooler / PgBouncer
+      onnotice: () => {},
+    });
   }
   return g.__zsSql;
 }
@@ -392,10 +401,9 @@ export async function upsertPresence(p: Presence): Promise<void> {
   if (await ensurePg()) {
     try {
       const q = sql();
-      const dataJson = JSON.stringify(merged);
       await q`
         INSERT INTO zs_presence (visitor_id, data, ts)
-        VALUES (${merged.visitorId}, ${dataJson}::jsonb, ${merged.ts})
+        VALUES (${merged.visitorId}, ${q.json(merged as never)}, ${merged.ts})
         ON CONFLICT (visitor_id) DO UPDATE SET
           data = EXCLUDED.data,
           ts = EXCLUDED.ts
@@ -577,7 +585,6 @@ export async function pushEvent(
   if (await ensurePg()) {
     try {
       const q = sql();
-      const metaJson = JSON.stringify(e.meta || {});
       await q`
         INSERT INTO zs_events (
           id, type, visitor_id, page, stage, layer, source, landing,
@@ -603,7 +610,7 @@ export async function pushEvent(
           ${e.reasonLabel},
           ${e.isBot},
           ${e.hasParam},
-          ${metaJson}::jsonb,
+          ${q.json((e.meta || {}) as never)},
           ${e.ts}
         )
         ON CONFLICT (id) DO NOTHING
