@@ -827,22 +827,54 @@ export default function DashboardPage() {
                         </div>
                         <div style={styles.muted}>Únicos</div>
                       </div>
-                      {["37", "67"].map((key) => {
-                        const plan = stats.history.checkoutByPlan?.find(
-                          (p) =>
-                            p.key === key ||
-                            p.value === Number(key) ||
-                            (key === "37" && (p.key === "47" || p.value === 47))
+                      {(
+                        [
+                          {
+                            key: "37",
+                            label: "$37 Full Access",
+                            color: "#4ade80",
+                            match: (p: {
+                              key: string;
+                              value: number | null;
+                              label: string;
+                            }) =>
+                              p.key === "37" ||
+                              p.key === "39" ||
+                              p.key === "47" ||
+                              p.key === "full" ||
+                              p.key === "basic" ||
+                              p.value === 37 ||
+                              p.value === 39 ||
+                              p.value === 47,
+                          },
+                          {
+                            key: "backredirect",
+                            label: "Backredirect $29",
+                            color: "#38bdf8",
+                            match: (p: {
+                              key: string;
+                              value: number | null;
+                              label: string;
+                            }) =>
+                              p.key === "backredirect" ||
+                              p.key === "29" ||
+                              p.value === 29 ||
+                              /backredirect/i.test(p.label || ""),
+                          },
+                        ] as const
+                      ).map((cfg) => {
+                        const plans =
+                          stats.history.checkoutByPlan?.filter(cfg.match) ||
+                          [];
+                        const n = plans.reduce(
+                          (sum, p) => sum + (p.uniquePeople ?? p.clicks ?? 0),
+                          0
                         );
-                        const label =
-                          key === "37" ? "$37 Essentials" : "$67 Complete";
-                        const color = key === "37" ? "#4ade80" : "#f472b6";
-                        const n = plan?.uniquePeople ?? plan?.clicks ?? 0;
                         return (
-                          <div key={key} style={styles.layerBox}>
+                          <div key={cfg.key} style={styles.layerBox}>
                             <div
                               style={{
-                                color,
+                                color: cfg.color,
                                 fontWeight: 800,
                                 fontSize: 28,
                               }}
@@ -850,46 +882,18 @@ export default function DashboardPage() {
                               {n}
                             </div>
                             <div
-                              style={{ fontWeight: 700, marginTop: 4, fontSize: 13 }}
+                              style={{
+                                fontWeight: 700,
+                                marginTop: 4,
+                                fontSize: 13,
+                              }}
                             >
-                              {label}
+                              {cfg.label}
                             </div>
                           </div>
                         );
                       })}
                     </div>
-                    {stats.history.checkoutByPlan?.some(
-                      (p) =>
-                        p.key !== "37" &&
-                        p.key !== "47" &&
-                        p.key !== "67"
-                    ) ? (
-                      <div style={{ marginTop: 12 }}>
-                        {stats.history.checkoutByPlan
-                          .filter(
-                            (p) =>
-                              p.key !== "37" &&
-                              p.key !== "47" &&
-                              p.key !== "67"
-                          )
-                          .map((p) => (
-                            <BarRow
-                              key={p.key}
-                              label={p.label}
-                              value={p.uniquePeople ?? p.clicks}
-                              max={
-                                Math.max(
-                                  ...stats.history.checkoutByPlan!.map(
-                                    (x) => x.uniquePeople ?? x.clicks
-                                  ),
-                                  1
-                                )
-                              }
-                              color="#94a3b8"
-                            />
-                          ))}
-                      </div>
-                    ) : null}
                   </Card>
                 </div>
               </section>
@@ -997,18 +1001,28 @@ export default function DashboardPage() {
                                 <strong
                                   style={{
                                     color:
-                                      c.value === 37 || c.value === 47
-                                        ? "#4ade80"
-                                        : c.value === 67
-                                          ? "#f472b6"
+                                      c.tier === "backredirect" ||
+                                      c.value === 29 ||
+                                      /backredirect/i.test(c.planLabel || "")
+                                        ? "#38bdf8"
+                                        : c.value === 37 ||
+                                            c.value === 39 ||
+                                            c.value === 47 ||
+                                            c.tier === "full" ||
+                                            c.tier === "basic"
+                                          ? "#4ade80"
                                           : "#e2e8f0",
                                   }}
                                 >
                                   {c.planLabel ||
-                                    (c.value === 37 || c.value === 47
-                                      ? `$${c.value} Essentials`
-                                      : c.value === 67
-                                        ? "$67 Complete"
+                                    (c.tier === "backredirect" || c.value === 29
+                                      ? "$29 Backredirect"
+                                      : c.value === 37 ||
+                                          c.value === 39 ||
+                                          c.value === 47 ||
+                                          c.tier === "full" ||
+                                          c.tier === "basic"
+                                        ? `$${c.value ?? 37} Full Access`
                                         : c.tier || "—")}
                                 </strong>
                               </td>

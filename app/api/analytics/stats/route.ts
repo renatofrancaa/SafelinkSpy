@@ -547,7 +547,7 @@ export async function GET(req: NextRequest) {
     .sort((a, b) => b.count - a.count)
     .slice(0, 30);
 
-  // Checkout by plan ($47 basic / $67 complete) — unique people
+  // Checkout by plan — only $37 full access + backredirect $29 (unique people)
   function resolvePlan(e: (typeof checkoutEvents)[0]): {
     key: string;
     label: string;
@@ -562,6 +562,10 @@ export async function GET(req: NextRequest) {
       checkoutTier?: string;
       code?: string;
     };
+    const page = (e.page || "").toLowerCase();
+    const code = String(meta.code || "");
+    const planLabelRaw = String(meta.planLabel || "").toLowerCase();
+
     let value: number | null = null;
     const rawVal = meta.value ?? meta.checkoutValue;
     if (typeof rawVal === "number") value = rawVal;
@@ -569,36 +573,84 @@ export async function GET(req: NextRequest) {
     if (value != null && isNaN(value)) value = null;
 
     let tier = (meta.tier || meta.checkoutTier || null) as string | null;
-    if (value == null && tier === "basic") value = 37;
+
+    // Infer value/tier from known codes/pages when missing
+    if (value == null && (tier === "basic" || tier === "full")) value = 37;
+    if (value == null && tier === "backredirect") value = 29;
     if (value == null && tier === "complete") value = 67;
-    if (!tier && (value === 37 || value === 47)) tier = "basic";
-    if (!tier && value === 67) tier = "complete";
-    // Infer from page/code if still missing
     if (value == null) {
-      const page = (e.page || "").toLowerCase();
-      const code = String(meta.code || "");
-      if (code.includes("EHD1") || page.includes("basic")) value = 37;
-      if (code.includes("94FJ") || code.includes("E961") || page.includes("complete"))
+      if (
+        code.includes("EKTG") ||
+        page.includes("backredirect") ||
+        planLabelRaw.includes("backredirect")
+      ) {
+        value = 29;
+        tier = tier || "backredirect";
+      } else if (
+        code.includes("EHD1") ||
+        page.includes("step6") ||
+        page.includes("basic") ||
+        page.includes("full")
+      ) {
+        value = 37;
+        tier = tier || "full";
+      } else if (code.includes("E961") || page.includes("complete")) {
         value = 67;
+        tier = tier || "complete";
+      }
     }
-    if (!tier && (value === 37 || value === 47)) tier = "basic";
-    if (!tier && value === 67) tier = "complete";
+
+    const isBackredirect =
+      tier === "backredirect" ||
+      value === 29 ||
+      page.includes("backredirect") ||
+      planLabelRaw.includes("backredirect") ||
+      code.includes("EKTG");
+
+    // Main single offer: $37 product (also bucket older $39/$47 display values)
+    const isMain =
+      !isBackredirect &&
+      (tier === "basic" ||
+        tier === "full" ||
+        value === 37 ||
+        value === 39 ||
+        value === 47 ||
+        code.includes("EHD1"));
+
+    const isLegacy67 =
+      !isBackredirect &&
+      !isMain &&
+      (tier === "complete" || value === 67 || code.includes("E961"));
+
+    if (isBackredirect) {
+      return {
+        key: "backredirect",
+        label: meta.planLabel || "$29 Backredirect",
+        value: value ?? 29,
+        tier: "backredirect",
+      };
+    }
+    if (isMain) {
+      return {
+        key: "37",
+        label: meta.planLabel || "$37 Full Access",
+        value: value ?? 37,
+        tier: tier || "full",
+      };
+    }
+    if (isLegacy67) {
+      return {
+        key: "67",
+        label: meta.planLabel || "$67 Complete",
+        value: value ?? 67,
+        tier: "complete",
+      };
+    }
 
     const label =
       meta.planLabel ||
-      (value === 37 || value === 47
-        ? `$${value} Essentials`
-        : value === 67
-          ? "$67 Complete"
-          : value != null
-            ? `$${value}`
-            : tier || "Desconhecido");
-    const key =
-      value === 37 || value === 47
-        ? "37"
-        : value === 67
-          ? "67"
-          : tier || label || "unknown";
+      (value != null ? `$${value}` : tier || "Desconhecido");
+    const key = tier || (value != null ? String(value) : "unknown");
     return { key, label, value, tier };
   }
 

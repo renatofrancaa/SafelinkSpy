@@ -553,24 +553,25 @@
             ? Number(window.productValue)
             : null;
       if ((value == null || isNaN(value)) && tier === "basic") value = 37;
-      if ((value == null || isNaN(value)) && tier === "complete") value = 67;
       if ((value == null || isNaN(value)) && (tier === "full" || tier === "single"))
-        value = 39;
-      if (!tier && (value === 37 || value === 47)) tier = "basic";
+        value = 37;
+      if ((value == null || isNaN(value)) && tier === "backredirect") value = 29;
+      if ((value == null || isNaN(value)) && tier === "complete") value = 67;
+      if (!tier && (value === 37 || value === 39 || value === 47)) tier = "full";
+      if (!tier && value === 29) tier = "backredirect";
       if (!tier && value === 67) tier = "complete";
-      if (!tier && value === 39) tier = "full";
       if (value == null || isNaN(value)) {
-        value = 39;
+        value = 37;
         tier = tier || "full";
       }
       var planLabel =
         extra.planLabel ||
-        (value === 37 || value === 47
-          ? "$" + value + " Essentials"
-          : value === 67
-            ? "$67 Complete"
-            : value === 39
-              ? "$39 Full Access"
+        (tier === "backredirect" || value === 29
+          ? "$29 Backredirect"
+          : value === 37 || value === 39 || value === 47 || tier === "full" || tier === "basic"
+            ? "$" + value + " Full Access"
+            : value === 67
+              ? "$67 Complete"
               : "$" + value);
 
       var place =
