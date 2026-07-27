@@ -197,7 +197,7 @@ body{
 
     <h1 class="popup-title">
       Get Full Access for<br>
-      <span class="hi">$27 Instead of $37</span>
+      <span class="hi">$29 Instead of $39</span>
     </h1>
 
     <p class="popup-sub">
@@ -209,12 +209,12 @@ body{
     <div class="price-block">
       <div class="price-old">
         <div class="price-old-label">Original Price</div>
-        <div class="price-old-val">$37</div>
+        <div class="price-old-val">$39</div>
       </div>
       <div class="price-arrow">→</div>
       <div class="price-new">
         <div class="price-new-label">Your Price Now</div>
-        <div class="price-new-val">$27</div>
+        <div class="price-new-val">$29</div>
         <div class="savings-badge">Save $10</div>
       </div>
     </div>
@@ -228,7 +228,7 @@ body{
       </div>
     </div>
 
-    <button class="cta-btn JS-initiate-checkout js-initiate-checkout" type="button" data-plan="backredirect" data-value="57" onclick="claimOffer()">
+    <button class="cta-btn JS-initiate-checkout js-initiate-checkout" type="button" data-plan="backredirect" data-value="29" onclick="claimOffer()">
       Yes! Claim My $10 Discount Now
     </button>
 
@@ -282,8 +282,8 @@ function claimOffer() {
 
   // Meta InitiateCheckout + UTMify CSS class JS-initiate-checkout on the button
   try {
-    var value = 57;
-    var planLabel = 'Backredirect special offer';
+    var value = 29;
+    var planLabel = '$29 Backredirect special offer';
     var code = 'PPU38CQEKTG';
     if (typeof fbq === 'function') {
       fbq('track', 'InitiateCheckout', {

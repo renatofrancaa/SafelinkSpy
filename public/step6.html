@@ -214,50 +214,20 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--t);max-widt
 .tools-bar{background:#f0fdf4;border-radius:10px;padding:.7rem 1rem;margin:.6rem 1rem 0;font-size:.76rem;color:var(--gd);}
 .tools-bar strong{font-weight:700;}
 
-/* Pricing — 2 tiers (Essentials + Complete) */
-.pricing-sec{margin:.8rem 1rem 0;}
-.tiers-title{font-size:1.15rem;font-weight:800;color:var(--t);text-align:center;letter-spacing:-.02em;}
-.tiers-sub{font-size:.82rem;color:var(--t2);text-align:center;margin:.35rem 0 1rem;line-height:1.45;}
-.tiers-sub strong{color:var(--gd);}
-/* Always stacked: Essentials ($37) on top, Complete ($67) below */
-.tier-grid{display:grid;grid-template-columns:1fr;gap:.85rem;}
-.price-card{background:var(--w);border-radius:16px;padding:1.25rem 1.1rem 1.15rem;border:1.5px solid var(--bd);box-shadow:0 2px 12px rgba(0,0,0,.06);position:relative;overflow:hidden;display:flex;flex-direction:column;transition:transform .2s,border-color .2s,box-shadow .2s;cursor:pointer;}
-.price-card:hover{transform:translateY(-2px);border-color:rgba(37,211,102,.45);}
-.price-card.selected,.price-card.recommended{border:2px solid var(--g);box-shadow:0 6px 28px rgba(37,211,102,.18);}
-.price-corner{position:absolute;top:0;right:0;background:var(--red);color:#fff;font-size:.62rem;font-weight:800;padding:.32rem .6rem;border-radius:0 0 0 10px;letter-spacing:.04em;}
-.tier-icon{font-size:1.5rem;text-align:center;margin-bottom:.35rem;}
-.tier-name{font-size:1.05rem;font-weight:800;color:var(--t);text-align:center;letter-spacing:-.02em;}
-.tier-tagline{font-size:.75rem;color:var(--t2);text-align:center;font-style:italic;margin:.2rem 0 .55rem;}
-.price-was{font-size:.85rem;color:var(--t2);text-decoration:line-through;text-align:center;}
-.price-now{font-size:2.4rem;font-weight:900;color:var(--t);text-align:center;line-height:1;letter-spacing:-.03em;margin:.15rem 0;}
-.price-now small{font-size:1rem;font-weight:700;opacity:.7;vertical-align:super;margin-right:1px;}
-.price-save{display:inline-block;background:#dcfce7;color:#166534;font-size:.72rem;font-weight:700;padding:.28rem .7rem;border-radius:20px;margin:.35rem auto .45rem;}
-.price-save-wrap{text-align:center;}
-.tier-scope{font-size:.72rem;color:var(--t2);text-align:center;font-weight:600;margin-bottom:.65rem;}
-.tier-features{list-style:none;padding:0;margin:0 0 .9rem;flex:1;}
-.tier-features li{display:flex;align-items:flex-start;gap:.45rem;padding:.42rem 0;border-bottom:1px solid rgba(0,0,0,.05);font-size:.78rem;color:#4b5563;line-height:1.4;}
-.tier-features li:last-child{border-bottom:none;}
-.tier-features .ico{flex-shrink:0;width:16px;text-align:center;font-size:.72rem;}
-.tier-features li.dim{opacity:.5;}
-.tier-features li.dim span:last-child{color:#9ca3af;}
-.tier-features li.bonus{background:linear-gradient(90deg,rgba(251,191,36,.12),transparent);border-left:2px solid #f59e0b;padding-left:.5rem;margin:2px 0;border-radius:0 6px 6px 0;}
-.tier-features li.free-bonus{background:linear-gradient(90deg,rgba(34,197,94,.14),rgba(34,197,94,.04));border-radius:8px;padding:.55rem .6rem;margin:.35rem 0;border-bottom:none;}
-.tier-features li.free-bonus span:last-child{color:#16a34a;font-weight:700;}
-.tier-features li.guar{background:linear-gradient(90deg,rgba(34,197,94,.18),rgba(34,197,94,.06));border-radius:8px;padding:.55rem .6rem;margin:.25rem 0;border-bottom:none;}
-.tier-features li.guar span:last-child{color:#16a34a;font-weight:700;font-size:.76rem;}
-.tier-spots{display:flex;align-items:center;justify-content:center;gap:.4rem;font-size:.72rem;color:var(--t2);margin:.15rem 0 .55rem;}
-.tier-spots .live-dot{width:7px;height:7px;border-radius:50%;background:var(--red);animation:bl 1.2s ease infinite;}
-@keyframes bl{0%,100%{opacity:1}50%{opacity:.35}}
-.tier-social{text-align:center;font-size:.72rem;color:var(--t2);margin-bottom:.65rem;}
-.tier-social strong{color:var(--t);}
-.unlock-btn{width:100%;padding:1rem;background:linear-gradient(135deg,var(--g),#22c55e);border:none;border-radius:13px;font-family:'Inter',sans-serif;font-size:.95rem;font-weight:900;color:#fff;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.12rem;box-shadow:0 4px 20px rgba(37,211,102,.32);letter-spacing:-.01em;margin-top:auto;}
-.price-card.recommended .unlock-btn{animation:upop 2s infinite;}
-@keyframes upop{0%,100%{box-shadow:0 4px 24px rgba(37,211,102,.3)}50%{box-shadow:0 6px 36px rgba(37,211,102,.55)}}
-.unlock-btn.secondary{background:#2c3544;color:#fff;border:none;box-shadow:0 4px 16px rgba(44,53,68,.35);font-weight:800;}
-.unlock-btn.secondary:hover{background:#3a4558;color:#fff;transform:translateY(-1px);box-shadow:0 6px 20px rgba(44,53,68,.4);}
-.unlock-btn.secondary span{opacity:.9;color:rgba(255,255,255,.85);}
-.unlock-btn span{font-size:.68rem;font-weight:600;opacity:.85;}
-.secure-row{display:flex;justify-content:center;gap:.75rem;margin-top:.85rem;flex-wrap:wrap;}
+/* Pricing — single plan (reference style) */
+.price-card{margin:.8rem 1rem 0;background:var(--w);border-radius:16px;padding:1.4rem;border:2px solid var(--g);box-shadow:0 4px 24px rgba(37,211,102,.15);position:relative;overflow:hidden;}
+.price-corner{position:absolute;top:0;right:0;background:var(--red);color:#fff;font-size:.65rem;font-weight:800;padding:.35rem .65rem;border-radius:0 0 0 10px;letter-spacing:.05em;}
+.price-off-pill{background:#fee2e2;border-radius:20px;padding:.4rem 1rem;font-size:.78rem;font-weight:700;color:var(--red);text-align:center;display:inline-block;margin-bottom:.7rem;}
+.price-was{font-size:.9rem;color:var(--t2);text-decoration:line-through;text-align:center;}
+.price-now{font-size:3rem;font-weight:900;color:var(--t);text-align:center;line-height:1;letter-spacing:-.03em;}
+.price-save{color:var(--g);font-size:.88rem;font-weight:700;text-align:center;margin-bottom:.6rem;}
+.price-terms{font-size:.72rem;color:var(--t2);text-align:center;margin-bottom:.35rem;}
+.price-terms span{color:var(--gd);font-weight:600;}
+.price-terms + .price-terms{margin-bottom:1rem;}
+.unlock-btn{width:100%;padding:1.1rem;background:linear-gradient(135deg,var(--g),#22c55e);border:none;border-radius:13px;font-family:'Inter',sans-serif;font-size:1.05rem;font-weight:900;color:#fff;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.15rem;box-shadow:0 4px 24px rgba(37,211,102,.35);animation:upop 2s infinite;letter-spacing:-.01em;}
+@keyframes upop{0%,100%{box-shadow:0 4px 24px rgba(37,211,102,.3)}50%{box-shadow:0 6px 36px rgba(37,211,102,.6)}}
+.unlock-btn span{font-size:.72rem;font-weight:600;opacity:.85;}
+.secure-row{display:flex;justify-content:center;gap:.75rem;margin-top:.75rem;flex-wrap:wrap;}
 .sec-item{display:flex;align-items:center;gap:.3rem;font-size:.7rem;color:var(--t2);}
 .pay-icons{display:flex;justify-content:center;gap:.5rem;margin-top:.6rem;flex-wrap:wrap;}
 .pay-icon{background:var(--bg);border:1px solid var(--bd);border-radius:6px;padding:.25rem .6rem;font-size:.72rem;font-weight:600;color:var(--t2);}
@@ -579,76 +549,24 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--t);max-widt
   <div class="up-text js-gender">🔔 You, if you can access her WhatsApp, she can access yours too. With App Spy, your number stays <strong>protected and untraceable</strong> — while you uncover <strong>everything she's hiding.</strong></div>
 </div>
 
-<!-- Pricing — 2 plans (Essentials + Complete) -->
-<div class="pricing-sec" id="pricing">
-  <h2 class="tiers-title">Unlock the truth now</h2>
-  <p class="tiers-sub">See deleted messages, hidden photos &amp; secret chats. <strong>One payment · lifetime access.</strong></p>
-
-  <div class="tier-grid">
-    <!-- ESSENTIALS $37 (always first / on top) -->
-    <div class="price-card" data-tier="basic" id="tier-basic" onclick="selectTier('basic')">
-      <div class="tier-icon">📱</div>
-      <div class="tier-name">Essentials</div>
-      <div class="tier-tagline">Perfect for a quick truth check</div>
-      <div class="price-was">$97</div>
-      <div class="price-now"><small>$</small>37</div>
-      <div class="price-save-wrap"><span class="price-save">Save $60 · 62% off</span></div>
-      <div class="tier-scope">1 number · Core access</div>
-      <ul class="tier-features">
-        <li><span class="ico">✅</span><span>Access deleted WhatsApp messages</span></li>
-        <li><span class="ico">✅</span><span>Live conversation view</span></li>
-        <li><span class="ico">✅</span><span>Online / last-seen status</span></li>
-        <li><span class="ico">✅</span><span>Email support</span></li>
-        <li class="dim"><span class="ico">❌</span><span>Hidden photos &amp; videos</span></li>
-        <li class="dim"><span class="ico">❌</span><span>Voice notes recovery</span></li>
-        <li class="dim"><span class="ico">❌</span><span>Location history</span></li>
-        <li class="dim"><span class="ico">❌</span><span>Unlimited numbers</span></li>
-        <li><span class="ico">🛡️</span><span><strong>7-day money-back guarantee</strong></span></li>
-      </ul>
-      <button type="button" class="unlock-btn secondary JS-initiate-checkout js-initiate-checkout" data-plan="basic" data-value="37" onclick="event.stopPropagation();goCheckout('basic')">
-        Get Essentials — $37 →
-        <span class="btn-phone">+55 (44) 9996-6508</span>
-      </button>
-    </div>
-
-    <!-- COMPLETE $67 — MOST POPULAR -->
-    <div class="price-card recommended selected" data-tier="complete" id="tier-complete" onclick="selectTier('complete')">
-      <div class="price-corner">★ MOST POPULAR</div>
-      <div class="tier-icon">⚡</div>
-      <div class="tier-name">Complete</div>
-      <div class="tier-tagline">Full access — uncover everything they're hiding</div>
-      <div class="price-was">$397</div>
-      <div class="price-now"><small>$</small>67</div>
-      <div class="price-save-wrap"><span class="price-save">Save $330 · 75% off</span></div>
-      <div class="tier-scope">Lifetime · Unlimited numbers</div>
-      <ul class="tier-features">
-        <li><span class="ico">✅</span><span>Deleted messages <strong>(LIFETIME)</strong></span></li>
-        <li><span class="ico">✅</span><span>Hidden photos &amp; videos <strong>(LIFETIME)</strong></span></li>
-        <li><span class="ico">✅</span><span>Secret conversations &amp; blocked contacts</span></li>
-        <li><span class="ico">✅</span><span>Voice notes recovery</span></li>
-        <li><span class="ico">✅</span><span>Location history</span></li>
-        <li><span class="ico">✅</span><span>Real-time activity alerts</span></li>
-        <li><span class="ico">✅</span><span>PDF evidence report</span></li>
-        <li><span class="ico">✅</span><span>Priority support (&lt;4h)</span></li>
-        <li class="bonus"><span class="ico">🎁</span><span><strong>BONUS:</strong> Instagram Spy <strong style="color:var(--g);font-size:.68rem;">($97)</strong></span></li>
-        <li class="bonus"><span class="ico">🎁</span><span><strong>BONUS:</strong> Snapchat / Social spy <strong style="color:var(--g);font-size:.68rem;">($67)</strong></span></li>
-        <li class="bonus"><span class="ico">🎁</span><span><strong>BONUS:</strong> Encrypted vault + VIP updates</span></li>
-        <li class="free-bonus"><span class="ico">💰</span><span>$230+ in bonuses included FREE</span></li>
-        <li class="guar"><span class="ico">🛡️</span><span>30-day “find the truth or refund” guarantee</span></li>
-      </ul>
-      <div class="tier-spots"><span class="live-dot"></span> Limited offer · ends today</div>
-      <div class="tier-social">👥 <strong>2,847</strong> people chose Complete today</div>
-      <button type="button" class="unlock-btn JS-initiate-checkout js-initiate-checkout" data-plan="complete" data-value="67" onclick="event.stopPropagation();goCheckout('complete')">
-        🔓 UNLOCK FULL ACCESS — $67
-        <span class="btn-phone" id="btn-phone">+55 (44) 9996-6508</span>
-      </button>
-    </div>
+<!-- Pricing — single plan only (same card as reference, $39) -->
+<div class="price-card" id="pricing">
+  <div class="price-corner">BEST VALUE</div>
+  <div style="text-align:center;">
+    <div class="price-off-pill">75% OFF - LIMITED TIME</div>
+    <div class="price-was">$197</div>
+    <div class="price-now">$39</div>
+    <div class="price-save">You save $158 today!</div>
+    <div class="price-terms"><span>One-time payment</span> • <span>Lifetime access</span></div>
+    <div class="price-terms">One-time payment • Instant access • 30-day guarantee</div>
   </div>
-
+  <button type="button" class="unlock-btn JS-initiate-checkout js-initiate-checkout" data-plan="full" data-value="39" onclick="goCheckout()">
+    🔓 UNLOCK FULL ACCESS NOW
+    <span id="btn-phone">+55 (44) 9996-6508</span>
+  </button>
   <div class="secure-row">
     <div class="sec-item"><svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:var(--gd);fill:none;stroke-width:2;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Secure payment</div>
     <div class="sec-item"><svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:var(--gd);fill:none;stroke-width:2;"><polyline points="20 6 9 17 4 12"/></svg>Access in up to 2 minutes</div>
-    <div class="sec-item"><svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:var(--gd);fill:none;stroke-width:2;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>100% anonymous</div>
   </div>
   <div class="pay-icons"><span class="pay-icon">💳 Visa</span><span class="pay-icon">💳 Mastercard</span><span class="pay-icon">💳 Amex</span><span class="pay-icon">🔒 PayPal</span></div>
   <div class="viewers-live">● <span id="view-n2">66</span> people viewing this page right now</div>
@@ -892,22 +810,11 @@ function toggleFaq(el){
   a.classList.toggle('show');
 }
 
-// Checkout — two plans (same structure as reference CTA)
-// Map each plan to its CenterPag product code when you have separate links
-var checkoutCodeMap = {
-  basic: 'PPU38CQEHD1',     // Essentials $37
-  complete: 'PPU38CQE961'   // Complete $67 — Full access
-};
-var selectedTier = 'complete';
-
-function selectTier(tier) {
-  selectedTier = tier === 'basic' ? 'basic' : 'complete';
-  var basic = document.getElementById('tier-basic');
-  var complete = document.getElementById('tier-complete');
-  if (basic) basic.classList.toggle('selected', selectedTier === 'basic');
-  if (complete) complete.classList.toggle('selected', selectedTier === 'complete');
-  try { sessionStorage.setItem('sl_plan', selectedTier); } catch (e) {}
-}
+// Checkout — single plan $39 Full Access
+var CHECKOUT_CODE = 'PPU38CQE961'; // Full access $39
+var PLAN_VALUE = 39;
+var PLAN_LABEL = '$39 Full Access';
+var PLAN_TIER = 'full';
 
 /**
  * Meta + UTMify InitiateCheckout on plan click.
@@ -916,10 +823,10 @@ function selectTier(tier) {
  */
 function fireInitiateCheckoutPixels(opts) {
   opts = opts || {};
-  var value = opts.value != null ? Number(opts.value) : 67;
-  var tier = opts.tier || 'complete';
-  var planLabel = opts.planLabel || (tier === 'basic' ? '$37 Essentials' : '$67 Complete');
-  var code = opts.code || '';
+  var value = opts.value != null ? Number(opts.value) : PLAN_VALUE;
+  var tier = opts.tier || PLAN_TIER;
+  var planLabel = opts.planLabel || PLAN_LABEL;
+  var code = opts.code || CHECKOUT_CODE;
   var payload = {
     value: value,
     currency: 'USD',
@@ -968,23 +875,19 @@ function fireInitiateCheckoutPixels(opts) {
   } catch (e3) {}
 }
 
-function goCheckout(tier) {
-  if (tier) selectTier(tier);
-
+function goCheckout() {
   var overlay = document.getElementById('checkout-loading');
   if (overlay) overlay.style.display = 'flex';
 
-  var planValue = selectedTier === 'basic' ? 37 : 67;
-  var planLabel = selectedTier === 'basic' ? '$37 Essentials' : '$67 Complete';
-  var code = checkoutCodeMap[selectedTier] || checkoutCodeMap.complete;
+  try { sessionStorage.setItem('sl_plan', PLAN_TIER); } catch (e) {}
 
   // Meta + helpers (UTMify also picks up click on .JS-initiate-checkout)
   try {
     fireInitiateCheckoutPixels({
-      tier: selectedTier,
-      value: planValue,
-      planLabel: planLabel,
-      code: code
+      tier: PLAN_TIER,
+      value: PLAN_VALUE,
+      planLabel: PLAN_LABEL,
+      code: CHECKOUT_CODE
     });
   } catch (errPix) {}
 
@@ -992,10 +895,10 @@ function goCheckout(tier) {
   try {
     if (window.ZSAnalytics && typeof window.ZSAnalytics.checkout === 'function') {
       window.ZSAnalytics.checkout({
-        tier: selectedTier,
-        value: planValue,
-        planLabel: planLabel,
-        code: code
+        tier: PLAN_TIER,
+        value: PLAN_VALUE,
+        planLabel: PLAN_LABEL,
+        code: CHECKOUT_CODE
       });
     }
   } catch (err) {}
@@ -1004,21 +907,17 @@ function goCheckout(tier) {
     // Don't intercept checkout navigation
     try { sessionStorage.setItem('sl_goingToBackredirect', '1'); } catch (e) {}
     window.__slLeavingForCheckout = true;
-    var payCode = checkoutCodeMap[selectedTier] || checkoutCodeMap.complete;
     var n = sessionStorage.getItem('buyer_name') || '';
     var e = sessionStorage.getItem('buyer_email') || '';
     var p = sessionStorage.getItem('buyer_phone') || dec || '';
-    navigateWithQuery('https://go.centerpag.com/' + payCode, {
+    navigateWithQuery('https://go.centerpag.com/' + CHECKOUT_CODE, {
       name: n,
       email: e,
       phone: p,
-      plan: selectedTier
+      plan: PLAN_TIER
     });
   }, 1400);
 }
-
-// Default: Complete selected (most popular)
-selectTier('complete');
 
 // ─── Last step ONLY: back button + exit attempt → backredirect ───
 (function setupLastStepExit() {

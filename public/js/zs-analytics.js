@@ -554,11 +554,14 @@
             : null;
       if ((value == null || isNaN(value)) && tier === "basic") value = 37;
       if ((value == null || isNaN(value)) && tier === "complete") value = 67;
+      if ((value == null || isNaN(value)) && (tier === "full" || tier === "single"))
+        value = 39;
       if (!tier && (value === 37 || value === 47)) tier = "basic";
       if (!tier && value === 67) tier = "complete";
+      if (!tier && value === 39) tier = "full";
       if (value == null || isNaN(value)) {
-        value = 67;
-        tier = tier || "complete";
+        value = 39;
+        tier = tier || "full";
       }
       var planLabel =
         extra.planLabel ||
@@ -566,7 +569,9 @@
           ? "$" + value + " Essentials"
           : value === 67
             ? "$67 Complete"
-            : "$" + value);
+            : value === 39
+              ? "$39 Full Access"
+              : "$" + value);
 
       var place =
         extra.placement ||
