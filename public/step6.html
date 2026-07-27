@@ -562,7 +562,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--t);max-widt
   </div>
   <button type="button" class="unlock-btn JS-initiate-checkout js-initiate-checkout" data-plan="full" data-value="39" onclick="goCheckout()">
     🔓 UNLOCK FULL ACCESS NOW
-    <span id="btn-phone">+55 (44) 9996-6508</span>
+    <span class="btn-phone" id="btn-phone">+55 (44) 9996-6508</span>
   </button>
   <div class="secure-row">
     <div class="sec-item"><svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:var(--gd);fill:none;stroke-width:2;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Secure payment</div>
@@ -639,12 +639,12 @@ function applyGenderPronouns(g) {
 }
 applyGenderPronouns(gender);
 
-// Populate phone fields
+// Populate phone fields (target card + unlock CTA)
 var masked = dec.replace(/\d(?=\d{2})/g,'*').replace(/\*+/,'****');
 document.getElementById('t-num').textContent = masked || '+55 ****08';
 document.getElementById('t-phone-full').textContent = dec;
 document.getElementById('up-phone').textContent = '+' + digits;
-document.querySelectorAll('.btn-phone').forEach(function(el){ el.textContent = dec; });
+document.querySelectorAll('.btn-phone, #btn-phone').forEach(function(el){ el.textContent = dec; });
 
 // Photos & Videos grid by gender (same mapping as ZapSpy cta-unified)
 // female (spy on woman) → men + motel/car | male (spy on man) → women + motel/car
