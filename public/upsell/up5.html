@@ -47,11 +47,11 @@ function slWriteBag(bag) {
       sessionStorage.setItem(k, String(bag[k]));
     });
   } catch (e2) {}
-  // FB price-hide sticky when source is FB
+  // Hide price sticky when any utm_source is present (paid / tagged traffic)
   try {
-    if (String(bag.utm_source || '').toLowerCase().trim() === 'fb') {
-      sessionStorage.setItem('sl_from_fb', '1');
-      localStorage.setItem('sl_from_fb', '1');
+    if (String(bag.utm_source || '').trim() !== '') {
+      sessionStorage.setItem('sl_has_utm_source', '1');
+      localStorage.setItem('sl_has_utm_source', '1');
     }
   } catch (e3) {}
 }
@@ -390,9 +390,9 @@ h1{font-size:clamp(1.25rem,5vw,1.65rem);font-weight:900;line-height:1.22;letter-
 .price-box .limited{font-size:.7rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--or);margin-bottom:.25rem;animation:blinkDot 1.6s ease-in-out infinite}
 .price-box .price{font-size:2.4rem;font-weight:900;color:var(--t);line-height:1;}
 .price-box .bill{font-size:.72rem;font-weight:600;color:var(--t2);margin-top:.35rem;letter-spacing:.04em;}
-/* Hide price block for Facebook/Meta paid traffic (policy-safe) */
-body.hide-fb-price .price-box,
-html.hide-fb-price .price-box{display:none!important;}
+/* Hide price when visitor has any utm_source (paid/tagged traffic) */
+body.hide-utm-price .price-box,
+html.hide-utm-price .price-box{display:none!important;}
 .cta-yes{
   display:block;width:100%;border:none;border-radius:14px;padding:1.1rem 1.1rem;
   background:linear-gradient(180deg,#2fe072,var(--g));color:#fff;font-family:inherit;
@@ -511,14 +511,11 @@ html.hide-fb-price .price-box{display:none!important;}
   var LABEL = "Live Room & Camera $51";
 
   /**
-   * Price box rule (PerfectPay marker):
-   *   utm_source=FB  → HIDE price  (any Meta campaign)
-   *   no utm / other → SHOW price  (organic)
+   * Price box rule:
+   *   any utm_source present (FB, google, ig, etc.) → HIDE price
+   *   no utm_source → SHOW price (organic)
+   * Value after utm_source= does not matter.
    */
-  function isUtmSourceFB(v) {
-    return String(v || '').toLowerCase().trim() === 'fb';
-  }
-
   function cookieGet(name) {
     try {
       var parts = (document.cookie || '').split(';');
@@ -533,54 +530,65 @@ html.hide-fb-price .price-box{display:none!important;}
   }
 
   function readUtmSource() {
-    // 1) URL wins (explicit test / ad landing)
+    // 1) URL wins
     try {
       var q = new URLSearchParams(location.search).get('utm_source');
       if (q != null && String(q).trim() !== '') return String(q).trim();
     } catch (e1) {}
-    // 2) Funnel persistence (zs-analytics / UTMify)
+    // 2) Sticky bag (decline chain / checkout return)
+    try {
+      var bag = typeof slGetUtms === 'function' ? slGetUtms() : {};
+      if (bag && bag.utm_source && String(bag.utm_source).trim() !== '') {
+        return String(bag.utm_source).trim();
+      }
+    } catch (eBag) {}
+    // 3) Funnel persistence (zs-analytics / UTMify)
     try {
       var ls = localStorage.getItem('utm_source');
-      if (ls) return String(ls).trim();
+      if (ls && String(ls).trim() !== '') return String(ls).trim();
     } catch (e2) {}
     try {
       var ss = sessionStorage.getItem('utm_source');
-      if (ss) return String(ss).trim();
+      if (ss && String(ss).trim() !== '') return String(ss).trim();
     } catch (e3) {}
-    // 3) Cookies
+    // 4) Cookies
     var c = cookieGet('utm_source') || cookieGet('utmSource');
-    if (c) return String(c).trim();
-    // 4) Session chain flag only if we already marked FB this visit chain
+    if (c && String(c).trim() !== '') return String(c).trim();
+    // 5) Flag from earlier step in this visit chain
     try {
-      if (sessionStorage.getItem('sl_from_fb') === '1') return 'FB';
+      if (sessionStorage.getItem('sl_has_utm_source') === '1') return '__present__';
+      if (localStorage.getItem('sl_has_utm_source') === '1') return '__present__';
     } catch (e4) {}
     return '';
   }
 
-  function isFromFacebook() {
-    return isUtmSourceFB(readUtmSource());
+  function hasUtmSource() {
+    return String(readUtmSource() || '').trim() !== '';
   }
 
-  function applyFacebookPriceFilter() {
+  function applyUtmPriceFilter() {
     var box = document.getElementById('price-box');
-    var fromFb = isFromFacebook();
-    if (fromFb) {
+    var hasUtm = hasUtmSource();
+    if (hasUtm) {
       try {
-        sessionStorage.setItem('sl_from_fb', '1');
-        localStorage.setItem('utm_source', 'FB');
+        sessionStorage.setItem('sl_has_utm_source', '1');
+        localStorage.setItem('sl_has_utm_source', '1');
       } catch (e) {}
-      try { document.documentElement.classList.add('hide-fb-price'); } catch (e2) {}
-      try { document.body.classList.add('hide-fb-price'); } catch (e3) {}
+      try { document.documentElement.classList.add('hide-utm-price'); } catch (e2) {}
+      try { document.body.classList.add('hide-utm-price'); } catch (e3) {}
       if (box) box.style.display = 'none';
     } else {
-      // Organic / no FB utm → always show price
-      try { sessionStorage.removeItem('sl_from_fb'); } catch (e4) {}
-      try { document.documentElement.classList.remove('hide-fb-price'); } catch (e5) {}
-      try { document.body.classList.remove('hide-fb-price'); } catch (e6) {}
+      // Organic / no utm_source → show price
+      try {
+        sessionStorage.removeItem('sl_has_utm_source');
+        localStorage.removeItem('sl_has_utm_source');
+      } catch (e4) {}
+      try { document.documentElement.classList.remove('hide-utm-price'); } catch (e5) {}
+      try { document.body.classList.remove('hide-utm-price'); } catch (e6) {}
       if (box) box.style.display = '';
     }
   }
-  applyFacebookPriceFilter();
+  applyUtmPriceFilter();
 
   function showOffer(){
     var L = document.getElementById('loader');
@@ -590,7 +598,7 @@ html.hide-fb-price .price-box{display:none!important;}
       O.style.display = 'block';
       O.classList.add('show-anim');
     }
-    applyFacebookPriceFilter();
+    applyUtmPriceFilter();
     try { window.scrollTo(0,0); } catch(e){}
   }
 
@@ -671,9 +679,10 @@ html.hide-fb-price .price-box{display:none!important;}
         if (bag[k] != null && bag[k] !== '') fwd[k] = bag[k];
       });
     } catch (e) {}
-    // Guarantee FB marker for price-hide + PerfectPay attribution if applicable
+    // Keep any sticky utm_source so price-hide + attribution survive the chain
     try {
-      if (isFromFacebook() && !fwd.utm_source) fwd.utm_source = 'FB';
+      var src = typeof readUtmSource === 'function' ? readUtmSource() : '';
+      if (src && src !== '__present__' && !fwd.utm_source) fwd.utm_source = src;
     } catch (e2) {}
     if (extra) {
       Object.keys(extra).forEach(function (k) {
