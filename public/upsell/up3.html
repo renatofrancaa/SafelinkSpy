@@ -114,12 +114,20 @@ h1{font-size:clamp(1.25rem,5vw,1.65rem);font-weight:900;line-height:1.22;letter-
 .price-box .price{font-size:2.4rem;font-weight:900;color:var(--t);line-height:1;}
 .price-box .bill{font-size:.72rem;font-weight:600;color:var(--t2);margin-top:.35rem;letter-spacing:.04em;}
 .cta-yes{
-  display:block;width:100%;border:none;border-radius:14px;padding:1rem 1.1rem;
+  display:block;width:100%;border:none;border-radius:14px;padding:1.1rem 1.1rem;
   background:linear-gradient(180deg,#2fe072,var(--g));color:#fff;font-family:inherit;
-  font-size:.95rem;font-weight:800;cursor:pointer;box-shadow:0 8px 24px rgba(37,211,102,.35);
+  font-size:1rem;font-weight:800;cursor:pointer;
+  box-shadow:0 8px 28px rgba(37,211,102,.45);
   margin-bottom:.65rem;line-height:1.3;
+  animation:ctaPulse 1.6s ease-in-out infinite;
+  position:relative;
 }
-.cta-yes:active{transform:scale(.98);}
+.cta-yes:hover{filter:brightness(1.05);}
+.cta-yes:active{transform:scale(.98);animation:none;}
+@keyframes ctaPulse{
+  0%,100%{transform:scale(1);box-shadow:0 8px 28px rgba(37,211,102,.4);}
+  50%{transform:scale(1.035);box-shadow:0 12px 36px rgba(37,211,102,.65),0 0 0 6px rgba(37,211,102,.18);}
+}
 .cta-no{
   display:block;width:100%;background:none;border:none;color:var(--t2);font-family:inherit;
   font-size:.8rem;text-decoration:underline;cursor:pointer;padding:.5rem;line-height:1.35;
@@ -203,7 +211,7 @@ h1{font-size:clamp(1.25rem,5vw,1.65rem);font-weight:900;line-height:1.22;letter-
 
 <script>
 (function(){
-  var CODE = "PPU38CQ7KI5";
+  var CODE = "PPU38CQ95OE";
   var NEXT = "up4.html";
   var VALUE = 47;
   var LABEL = "VIP Priority Processing $47";
@@ -300,9 +308,9 @@ h1{font-size:clamp(1.25rem,5vw,1.65rem);font-weight:900;line-height:1.22;letter-
     var name = sessionStorage.getItem('buyer_name') || '';
     var email = sessionStorage.getItem('buyer_email') || '';
     var phone = sessionStorage.getItem('sl_phone') || sessionStorage.getItem('buyer_phone') || '';
+    // Full CenterPag upsell URL (codes from catalog)
     setTimeout(function(){
-      navigateWithQuery('https://go.centerpag.com/' + CODE, {
-        upsell: 'true',
+      navigateWithQuery('https://go.centerpag.com/' + CODE + '?upsell=true', {
         name: name,
         email: email,
         phone: phone,
@@ -311,7 +319,9 @@ h1{font-size:clamp(1.25rem,5vw,1.65rem);font-weight:900;line-height:1.22;letter-
     }, 400);
   }
 
+  // Decline → next upsell in chain (up1→…→up7→thankyou)
   function goNext(){
+    if (!NEXT) return;
     navigateWithQuery(NEXT);
   }
 
