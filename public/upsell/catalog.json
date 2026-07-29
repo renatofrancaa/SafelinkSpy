@@ -128,7 +128,7 @@
         "queue": {
           "position": 127,
           "of": 203,
-          "wait": "~2 days",
+          "wait": "~7 days",
           "load": "74% capacity",
           "speed": "Standard"
         }
@@ -136,23 +136,23 @@
       "badge": {
         "icon": "✓",
         "label": "VIP FAST LANE AVAILABLE",
-        "text": "Skip the entire queue. Get your results in 5 minutes instead of 2 days."
+        "text": "Skip the standard queue. Get your results in 48 hours instead of 7 days."
       },
-      "headline": "Get Results in 5 Minutes Instead of 2 Days",
-      "subheadline": "Standard Processing (What You Have Now): Your data sits in a queue with thousands of other users. Wait up to 2 days before seeing any results. By then, critical evidence may already be gone.\n\nVIP Priority Processing (Instant Access): Jump to the front of the line. Your data is processed FIRST, every time. See deleted messages, photos, and locations in under 5 minutes — not 2 days.",
+      "headline": "Get Results in 48 Hours Instead of 7 Days",
+      "subheadline": "Standard Processing (What You Have Now): Your data sits in a queue with thousands of other users. Wait up to 7 days before seeing any results. By then, critical evidence may already be gone.\n\nVIP Priority Processing (Instant Access): Jump to the front of the line. Your data is processed FIRST. See deleted messages, photos, and locations in about 48 hours — not a full week.",
       "sectionTitle": "Standard vs VIP Priority Processing",
-      "sectionBody": "Stop waiting 2 days. With VIP Priority, you get answers in minutes.",
+      "sectionBody": "Stop waiting 7 days. With VIP Priority, you get answers in about 48 hours.",
       "urgency": {
         "title": "VIP Priority — Only Available During Setup",
-        "body": "VIP Priority can only be added to your account during initial setup. Once you leave this page, your account will be locked into standard processing with up to 2-day delays.\n\nDon't make this mistake: Thousands of users regret not adding VIP Priority. They waste days waiting for results while critical evidence disappears. By the time they see the data, it's too late. Add it now and get instant access!"
+        "body": "VIP Priority can only be added to your account during initial setup. Once you leave this page, your account will be locked into standard processing with up to 7-day delays.\n\nDon't make this mistake: Thousands of users regret not adding VIP Priority. They waste a full week waiting for results while critical evidence disappears. By the time they see the data, it's too late. Add it now and cut the wait to about 48 hours!"
       },
-      "closingTitle": "2 Days is Too Long to Wait for The Truth",
+      "closingTitle": "7 Days is Too Long to Wait for The Truth",
       "ctaYes": "Yes, Add VIP Priority to My Account",
       "ctaNo": "No thanks, I don't need VIP priority",
       "features": [
-        "Instant Results: Data processed in minutes, not 2 days",
+        "Priority Results: Data processed in about 48 hours, not 7 days",
         "Skip The Queue: Your requests always go first",
-        "Real-Time Alerts: Get notified the moment new data appears",
+        "Faster Alerts: Get notified sooner when new data appears",
         "24/7 VIP Support: Priority assistance whenever you need",
         "Dedicated Resources: Faster servers, better performance",
         "Lifetime VIP Status: Priority access forever"
@@ -160,17 +160,17 @@
       "compare": {
         "leftTitle": "Standard Processing",
         "left": [
-          "Wait up to 2 days for results",
+          "Wait up to 7 days for results",
           "Data processed in order with thousands of others",
           "No priority support",
           "Risk losing critical evidence while waiting"
         ],
         "rightTitle": "VIP Priority Processing",
         "right": [
-          "Instant results in minutes",
+          "Results in about 48 hours",
           "Your data processed FIRST",
           "24/7 premium support",
-          "Real-time notifications & alerts"
+          "Faster notifications & alerts"
         ]
       },
       "priceLabel": "$67"
