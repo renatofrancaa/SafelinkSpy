@@ -13,23 +13,150 @@
 ></script>
 <script src="/js/zs-analytics.js" defer></script>
 <script>
+/**
+ * Sticky UTM bag — survives accept/decline through the whole upsell chain.
+ * Keys mirror PerfectPay / Meta ads attribution (utm_source=FB etc.).
+ */
+var SL_UTM_KEYS = [
+  'utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term', 'utm_id',
+  'fbclid', 'igshid', 'gclid', 'wbraid', 'gbraid', 'gad_source',
+  'placement', 'utm_placement', 'xcod', 'sck', 'src', 'campaign_id', 'adset_id', 'ad_id'
+];
+var SL_UTM_BAG = 'sl_utm_bag';
+
+function slReadBag(key) {
+  try {
+    var raw = localStorage.getItem(key) || sessionStorage.getItem(key);
+    if (!raw) return {};
+    var o = JSON.parse(raw);
+    return o && typeof o === 'object' ? o : {};
+  } catch (e) { return {}; }
+}
+
+function slWriteBag(bag) {
+  try {
+    var s = JSON.stringify(bag);
+    localStorage.setItem(SL_UTM_BAG, s);
+    sessionStorage.setItem(SL_UTM_BAG, s);
+  } catch (e) {}
+  // Mirror individual keys (zs-analytics / UTMify compatibility)
+  try {
+    Object.keys(bag).forEach(function (k) {
+      if (bag[k] == null || bag[k] === '') return;
+      localStorage.setItem(k, String(bag[k]));
+      sessionStorage.setItem(k, String(bag[k]));
+    });
+  } catch (e2) {}
+  // FB price-hide sticky when source is FB
+  try {
+    if (String(bag.utm_source || '').toLowerCase().trim() === 'fb') {
+      sessionStorage.setItem('sl_from_fb', '1');
+      localStorage.setItem('sl_from_fb', '1');
+    }
+  } catch (e3) {}
+}
+
+function slCaptureUtms() {
+  var bag = slReadBag(SL_UTM_BAG);
+  // URL params (win / refresh values)
+  try {
+    var p = new URLSearchParams(location.search);
+    SL_UTM_KEYS.forEach(function (k) {
+      var v = p.get(k);
+      if (v != null && String(v).trim() !== '') bag[k] = String(v).trim();
+    });
+  } catch (e) {}
+  // Already-stored single keys (from main funnel / UTMify)
+  SL_UTM_KEYS.forEach(function (k) {
+    if (bag[k]) return;
+    try {
+      var ls = localStorage.getItem(k);
+      if (ls) bag[k] = ls;
+    } catch (e2) {}
+    try {
+      var ss = sessionStorage.getItem(k);
+      if (ss && !bag[k]) bag[k] = ss;
+    } catch (e3) {}
+  });
+  // Cookie fallbacks
+  try {
+    (document.cookie || '').split(';').forEach(function (part) {
+      var i = part.indexOf('=');
+      if (i < 0) return;
+      var name = part.slice(0, i).trim();
+      var val = decodeURIComponent(part.slice(i + 1).trim());
+      if (SL_UTM_KEYS.indexOf(name) !== -1 && val && !bag[name]) bag[name] = val;
+    });
+  } catch (e4) {}
+  slWriteBag(bag);
+  return bag;
+}
+
+function slGetUtms() {
+  return slReadBag(SL_UTM_BAG);
+}
+
+/** Put sticky UTMs back on the current URL (so share/reload keeps attribution) */
+function slEnsureUrlUtms() {
+  var bag = slGetUtms();
+  var keys = Object.keys(bag);
+  if (!keys.length) return;
+  try {
+    var u = new URL(location.href);
+    var changed = false;
+    keys.forEach(function (k) {
+      if (!bag[k]) return;
+      if (!u.searchParams.get(k)) {
+        u.searchParams.set(k, bag[k]);
+        changed = true;
+      }
+    });
+    if (changed) {
+      history.replaceState(null, '', u.pathname + u.search + (u.hash || ''));
+    }
+  } catch (e) {}
+}
+
 function buildForwardUrl(targetUrl, params) {
   var url = new URL(targetUrl, window.location.href);
-  var currentParams = new URLSearchParams(window.location.search);
-  currentParams.forEach(function(value, key) {
-    if (!url.searchParams.has(key)) url.searchParams.set(key, value);
-  });
+  // 1) current page query
+  try {
+    var currentParams = new URLSearchParams(window.location.search);
+    currentParams.forEach(function (value, key) {
+      if (!url.searchParams.has(key)) url.searchParams.set(key, value);
+    });
+  } catch (e) {}
+  // 2) sticky bag (never lose UTMs on accept/decline)
+  try {
+    var bag = slGetUtms();
+    Object.keys(bag).forEach(function (key) {
+      if (bag[key] && !url.searchParams.has(key)) {
+        url.searchParams.set(key, bag[key]);
+      }
+    });
+  } catch (e2) {}
+  // 3) explicit overrides
   if (params) {
-    Object.keys(params).forEach(function(key) {
+    Object.keys(params).forEach(function (key) {
       var value = params[key];
-      if (value !== undefined && value !== null && value !== '') url.searchParams.set(key, value);
+      if (value !== undefined && value !== null && value !== '') {
+        url.searchParams.set(key, value);
+      }
     });
   }
   return url.toString();
 }
 function navigateWithQuery(targetUrl, params) {
+  // Re-capture before leave
+  try { slCaptureUtms(); } catch (e) {}
   window.location.href = buildForwardUrl(targetUrl, params);
 }
+
+// Boot: capture + restore UTMs on every upsell / thankyou page
+try {
+  slCaptureUtms();
+  slEnsureUrlUtms();
+} catch (eBoot) {}
 </script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -513,6 +640,27 @@ html.hide-fb-price .price-box{display:none!important;}
     }
   }, 115);
 
+  /** All sticky UTMs + buyer fields for checkout / next step */
+  function attributionParams(extra) {
+    var fwd = {};
+    try {
+      var bag = typeof slCaptureUtms === 'function' ? slCaptureUtms() : (typeof slGetUtms === 'function' ? slGetUtms() : {});
+      Object.keys(bag || {}).forEach(function (k) {
+        if (bag[k] != null && bag[k] !== '') fwd[k] = bag[k];
+      });
+    } catch (e) {}
+    // Guarantee FB marker for price-hide + PerfectPay attribution if applicable
+    try {
+      if (isFromFacebook() && !fwd.utm_source) fwd.utm_source = 'FB';
+    } catch (e2) {}
+    if (extra) {
+      Object.keys(extra).forEach(function (k) {
+        if (extra[k] != null && extra[k] !== '') fwd[k] = extra[k];
+      });
+    }
+    return fwd;
+  }
+
   function goCheckout(){
     try {
       if (typeof fbq === 'function') {
@@ -530,26 +678,22 @@ html.hide-fb-price .price-box{display:none!important;}
     var name = sessionStorage.getItem('buyer_name') || '';
     var email = sessionStorage.getItem('buyer_email') || '';
     var phone = sessionStorage.getItem('sl_phone') || sessionStorage.getItem('buyer_phone') || '';
-    // Full CenterPag upsell URL (codes from catalog)
+    // CenterPag + full UTM bag (accept does not drop attribution)
     setTimeout(function(){
-      navigateWithQuery('https://go.centerpag.com/' + CODE + '?upsell=true', {
+      navigateWithQuery('https://go.centerpag.com/' + CODE + '?upsell=true', attributionParams({
         name: name,
         email: email,
         phone: phone,
-        plan: "up4"
-      });
+        plan: "up4",
+        upsell: 'true'
+      }));
     }, 400);
   }
 
-  // Decline → next upsell in chain (up1→…→up7→thankyou)
+  // Decline → next upsell / thankyou WITH same UTM codes until end of chain
   function goNext(){
     if (!NEXT) return;
-    var fwd = {};
-    // Keep FB marker on decline chain so price stays hidden
-    try {
-      if (isFromFacebook()) fwd.utm_source = 'FB';
-    } catch (e) {}
-    navigateWithQuery(NEXT, fwd);
+    navigateWithQuery(NEXT, attributionParams());
   }
 
   document.getElementById('cta-yes').addEventListener('click', goCheckout);
