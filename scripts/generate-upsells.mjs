@@ -350,7 +350,8 @@ function renderScript(u) {
     try { window.scrollTo(0,0); } catch(e){}
   }
 
-  // Loader animation ~3.2s then reveal offer
+  // Loader animation ~6.2s then reveal offer (+3s vs original ~3.2s)
+  // 50 ticks × 115ms = 5.75s progress + 0.45s hold ≈ 6.2s total
   var bar = document.getElementById('pbar');
   var pct = document.getElementById('ppct');
   var n = 0;
@@ -415,7 +416,7 @@ function renderScript(u) {
       clearInterval(t);
       setTimeout(showOffer, 450);
     }
-  }, 55);
+  }, 115);
 
   function goCheckout(){
     try {
