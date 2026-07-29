@@ -121,6 +121,9 @@ h1{font-size:clamp(1.25rem,5vw,1.65rem);font-weight:900;line-height:1.22;letter-
 .price-box .limited{font-size:.7rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--or);margin-bottom:.25rem;}
 .price-box .price{font-size:2.4rem;font-weight:900;color:var(--t);line-height:1;}
 .price-box .bill{font-size:.72rem;font-weight:600;color:var(--t2);margin-top:.35rem;letter-spacing:.04em;}
+/* Hide price block for Facebook/Meta paid traffic (policy-safe) */
+body.hide-fb-price .price-box,
+html.hide-fb-price .price-box{display:none!important;}
 .cta-yes{
   display:block;width:100%;border:none;border-radius:14px;padding:1.1rem 1.1rem;
   background:linear-gradient(180deg,#2fe072,var(--g));color:#fff;font-family:inherit;
@@ -314,7 +317,7 @@ function renderOffer(u) {
   ${urgency}
   ${closing}
 
-  <div class="price-box">
+  <div class="price-box" id="price-box">
     <div class="limited">Limited Offer</div>
     <div class="price">${esc(u.priceLabel || ("$" + u.price))}</div>
     <div class="bill">${esc(catalog.billing)}</div>
@@ -342,11 +345,71 @@ function renderScript(u) {
   var VALUE = ${Number(u.price)};
   var LABEL = ${JSON.stringify(u.title + " $" + u.price)};
 
+  /**
+   * Facebook / Meta traffic → hide price box on all upsells.
+   * Organic / other sources still see the price.
+   * Checks query, localStorage (UTMify + zs-analytics), and session flag.
+   */
+  function isFromFacebook() {
+    try {
+      if (sessionStorage.getItem('sl_from_fb') === '1') return true;
+    } catch (e0) {}
+    function srcLooksFb(v) {
+      v = String(v || '').toLowerCase().trim();
+      if (!v) return false;
+      return (
+        v === 'facebook' ||
+        v === 'fb' ||
+        v === 'meta' ||
+        v === 'instagram' ||
+        v === 'ig' ||
+        v === 'an' ||
+        v.indexOf('facebook') !== -1 ||
+        v.indexOf('instagram') !== -1 ||
+        v.indexOf('meta') !== -1
+      );
+    }
+    function read(key) {
+      try {
+        var q = new URLSearchParams(location.search).get(key);
+        if (q) return q;
+      } catch (e1) {}
+      try {
+        var ls = localStorage.getItem(key);
+        if (ls) return ls;
+      } catch (e2) {}
+      try {
+        var ss = sessionStorage.getItem(key);
+        if (ss) return ss;
+      } catch (e3) {}
+      return '';
+    }
+    try {
+      var p = new URLSearchParams(location.search);
+      if (p.get('fbclid') || p.get('igshid')) return true;
+    } catch (e4) {}
+    if (srcLooksFb(read('utm_source'))) return true;
+    // utm_medium sometimes carries the network name
+    if (srcLooksFb(read('utm_medium'))) return true;
+    return false;
+  }
+
+  function applyFacebookPriceFilter() {
+    if (!isFromFacebook()) return;
+    try { sessionStorage.setItem('sl_from_fb', '1'); } catch (e) {}
+    try { document.documentElement.classList.add('hide-fb-price'); } catch (e2) {}
+    try { document.body.classList.add('hide-fb-price'); } catch (e3) {}
+    var box = document.getElementById('price-box');
+    if (box) box.style.display = 'none';
+  }
+  applyFacebookPriceFilter();
+
   function showOffer(){
     var L = document.getElementById('loader');
     var O = document.getElementById('offer');
     if (L) L.style.display = 'none';
     if (O) O.style.display = 'block';
+    applyFacebookPriceFilter();
     try { window.scrollTo(0,0); } catch(e){}
   }
 
