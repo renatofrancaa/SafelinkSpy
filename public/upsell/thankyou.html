@@ -117,7 +117,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 }
 @keyframes ctaPulse{
   0%,100%{transform:scale(1);box-shadow:0 8px 28px rgba(37,211,102,.4)}
-  50%{transform:scale(1.035);box-shadow:0 12px 36px rgba(37,211,102,.65),0 0 0 6px rgba(37,211,102,.18)}
+  50%{transform:scale(1.045);box-shadow:0 14px 40px rgba(37,211,102,.7),0 0 0 8px rgba(37,211,102,.2)}
 }
 @keyframes livePulse{
   0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,.45)}
@@ -201,15 +201,22 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 
 /* Offer */
 #offer{display:none;padding:1rem 1rem 2.5rem;}
-#offer.show-anim > *{animation:fadeUp .45s ease both}
-#offer.show-anim > *:nth-child(1){animation-delay:.02s}
-#offer.show-anim > *:nth-child(2){animation-delay:.06s}
-#offer.show-anim > *:nth-child(3){animation-delay:.1s}
-#offer.show-anim > *:nth-child(4){animation-delay:.14s}
-#offer.show-anim > *:nth-child(5){animation-delay:.18s}
-#offer.show-anim > *:nth-child(6){animation-delay:.22s}
-#offer.show-anim > *:nth-child(7){animation-delay:.26s}
-#offer.show-anim > *:nth-child(8){animation-delay:.3s}
+/* fade-up on children EXCEPT buy button (must keep ctaPulse forever) */
+#offer.show-anim > *:not(.cta-yes):not(.cta-no){animation:fadeUp .45s ease both}
+#offer.show-anim > *:not(.cta-yes):not(.cta-no):nth-child(1){animation-delay:.02s}
+#offer.show-anim > *:not(.cta-yes):not(.cta-no):nth-child(2){animation-delay:.06s}
+#offer.show-anim > *:not(.cta-yes):not(.cta-no):nth-child(3){animation-delay:.1s}
+#offer.show-anim > *:not(.cta-yes):not(.cta-no):nth-child(4){animation-delay:.14s}
+#offer.show-anim > *:not(.cta-yes):not(.cta-no):nth-child(5){animation-delay:.18s}
+#offer.show-anim > *:not(.cta-yes):not(.cta-no):nth-child(6){animation-delay:.22s}
+#offer.show-anim > *:not(.cta-yes):not(.cta-no):nth-child(7){animation-delay:.26s}
+#offer.show-anim > *:not(.cta-yes):not(.cta-no):nth-child(8){animation-delay:.3s}
+/* Buy CTA pulse — high specificity so nothing overrides it */
+#offer .cta-yes,
+#offer.show-anim > .cta-yes,
+button.cta-yes#cta-yes{
+  animation:ctaPulse 1.5s ease-in-out infinite !important;
+}
 .badge{background:#fff7ed;border:1px solid #fed7aa;border-radius:14px;padding:1rem;margin-bottom:1rem;}
 .badge.green{background:#f0fdf4;border-color:#bbf7d0;}
 .badge.red{background:#fef2f2;border-color:#fecaca;}
@@ -265,11 +272,13 @@ html.hide-fb-price .price-box{display:none!important;}
   font-size:1rem;font-weight:800;cursor:pointer;
   box-shadow:0 8px 28px rgba(37,211,102,.45);
   margin-bottom:.65rem;line-height:1.3;
-  animation:ctaPulse 1.6s ease-in-out infinite;
+  animation:ctaPulse 1.5s ease-in-out infinite !important;
   position:relative;
+  transform-origin:center center;
+  will-change:transform,box-shadow;
 }
 .cta-yes:hover{filter:brightness(1.05);}
-.cta-yes:active{transform:scale(.98);animation:none;}
+.cta-yes:active{transform:scale(.98);}
 .cta-no{
   display:block;width:100%;background:none;border:none;color:var(--t2);font-family:inherit;
   font-size:.8rem;text-decoration:underline;cursor:pointer;padding:.5rem;line-height:1.35;

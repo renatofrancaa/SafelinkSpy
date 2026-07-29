@@ -117,7 +117,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 }
 @keyframes ctaPulse{
   0%,100%{transform:scale(1);box-shadow:0 8px 28px rgba(37,211,102,.4)}
-  50%{transform:scale(1.035);box-shadow:0 12px 36px rgba(37,211,102,.65),0 0 0 6px rgba(37,211,102,.18)}
+  50%{transform:scale(1.045);box-shadow:0 14px 40px rgba(37,211,102,.7),0 0 0 8px rgba(37,211,102,.2)}
 }
 @keyframes livePulse{
   0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,.45)}
@@ -201,15 +201,22 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 
 /* Offer */
 #offer{display:none;padding:1rem 1rem 2.5rem;}
-#offer.show-anim > *{animation:fadeUp .45s ease both}
-#offer.show-anim > *:nth-child(1){animation-delay:.02s}
-#offer.show-anim > *:nth-child(2){animation-delay:.06s}
-#offer.show-anim > *:nth-child(3){animation-delay:.1s}
-#offer.show-anim > *:nth-child(4){animation-delay:.14s}
-#offer.show-anim > *:nth-child(5){animation-delay:.18s}
-#offer.show-anim > *:nth-child(6){animation-delay:.22s}
-#offer.show-anim > *:nth-child(7){animation-delay:.26s}
-#offer.show-anim > *:nth-child(8){animation-delay:.3s}
+/* fade-up on children EXCEPT buy button (must keep ctaPulse forever) */
+#offer.show-anim > *:not(.cta-yes):not(.cta-no){animation:fadeUp .45s ease both}
+#offer.show-anim > *:not(.cta-yes):not(.cta-no):nth-child(1){animation-delay:.02s}
+#offer.show-anim > *:not(.cta-yes):not(.cta-no):nth-child(2){animation-delay:.06s}
+#offer.show-anim > *:not(.cta-yes):not(.cta-no):nth-child(3){animation-delay:.1s}
+#offer.show-anim > *:not(.cta-yes):not(.cta-no):nth-child(4){animation-delay:.14s}
+#offer.show-anim > *:not(.cta-yes):not(.cta-no):nth-child(5){animation-delay:.18s}
+#offer.show-anim > *:not(.cta-yes):not(.cta-no):nth-child(6){animation-delay:.22s}
+#offer.show-anim > *:not(.cta-yes):not(.cta-no):nth-child(7){animation-delay:.26s}
+#offer.show-anim > *:not(.cta-yes):not(.cta-no):nth-child(8){animation-delay:.3s}
+/* Buy CTA pulse — high specificity so nothing overrides it */
+#offer .cta-yes,
+#offer.show-anim > .cta-yes,
+button.cta-yes#cta-yes{
+  animation:ctaPulse 1.5s ease-in-out infinite !important;
+}
 .badge{background:#fff7ed;border:1px solid #fed7aa;border-radius:14px;padding:1rem;margin-bottom:1rem;}
 .badge.green{background:#f0fdf4;border-color:#bbf7d0;}
 .badge.red{background:#fef2f2;border-color:#fecaca;}
@@ -265,11 +272,13 @@ html.hide-fb-price .price-box{display:none!important;}
   font-size:1rem;font-weight:800;cursor:pointer;
   box-shadow:0 8px 28px rgba(37,211,102,.45);
   margin-bottom:.65rem;line-height:1.3;
-  animation:ctaPulse 1.6s ease-in-out infinite;
+  animation:ctaPulse 1.5s ease-in-out infinite !important;
   position:relative;
+  transform-origin:center center;
+  will-change:transform,box-shadow;
 }
 .cta-yes:hover{filter:brightness(1.05);}
-.cta-yes:active{transform:scale(.98);animation:none;}
+.cta-yes:active{transform:scale(.98);}
 .cta-no{
   display:block;width:100%;background:none;border:none;color:var(--t2);font-family:inherit;
   font-size:.8rem;text-decoration:underline;cursor:pointer;padding:.5rem;line-height:1.35;
@@ -355,15 +364,11 @@ html.hide-fb-price .price-box{display:none!important;}
   var LABEL = "AI Behavior Analyst $35";
 
   /**
-   * Hide price when traffic is from Meta ads.
-   * Permanent marker from checkout/PerfectPay logs:
-   *   utm_source=FB  (always present; campaign/medium/term change per ad)
-   * Campaign examples (NOT used for matching — they vary):
-   *   utm_campaign: 24/07 - SAFE - [CBO 1-5-25] ...
-   *   utm_term: Facebook_Mobile_Feed | Instagram_Stories | Instagram_Reels
+   * Price box rule (PerfectPay marker):
+   *   utm_source=FB  → HIDE price  (any Meta campaign)
+   *   no utm / other → SHOW price  (organic)
    */
   function isUtmSourceFB(v) {
-    // Exact "FB" only (case-insensitive) — matches utm_source:FB on every sale
     return String(v || '').toLowerCase().trim() === 'fb';
   }
 
@@ -380,98 +385,53 @@ html.hide-fb-price .price-box{display:none!important;}
     return '';
   }
 
-  function collectUtmSourceCandidates() {
-    var out = [];
-    function add(v) {
-      if (v == null || v === '') return;
-      out.push(String(v));
-    }
-    // 1) URL query (always preferred)
+  function readUtmSource() {
+    // 1) URL wins (explicit test / ad landing)
     try {
-      var p = new URLSearchParams(location.search);
-      add(p.get('utm_source'));
+      var q = new URLSearchParams(location.search).get('utm_source');
+      if (q != null && String(q).trim() !== '') return String(q).trim();
     } catch (e1) {}
-    // 2) localStorage / sessionStorage (zs-analytics + UTMify persistence)
-    var storageKeys = [
-      'utm_source',
-      'utmSource',
-      'xcod_utm_source',
-      '__utm_source',
-      'utmify_utm_source'
-    ];
-    for (var i = 0; i < storageKeys.length; i++) {
-      try { add(localStorage.getItem(storageKeys[i])); } catch (e2) {}
-      try { add(sessionStorage.getItem(storageKeys[i])); } catch (e3) {}
-    }
-    // 3) Cookies commonly set by UTMify / trackers
-    var cookieKeys = [
-      'utm_source',
-      'utmSource',
-      '__utmify_utms',
-      'utmify',
-      '_utm_source'
-    ];
-    for (var j = 0; j < cookieKeys.length; j++) {
-      add(cookieGet(cookieKeys[j]));
-    }
-    // 4) JSON blobs in storage/cookies that may embed utm_source
-    function scanJsonish(raw) {
-      if (!raw || raw.length > 4000) return;
-      try {
-        var o = JSON.parse(raw);
-        if (o && typeof o === 'object') {
-          if (o.utm_source) add(o.utm_source);
-          if (o.utmSource) add(o.utmSource);
-          if (o.source) add(o.source);
-        }
-      } catch (e4) {
-        var m = String(raw).match(/utm_source["'=:s]+([A-Za-z0-9_-]+)/i);
-        if (m) add(m[1]);
-      }
-    }
+    // 2) Funnel persistence (zs-analytics / UTMify)
     try {
-      for (var k = 0; k < localStorage.length; k++) {
-        var key = localStorage.key(k) || '';
-        if (/utm/i.test(key)) scanJsonish(localStorage.getItem(key));
-      }
-    } catch (e5) {}
+      var ls = localStorage.getItem('utm_source');
+      if (ls) return String(ls).trim();
+    } catch (e2) {}
     try {
-      var allCookies = document.cookie || '';
-      if (/utm_source/i.test(allCookies)) {
-        var cm = allCookies.match(/utm_source=([^;]+)/i);
-        if (cm) add(cm[1]);
-      }
-    } catch (e6) {}
-    return out;
+      var ss = sessionStorage.getItem('utm_source');
+      if (ss) return String(ss).trim();
+    } catch (e3) {}
+    // 3) Cookies
+    var c = cookieGet('utm_source') || cookieGet('utmSource');
+    if (c) return String(c).trim();
+    // 4) Session chain flag only if we already marked FB this visit chain
+    try {
+      if (sessionStorage.getItem('sl_from_fb') === '1') return 'FB';
+    } catch (e4) {}
+    return '';
   }
 
   function isFromFacebook() {
-    try {
-      if (sessionStorage.getItem('sl_from_fb') === '1') return true;
-      if (localStorage.getItem('sl_from_fb') === '1') return true;
-    } catch (e0) {}
-
-    var candidates = collectUtmSourceCandidates();
-    for (var i = 0; i < candidates.length; i++) {
-      if (isUtmSourceFB(candidates[i])) return true;
-    }
-    return false;
+    return isUtmSourceFB(readUtmSource());
   }
 
   function applyFacebookPriceFilter() {
-    if (!isFromFacebook()) return;
-    try {
-      sessionStorage.setItem('sl_from_fb', '1');
-      localStorage.setItem('sl_from_fb', '1');
-      // Keep utm_source=FB sticky for next upsells / decline chain
-      if (!localStorage.getItem('utm_source')) {
-        localStorage.setItem('utm_source', 'FB');
-      }
-    } catch (e) {}
-    try { document.documentElement.classList.add('hide-fb-price'); } catch (e2) {}
-    try { document.body.classList.add('hide-fb-price'); } catch (e3) {}
     var box = document.getElementById('price-box');
-    if (box) box.style.display = 'none';
+    var fromFb = isFromFacebook();
+    if (fromFb) {
+      try {
+        sessionStorage.setItem('sl_from_fb', '1');
+        localStorage.setItem('utm_source', 'FB');
+      } catch (e) {}
+      try { document.documentElement.classList.add('hide-fb-price'); } catch (e2) {}
+      try { document.body.classList.add('hide-fb-price'); } catch (e3) {}
+      if (box) box.style.display = 'none';
+    } else {
+      // Organic / no FB utm → always show price
+      try { sessionStorage.removeItem('sl_from_fb'); } catch (e4) {}
+      try { document.documentElement.classList.remove('hide-fb-price'); } catch (e5) {}
+      try { document.body.classList.remove('hide-fb-price'); } catch (e6) {}
+      if (box) box.style.display = '';
+    }
   }
   applyFacebookPriceFilter();
 
