@@ -25,15 +25,12 @@ const FUNNEL_PATHS = new Set([
   "/step5.html",
   "/step6.html",
   "/backredirect.html",
-  "/upsell/up1.html",
-  "/upsell/up2.html",
-  "/upsell/up3.html",
-  "/upsell/up4.html",
-  "/upsell/up5.html",
-  "/upsell/up6.html",
-  "/upsell/up7.html",
-  "/upsell/thankyou.html",
 ]);
+
+/** Post-purchase upsells — open direct (CenterPag / FB utm tests / no cat param) */
+function isUpsellPath(pathname: string): boolean {
+  return /^\/upsell\/(up[1-7]|thankyou)(\.html)?\/?$/.test(pathname);
+}
 
 function setCatCookieOnly(response: NextResponse) {
   response.cookies.set({
@@ -167,7 +164,7 @@ function isFunnelPath(pathname: string): boolean {
   if (pathname === "/index") return true;
   if (/^\/step[2-6](\.html)?$/.test(pathname)) return true;
   if (pathname === "/backredirect") return true;
-  if (/^\/upsell\/(up[1-7]|thankyou)(\.html)?\/?$/.test(pathname)) return true;
+  // upsell is open (not cloaked) — see isUpsellPath early-return
   return false;
 }
 
@@ -207,6 +204,23 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next({
       request: { headers: requestHeaders },
     });
+  }
+
+  // ─── UPSELL: always serve real page (no famguard rewrite) ───
+  // Post-checkout + direct tests must open /upsell/* even without cat / forceblack.
+  // Price hide for Facebook UTM is handled client-side on the page itself.
+  if (isUpsellPath(pathname)) {
+    const response = NextResponse.next({
+      request: { headers: requestHeaders },
+    });
+    setLayerReasonCookies(response, {
+      layer: "black",
+      reason: "upsell_open",
+      reasonLabel: "Upsell aberto (sem cloaker)",
+      isBot: false,
+      hasParam: true,
+    });
+    return response;
   }
 
   // ─── HARD RULE: bots always WHITE (never black funnel) ───
