@@ -316,7 +316,7 @@ function renderOffer(u) {
 
   <div class="price-box">
     <div class="limited">Limited Offer</div>
-    <div class="price">${esc(catalog.priceLabel)}</div>
+    <div class="price">${esc(u.priceLabel || ("$" + u.price))}</div>
     <div class="bill">${esc(catalog.billing)}</div>
   </div>
 
@@ -339,8 +339,8 @@ function renderScript(u) {
 (function(){
   var CODE = ${JSON.stringify(code)};
   var NEXT = ${JSON.stringify(next)};
-  var VALUE = ${catalog.price};
-  var LABEL = ${JSON.stringify(u.title + " $" + catalog.price)};
+  var VALUE = ${Number(u.price)};
+  var LABEL = ${JSON.stringify(u.title + " $" + u.price)};
 
   function showOffer(){
     var L = document.getElementById('loader');
