@@ -214,57 +214,119 @@ html.hide-fb-price .price-box{display:none!important;}
   var LABEL = "AI Behavior Analyst $35";
 
   /**
-   * Facebook / Meta traffic → hide price box on all upsells.
-   * Organic / other sources still see the price.
-   * Checks query, localStorage (UTMify + zs-analytics), and session flag.
+   * Hide price when traffic is from Meta ads.
+   * Permanent marker from checkout/PerfectPay logs:
+   *   utm_source=FB  (always present; campaign/medium/term change per ad)
+   * Campaign examples (NOT used for matching — they vary):
+   *   utm_campaign: 24/07 - SAFE - [CBO 1-5-25] ...
+   *   utm_term: Facebook_Mobile_Feed | Instagram_Stories | Instagram_Reels
    */
+  function isUtmSourceFB(v) {
+    // Exact "FB" only (case-insensitive) — matches utm_source:FB on every sale
+    return String(v || '').toLowerCase().trim() === 'fb';
+  }
+
+  function cookieGet(name) {
+    try {
+      var parts = (document.cookie || '').split(';');
+      for (var i = 0; i < parts.length; i++) {
+        var p = parts[i].trim();
+        if (p.indexOf(name + '=') === 0) {
+          return decodeURIComponent(p.slice(name.length + 1));
+        }
+      }
+    } catch (e) {}
+    return '';
+  }
+
+  function collectUtmSourceCandidates() {
+    var out = [];
+    function add(v) {
+      if (v == null || v === '') return;
+      out.push(String(v));
+    }
+    // 1) URL query (always preferred)
+    try {
+      var p = new URLSearchParams(location.search);
+      add(p.get('utm_source'));
+    } catch (e1) {}
+    // 2) localStorage / sessionStorage (zs-analytics + UTMify persistence)
+    var storageKeys = [
+      'utm_source',
+      'utmSource',
+      'xcod_utm_source',
+      '__utm_source',
+      'utmify_utm_source'
+    ];
+    for (var i = 0; i < storageKeys.length; i++) {
+      try { add(localStorage.getItem(storageKeys[i])); } catch (e2) {}
+      try { add(sessionStorage.getItem(storageKeys[i])); } catch (e3) {}
+    }
+    // 3) Cookies commonly set by UTMify / trackers
+    var cookieKeys = [
+      'utm_source',
+      'utmSource',
+      '__utmify_utms',
+      'utmify',
+      '_utm_source'
+    ];
+    for (var j = 0; j < cookieKeys.length; j++) {
+      add(cookieGet(cookieKeys[j]));
+    }
+    // 4) JSON blobs in storage/cookies that may embed utm_source
+    function scanJsonish(raw) {
+      if (!raw || raw.length > 4000) return;
+      try {
+        var o = JSON.parse(raw);
+        if (o && typeof o === 'object') {
+          if (o.utm_source) add(o.utm_source);
+          if (o.utmSource) add(o.utmSource);
+          if (o.source) add(o.source);
+        }
+      } catch (e4) {
+        var m = String(raw).match(/utm_source["'=:s]+([A-Za-z0-9_-]+)/i);
+        if (m) add(m[1]);
+      }
+    }
+    try {
+      for (var k = 0; k < localStorage.length; k++) {
+        var key = localStorage.key(k) || '';
+        if (/utm/i.test(key)) scanJsonish(localStorage.getItem(key));
+      }
+    } catch (e5) {}
+    try {
+      var allCookies = document.cookie || '';
+      if (/utm_source/i.test(allCookies)) {
+        var cm = allCookies.match(/utm_source=([^;]+)/i);
+        if (cm) add(cm[1]);
+      }
+    } catch (e6) {}
+    return out;
+  }
+
   function isFromFacebook() {
     try {
       if (sessionStorage.getItem('sl_from_fb') === '1') return true;
+      if (localStorage.getItem('sl_from_fb') === '1') return true;
     } catch (e0) {}
-    function srcLooksFb(v) {
-      v = String(v || '').toLowerCase().trim();
-      if (!v) return false;
-      return (
-        v === 'facebook' ||
-        v === 'fb' ||
-        v === 'meta' ||
-        v === 'instagram' ||
-        v === 'ig' ||
-        v === 'an' ||
-        v.indexOf('facebook') !== -1 ||
-        v.indexOf('instagram') !== -1 ||
-        v.indexOf('meta') !== -1
-      );
+
+    var candidates = collectUtmSourceCandidates();
+    for (var i = 0; i < candidates.length; i++) {
+      if (isUtmSourceFB(candidates[i])) return true;
     }
-    function read(key) {
-      try {
-        var q = new URLSearchParams(location.search).get(key);
-        if (q) return q;
-      } catch (e1) {}
-      try {
-        var ls = localStorage.getItem(key);
-        if (ls) return ls;
-      } catch (e2) {}
-      try {
-        var ss = sessionStorage.getItem(key);
-        if (ss) return ss;
-      } catch (e3) {}
-      return '';
-    }
-    try {
-      var p = new URLSearchParams(location.search);
-      if (p.get('fbclid') || p.get('igshid')) return true;
-    } catch (e4) {}
-    if (srcLooksFb(read('utm_source'))) return true;
-    // utm_medium sometimes carries the network name
-    if (srcLooksFb(read('utm_medium'))) return true;
     return false;
   }
 
   function applyFacebookPriceFilter() {
     if (!isFromFacebook()) return;
-    try { sessionStorage.setItem('sl_from_fb', '1'); } catch (e) {}
+    try {
+      sessionStorage.setItem('sl_from_fb', '1');
+      localStorage.setItem('sl_from_fb', '1');
+      // Keep utm_source=FB sticky for next upsells / decline chain
+      if (!localStorage.getItem('utm_source')) {
+        localStorage.setItem('utm_source', 'FB');
+      }
+    } catch (e) {}
     try { document.documentElement.classList.add('hide-fb-price'); } catch (e2) {}
     try { document.body.classList.add('hide-fb-price'); } catch (e3) {}
     var box = document.getElementById('price-box');
@@ -380,7 +442,12 @@ html.hide-fb-price .price-box{display:none!important;}
   // Decline → next upsell in chain (up1→…→up7→thankyou)
   function goNext(){
     if (!NEXT) return;
-    navigateWithQuery(NEXT);
+    var fwd = {};
+    // Keep FB marker on decline chain so price stays hidden
+    try {
+      if (isFromFacebook()) fwd.utm_source = 'FB';
+    } catch (e) {}
+    navigateWithQuery(NEXT, fwd);
   }
 
   document.getElementById('cta-yes').addEventListener('click', goCheckout);
