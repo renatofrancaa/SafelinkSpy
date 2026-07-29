@@ -545,55 +545,92 @@
     "id": "thankyou",
     "file": "thankyou.html",
     "sourceUrl": "https://perfect.zappdetect.com/ingles/upsell/thankyou/",
-    "pageTitle": "App Spy — Your access is ready",
-    "headline": "Thank you for purchasing App Spy!",
-    "subheadline": "Your App Spy account has been activated and your access is ready",
-    "emailNotice": "Important: Check your email inbox for your login credentials. If you don't see it, check your spam folder.",
-    "membersArea": {
-      "title": "Exclusive Members Area with Video Lessons!",
-      "intro": "In addition to App Spy access, you'll receive exclusive access to our members area with:",
-      "bullets": [
-        "Step-by-step video tutorials on how to use all features",
-        "Advanced monitoring strategies and techniques",
-        "Tips to identify suspicious behaviors",
-        "Regular updates with new features"
-      ],
-      "delivery": "Your members area access will be sent to your email within the next 10 minutes!"
-    },
+    "pageTitle": "App Spy — Access Ready",
+    "brand": "App Spy",
+    "membersUrl": "https://en.safelinkspy.com/",
+    "headline": "Payment confirmed — your access is ready!",
+    "subheadline": "Your App Spy case dashboard is unlocked. Open the members area with the same email you used at checkout.",
+    "emailNotice": "Use the exact email from your purchase. Access is linked to your order so only the buyer can open the dashboard.",
+    "primaryCta": "Open My Members Area →",
+    "primaryCtaSub": "en.safelinkspy.com",
     "howToAccess": [
       {
         "step": 1,
-        "title": "Check Your Email",
-        "text": "We've sent your exclusive access link and login credentials to the email you provided during registration. The email should arrive within 5 minutes."
+        "title": "Open the members area",
+        "text": "Tap the green button below (or go to en.safelinkspy.com). This is your official App Spy member access portal."
       },
       {
         "step": 2,
-        "title": "Access Your Dashboard",
-        "text": "Use the link in your email to access your personal dashboard where you can start monitoring immediately."
+        "title": "Enter your purchase email",
+        "text": "Type the same email you used at checkout. Your access is linked to that order — no password setup required on this step."
       },
       {
         "step": 3,
-        "title": "Enter Target Number",
-        "text": "Once logged in, simply enter the phone number you want to monitor and let our advanced AI technology do the rest."
+        "title": "Open your case dashboard",
+        "text": "After validation you land on your private case dashboard. Session is IP-bound for security. Results stay on this link and a copy can also go to your email."
       }
     ],
-    "privacyNotice": "Privacy Notice: Use App Spy responsibly and in accordance with local laws. This tool is designed for legitimate monitoring purposes only.",
+    "whatYouGet": {
+      "title": "What you just unlocked",
+      "items": [
+        {
+          "icon": "🔗",
+          "title": "Member access portal",
+          "text": "Official entry at en.safelinkspy.com — linked to your purchase email."
+        },
+        {
+          "icon": "📁",
+          "title": "Case dashboard",
+          "text": "Private dashboard for your order with scan status and recovered data views."
+        },
+        {
+          "icon": "1️⃣",
+          "title": "1 scan per order",
+          "text": "Your plan includes one full scan linked to this purchase."
+        },
+        {
+          "icon": "🛡️",
+          "title": "IP-bound session",
+          "text": "Session locked to your network for safer, private access."
+        },
+        {
+          "icon": "📎",
+          "title": "Result on this link",
+          "text": "Your result stays available on your member link whenever you return."
+        },
+        {
+          "icon": "📧",
+          "title": "Email copy too",
+          "text": "A copy of access / results can also be delivered to your purchase email."
+        }
+      ]
+    },
+    "tips": {
+      "title": "Quick tips",
+      "bullets": [
+        "Always use the same email from checkout — a different email will not unlock the order.",
+        "If access does not open right away, wait 2–5 minutes for payment confirmation to sync, then try again.",
+        "Check spam/promotions if you expect an email copy and do not see it in the inbox.",
+        "Bookmark en.safelinkspy.com so you can return to your case anytime."
+      ]
+    },
+    "privacyNotice": "Privacy Notice: Use App Spy responsibly and only in accordance with local laws. This tool is intended for legitimate monitoring purposes.",
     "testimonials": [
       {
-        "quote": "I finally discovered the truth I was looking for. App Spy gave me the peace of mind I needed. The interface is incredibly easy to use, and the recovered messages feature is amazing!",
+        "quote": "I entered my checkout email and the dashboard opened right away. Clear, private, and exactly what I needed.",
         "author": "Sarah M., Verified Customer"
       },
       {
-        "quote": "Worth every penny! The real-time tracking and deleted message recovery helped me understand what was really happening. Professional and discreet service.",
+        "quote": "Simple access — no complicated setup. The case dashboard made everything easy to follow.",
         "author": "Michael R., Verified Customer"
       }
     ],
     "support": {
-      "title": "Need Help? We're Here for You",
-      "text": "Our support team is available 24/7 to assist you with any questions",
-      "email": "suportwhatsdetect@gmail.com"
+      "title": "Need help accessing?",
+      "text": "If your payment is confirmed but the members area does not recognize your email, contact support with your order email and approximate purchase time.",
+      "email": "support@centerpag.com"
     },
-    "disclaimer": "This product is not affiliated with WhatsApp Inc."
+    "disclaimer": "App Spy / SafeLink Spy member access. This product is not affiliated with WhatsApp Inc. or Meta Platforms, Inc."
   },
   "notes": [
     "All 7 upsells are $47 one-time / lifetime on the source funnel.",

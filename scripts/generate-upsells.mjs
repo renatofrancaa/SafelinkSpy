@@ -427,6 +427,7 @@ html.hide-fb-price .price-box{display:none!important;}
 .ty-hero .big{font-size:2.5rem;margin-bottom:.5rem;display:inline-block;animation:bounceSoft 1.5s ease-in-out infinite}
 .ty-hero h1{font-size:1.45rem;margin-bottom:.4rem;animation:fadeUp .45s ease both}
 .ty-hero p{font-size:.9rem;color:var(--t2);line-height:1.45;animation:fadeUp .5s .08s ease both}
+.ty-brand{display:inline-flex;align-items:center;gap:.4rem;font-size:.72rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--gd);background:#f0fdf4;border:1px solid #bbf7d0;border-radius:999px;padding:.28rem .7rem;margin-bottom:.75rem}
 .notice{background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;padding:.85rem 1rem;font-size:.84rem;line-height:1.45;margin-bottom:1rem;}
 .steps{counter-reset:s;display:flex;flex-direction:column;gap:.75rem;}
 .step-card{background:var(--w);border:1px solid var(--bd);border-radius:12px;padding:.9rem 1rem .9rem 3rem;position:relative;}
@@ -437,6 +438,27 @@ html.hide-fb-price .price-box{display:none!important;}
 .quote cite{display:block;margin-top:.5rem;font-size:.75rem;color:var(--t2);font-style:normal;font-weight:600;}
 .support a{color:var(--gd);font-weight:700;}
 .foot{text-align:center;font-size:.72rem;color:var(--t2);margin-top:1.5rem;line-height:1.5;padding:0 .5rem;}
+.ty-cta{
+  display:block;width:100%;text-align:center;text-decoration:none;
+  border:none;border-radius:14px;padding:1.15rem 1.1rem;
+  background:linear-gradient(180deg,#2fe072,var(--g));color:#fff!important;
+  font-family:inherit;font-size:1.02rem;font-weight:800;
+  box-shadow:0 8px 28px rgba(37,211,102,.45);
+  animation:ctaPulse 1.5s ease-in-out infinite;
+  margin:.25rem 0 .55rem;line-height:1.3;
+}
+.ty-cta:active{transform:scale(.98)}
+.ty-cta-sub{text-align:center;font-size:.78rem;color:var(--t2);margin-bottom:1rem}
+.ty-cta-sub a{color:var(--gd);font-weight:700;word-break:break-all}
+.ty-email-box{
+  background:var(--w);border:1.5px dashed #bbf7d0;border-radius:12px;
+  padding:.85rem 1rem;margin-bottom:1rem;text-align:center;
+}
+.ty-email-box .lbl{font-size:.72rem;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.25rem}
+.ty-email-box .val{font-size:.95rem;font-weight:800;color:var(--t);word-break:break-all}
+.ty-email-box .hint{font-size:.75rem;color:var(--t2);margin-top:.3rem}
+.chip-row{display:flex;flex-wrap:wrap;gap:.4rem;justify-content:center;margin:.75rem 0 1rem}
+.chip{font-size:.7rem;font-weight:700;color:var(--gd);background:#f0fdf4;border:1px solid #bbf7d0;border-radius:999px;padding:.28rem .65rem}
 `;
 
 function esc(s) {
@@ -887,31 +909,48 @@ for (const u of catalog.upsells) {
   console.log("wrote", u.file);
 }
 
-// Thank you
+// Thank you — aligned with real deliverable https://en.safelinkspy.com/
 const ty = catalog.thankyou;
+const membersUrl = ty.membersUrl || "https://en.safelinkspy.com/";
+const whatItems = (ty.whatYouGet && ty.whatYouGet.items) || [];
+const tips = (ty.tips && ty.tips.bullets) || [];
+
 const tyBody = `
 <div class="wrap">
   <div class="ty-hero">
+    <div class="ty-brand">🔒 ${esc(ty.brand || "App Spy")} · Member access</div>
     <div class="big">✅</div>
     <h1>${esc(ty.headline)}</h1>
     <p>${esc(ty.subheadline)}</p>
   </div>
 
-  <div class="notice">⚡ <strong>Important:</strong> ${esc(ty.emailNotice.replace(/^Important:\\s*/i, ""))}</div>
-
-  <div class="card" style="margin-bottom:1rem">
-    <h2>🎓 ${esc(ty.membersArea.title)}</h2>
-    <p class="body" style="margin-bottom:.55rem">${esc(ty.membersArea.intro)}</p>
-    <ul class="check-list">
-      ${ty.membersArea.bullets.map((b) => `<li>${esc(b)}</li>`).join("")}
-    </ul>
-    <p class="body" style="margin-top:.75rem;font-weight:600;color:var(--gd)">📧 ${esc(ty.membersArea.delivery)}</p>
+  <div class="chip-row">
+    <span class="chip">1 scan per order</span>
+    <span class="chip">IP-bound session</span>
+    <span class="chip">Result on this link</span>
+    <span class="chip">Email copy too</span>
   </div>
 
+  <div class="ty-email-box" id="ty-email-box" style="display:none">
+    <div class="lbl">Your checkout email</div>
+    <div class="val" id="ty-email-val"></div>
+    <div class="hint">Use this exact email on the members area</div>
+  </div>
+
+  <a class="ty-cta" id="ty-cta" href="${esc(membersUrl)}" target="_blank" rel="noopener">
+    ${esc(ty.primaryCta || "Open My Members Area →")}
+  </a>
+  <div class="ty-cta-sub">
+    Official portal:
+    <a href="${esc(membersUrl)}" target="_blank" rel="noopener">${esc(ty.primaryCtaSub || "en.safelinkspy.com")}</a>
+  </div>
+
+  <div class="notice">⚡ <strong>Important:</strong> ${esc(ty.emailNotice || "")}</div>
+
   <div class="card" style="margin-bottom:1rem">
-    <h2 style="margin-bottom:.75rem">📱 How to Access App Spy</h2>
+    <h2 style="margin-bottom:.75rem">📱 How to access your dashboard</h2>
     <div class="steps">
-      ${ty.howToAccess
+      ${(ty.howToAccess || [])
         .map(
           (s) =>
             `<div class="step-card"><h3>${esc(s.title)}</h3><p>${esc(s.text)}</p></div>`
@@ -920,9 +959,36 @@ const tyBody = `
     </div>
   </div>
 
-  <div class="notice" style="background:#fff7ed;border-color:#fed7aa">⚠️ ${esc(ty.privacyNotice)}</div>
+  ${
+    whatItems.length
+      ? `<div class="card" style="margin-bottom:1rem">
+    <h2 style="margin-bottom:.75rem">${esc((ty.whatYouGet && ty.whatYouGet.title) || "What you unlocked")}</h2>
+    <div class="feat-grid">
+      ${whatItems
+        .map(
+          (it) =>
+            `<div class="feat"><div class="ic">${it.icon || "✓"}</div><div><b>${esc(it.title)}</b><span>${esc(it.text)}</span></div></div>`
+        )
+        .join("")}
+    </div>
+  </div>`
+      : ""
+  }
 
-  ${ty.testimonials
+  ${
+    tips.length
+      ? `<div class="card" style="margin-bottom:1rem">
+    <h2 style="margin-bottom:.55rem">${esc((ty.tips && ty.tips.title) || "Quick tips")}</h2>
+    <ul class="check-list">
+      ${tips.map((b) => `<li>${esc(b)}</li>`).join("")}
+    </ul>
+  </div>`
+      : ""
+  }
+
+  <div class="notice" style="background:#fff7ed;border-color:#fed7aa">⚠️ ${esc(ty.privacyNotice || "")}</div>
+
+  ${(ty.testimonials || [])
     .map(
       (t) =>
         `<div class="quote">"${esc(t.quote)}"<cite>— ${esc(t.author)}</cite></div>`
@@ -930,16 +996,50 @@ const tyBody = `
     .join("")}
 
   <div class="card support" style="text-align:center;margin-top:1rem">
-    <h2>${esc(ty.support.title)}</h2>
-    <p class="body" style="margin:.4rem 0 .65rem">${esc(ty.support.text)}</p>
-    <a href="mailto:${esc(ty.support.email)}">${esc(ty.support.email)}</a>
+    <h2>${esc((ty.support && ty.support.title) || "Need help?")}</h2>
+    <p class="body" style="margin:.4rem 0 .65rem">${esc((ty.support && ty.support.text) || "")}</p>
+    <a href="mailto:${esc((ty.support && ty.support.email) || "support@centerpag.com")}">${esc((ty.support && ty.support.email) || "support@centerpag.com")}</a>
   </div>
 
+  <a class="ty-cta" style="margin-top:1rem" href="${esc(membersUrl)}" target="_blank" rel="noopener">
+    ${esc(ty.primaryCta || "Open My Members Area →")}
+  </a>
+
   <div class="foot">
-    © App Spy. All rights reserved.<br>
-    ${esc(ty.disclaimer)}
+    © ${esc(ty.brand || "App Spy")}. All rights reserved.<br>
+    ${esc(ty.disclaimer || "")}
   </div>
 </div>
+<script>
+(function(){
+  // Prefill / show checkout email + pass to members portal when possible
+  var email = '';
+  try {
+    email = sessionStorage.getItem('buyer_email') || localStorage.getItem('buyer_email') || '';
+  } catch (e) {}
+  try {
+    var q = new URLSearchParams(location.search).get('email');
+    if (q) email = q;
+  } catch (e2) {}
+  email = (email || '').trim();
+  if (email && email.indexOf('@') !== -1) {
+    var box = document.getElementById('ty-email-box');
+    var val = document.getElementById('ty-email-val');
+    if (box && val) {
+      val.textContent = email;
+      box.style.display = 'block';
+    }
+    // Append email to portal links so user can paste/use faster if portal supports it
+    document.querySelectorAll('a.ty-cta, .ty-cta-sub a').forEach(function(a){
+      try {
+        var u = new URL(a.href, location.href);
+        if (!u.searchParams.get('email')) u.searchParams.set('email', email);
+        a.href = u.toString();
+      } catch (e3) {}
+    });
+  }
+})();
+</script>
 `;
 
 writeFileSync(
