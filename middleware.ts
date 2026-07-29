@@ -25,6 +25,14 @@ const FUNNEL_PATHS = new Set([
   "/step5.html",
   "/step6.html",
   "/backredirect.html",
+  "/upsell/up1.html",
+  "/upsell/up2.html",
+  "/upsell/up3.html",
+  "/upsell/up4.html",
+  "/upsell/up5.html",
+  "/upsell/up6.html",
+  "/upsell/up7.html",
+  "/upsell/thankyou.html",
 ]);
 
 function setCatCookieOnly(response: NextResponse) {
@@ -159,6 +167,7 @@ function isFunnelPath(pathname: string): boolean {
   if (pathname === "/index") return true;
   if (/^\/step[2-6](\.html)?$/.test(pathname)) return true;
   if (pathname === "/backredirect") return true;
+  if (/^\/upsell\/(up[1-7]|thankyou)(\.html)?\/?$/.test(pathname)) return true;
   return false;
 }
 

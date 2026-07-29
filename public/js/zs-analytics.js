@@ -82,6 +82,7 @@
         p.indexOf("step") !== -1 ||
         p.indexOf("index") !== -1 ||
         p.indexOf("backredirect") !== -1 ||
+        p.indexOf("/upsell") !== -1 ||
         p.indexOf("/en-m") !== -1
       )
         return "black";
@@ -124,6 +125,11 @@
     if (path.indexOf("step3") !== -1) return "scan";
     if (path.indexOf("step2") !== -1) return "phone";
     if (path.indexOf("backredirect") !== -1) return "cta";
+    if (path.indexOf("/upsell/thankyou") !== -1) return "thankyou";
+    if (path.indexOf("/upsell/up") !== -1) {
+      var um = path.match(/up([1-7])/);
+      return um ? "upsell" + um[1] : "upsell";
+    }
     if (path.indexOf("index") !== -1 || path === "/" || path === "")
       return "entry";
     if (path.indexOf("cta-unified") !== -1 || path.indexOf("cta") !== -1)

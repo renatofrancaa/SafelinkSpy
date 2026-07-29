@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- Clarity (funnel only) -->
+<script src="/js/clarity-id.js"></script>
+<!-- UTMify UTMs -->
+<script
+  src="https://cdn.utmify.com.br/scripts/utms/latest.js"
+  data-utmify-prevent-xcod-sck
+  data-utmify-prevent-subids
+  async
+  defer
+></script>
+<script src="/js/zs-analytics.js" defer></script>
+<script>
+function buildForwardUrl(targetUrl, params) {
+  var url = new URL(targetUrl, window.location.href);
+  var currentParams = new URLSearchParams(window.location.search);
+  currentParams.forEach(function(value, key) {
+    if (!url.searchParams.has(key)) url.searchParams.set(key, value);
+  });
+  if (params) {
+    Object.keys(params).forEach(function(key) {
+      var value = params[key];
+      if (value !== undefined && value !== null && value !== '') url.searchParams.set(key, value);
+    });
+  }
+  return url.toString();
+}
+function navigateWithQuery(targetUrl, params) {
+  window.location.href = buildForwardUrl(targetUrl, params);
+}
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>App Spy — Your access is ready</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --g:#25D366;--gd:#128C7E;--bg:#f5f5f0;--w:#fff;
+  --t:#111;--t2:#666;--bd:#e8e8e8;--red:#ef4444;
+  --or:#f97316;--gold:#f59e0b;
+}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t);max-width:480px;margin:0 auto;min-height:100vh;padding-bottom:2rem;}
+.wrap{padding:1rem;}
+
+/* Loader */
+#loader{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem 1.25rem;text-align:center;}
+.loader-icon{font-size:2.4rem;margin-bottom:.75rem;}
+.loader-title{font-size:1.15rem;font-weight:800;margin-bottom:.35rem;}
+.loader-sub{font-size:.85rem;color:var(--t2);margin-bottom:1.25rem;line-height:1.45;max-width:320px;}
+.progress{width:100%;max-width:280px;height:8px;background:var(--bd);border-radius:20px;overflow:hidden;margin:0 auto 1rem;}
+.progress>i{display:block;height:100%;width:0%;background:linear-gradient(90deg,var(--gd),var(--g));border-radius:20px;transition:width .3s;}
+.pct{font-size:.8rem;font-weight:700;color:var(--gd);margin-bottom:1rem;}
+.step-list{list-style:none;text-align:left;width:100%;max-width:300px;display:flex;flex-direction:column;gap:.45rem;}
+.step-list li{font-size:.82rem;color:var(--t2);display:flex;align-items:center;gap:.5rem;opacity:.45;transition:opacity .3s,color .3s;}
+.step-list li.on{opacity:1;color:var(--t);font-weight:600;}
+.step-list li.done{opacity:.85;color:var(--gd);}
+.step-list li::before{content:'○';font-size:.7rem;color:var(--bd);}
+.step-list li.on::before{content:'●';color:var(--g);}
+.step-list li.done::before{content:'✓';color:var(--g);}
+.queue-box{background:var(--w);border:1px solid var(--bd);border-radius:14px;padding:1rem 1.1rem;width:100%;max-width:320px;margin-bottom:1rem;box-shadow:0 2px 10px rgba(0,0,0,.05);}
+.queue-pos{font-size:2rem;font-weight:900;color:var(--or);}
+.queue-meta{font-size:.78rem;color:var(--t2);margin-top:.35rem;line-height:1.5;}
+.plat-list{width:100%;max-width:300px;display:flex;flex-direction:column;gap:.4rem;margin-top:.5rem;}
+.plat{display:flex;align-items:center;justify-content:space-between;background:var(--w);border:1px solid var(--bd);border-radius:10px;padding:.55rem .75rem;font-size:.82rem;}
+.plat .st{font-size:.72rem;font-weight:700;color:var(--t2);}
+.plat .st.ok{color:var(--g);}
+.plat .st.warn{color:var(--red);}
+.metric-grid{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;width:100%;max-width:300px;margin-top:.5rem;}
+.metric{background:var(--w);border:1px solid var(--bd);border-radius:10px;padding:.65rem;text-align:center;}
+.metric b{display:block;font-size:1rem;color:var(--gd);}
+.metric span{font-size:.7rem;color:var(--t2);}
+.warn-line{margin-top:1rem;font-size:.78rem;font-weight:700;color:var(--red);background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:.65rem .8rem;max-width:320px;}
+.ready-line{margin-top:1rem;font-size:.8rem;font-weight:700;color:var(--gd);background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:.65rem .8rem;max-width:320px;}
+
+/* Offer */
+#offer{display:none;padding:1rem 1rem 2.5rem;}
+.badge{background:#fff7ed;border:1px solid #fed7aa;border-radius:14px;padding:1rem;margin-bottom:1rem;}
+.badge.green{background:#f0fdf4;border-color:#bbf7d0;}
+.badge.red{background:#fef2f2;border-color:#fecaca;}
+.badge.blue{background:#eff6ff;border-color:#bfdbfe;}
+.badge-lbl{font-size:.72rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--or);margin-bottom:.35rem;display:flex;align-items:center;gap:.35rem;}
+.badge.green .badge-lbl{color:var(--gd);}
+.badge.red .badge-lbl{color:var(--red);}
+.badge p{font-size:.84rem;color:var(--t);line-height:1.45;}
+h1{font-size:clamp(1.25rem,5vw,1.65rem);font-weight:900;line-height:1.22;letter-spacing:-.02em;margin-bottom:.75rem;}
+.lead{font-size:.9rem;color:var(--t2);line-height:1.55;margin-bottom:1rem;white-space:pre-line;}
+.card{background:var(--w);border:1px solid var(--bd);border-radius:14px;padding:1rem;margin-bottom:.85rem;box-shadow:0 2px 8px rgba(0,0,0,.04);}
+.card h2{font-size:.95rem;font-weight:800;margin-bottom:.55rem;}
+.card p,.card .body{font-size:.84rem;color:var(--t2);line-height:1.5;}
+.feat-grid{display:flex;flex-direction:column;gap:.55rem;}
+.feat{display:flex;gap:.65rem;align-items:flex-start;background:var(--w);border:1px solid var(--bd);border-radius:12px;padding:.75rem .85rem;}
+.feat .ic{font-size:1.15rem;flex-shrink:0;line-height:1.2;}
+.feat b{display:block;font-size:.84rem;margin-bottom:.15rem;}
+.feat span{font-size:.78rem;color:var(--t2);line-height:1.4;}
+.check-list{list-style:none;display:flex;flex-direction:column;gap:.4rem;}
+.check-list li{font-size:.84rem;display:flex;gap:.45rem;line-height:1.4;}
+.check-list li::before{content:'✓';color:var(--g);font-weight:800;flex-shrink:0;}
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:.55rem;margin-bottom:.85rem;}
+.cmp{border-radius:12px;padding:.85rem;border:1px solid var(--bd);background:var(--w);}
+.cmp.bad{background:#fef2f2;border-color:#fecaca;}
+.cmp.good{background:#f0fdf4;border-color:#bbf7d0;}
+.cmp h3{font-size:.75rem;font-weight:800;margin-bottom:.45rem;}
+.cmp ul{list-style:none;display:flex;flex-direction:column;gap:.3rem;}
+.cmp li{font-size:.72rem;color:var(--t2);line-height:1.35;padding-left:.7rem;position:relative;}
+.cmp li::before{content:'•';position:absolute;left:0;}
+.urgency{background:#fff7ed;border:1px solid #fdba74;border-radius:14px;padding:1rem;margin-bottom:.85rem;}
+.urgency h3{font-size:.9rem;font-weight:800;color:var(--or);margin-bottom:.4rem;}
+.urgency p{font-size:.82rem;color:var(--t);line-height:1.5;white-space:pre-line;}
+.price-box{text-align:center;background:var(--w);border:2px solid var(--g);border-radius:16px;padding:1.15rem 1rem;margin:1.1rem 0 .9rem;box-shadow:0 4px 18px rgba(37,211,102,.15);}
+.price-box .limited{font-size:.7rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--or);margin-bottom:.25rem;}
+.price-box .price{font-size:2.4rem;font-weight:900;color:var(--t);line-height:1;}
+.price-box .bill{font-size:.72rem;font-weight:600;color:var(--t2);margin-top:.35rem;letter-spacing:.04em;}
+.cta-yes{
+  display:block;width:100%;border:none;border-radius:14px;padding:1rem 1.1rem;
+  background:linear-gradient(180deg,#2fe072,var(--g));color:#fff;font-family:inherit;
+  font-size:.95rem;font-weight:800;cursor:pointer;box-shadow:0 8px 24px rgba(37,211,102,.35);
+  margin-bottom:.65rem;line-height:1.3;
+}
+.cta-yes:active{transform:scale(.98);}
+.cta-no{
+  display:block;width:100%;background:none;border:none;color:var(--t2);font-family:inherit;
+  font-size:.8rem;text-decoration:underline;cursor:pointer;padding:.5rem;line-height:1.35;
+}
+.closing{text-align:center;margin-top:.5rem;margin-bottom:.25rem;}
+.closing h2{font-size:1.05rem;font-weight:800;margin-bottom:.4rem;}
+.closing p{font-size:.84rem;color:var(--t2);line-height:1.5;}
+
+/* Thank you */
+.ty-hero{text-align:center;padding:1.5rem 0 1rem;}
+.ty-hero .big{font-size:2.5rem;margin-bottom:.5rem;}
+.ty-hero h1{font-size:1.45rem;margin-bottom:.4rem;}
+.ty-hero p{font-size:.9rem;color:var(--t2);line-height:1.45;}
+.notice{background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;padding:.85rem 1rem;font-size:.84rem;line-height:1.45;margin-bottom:1rem;}
+.steps{counter-reset:s;display:flex;flex-direction:column;gap:.75rem;}
+.step-card{background:var(--w);border:1px solid var(--bd);border-radius:12px;padding:.9rem 1rem .9rem 3rem;position:relative;}
+.step-card::before{counter-increment:s;content:counter(s);position:absolute;left:.85rem;top:.9rem;width:1.5rem;height:1.5rem;border-radius:50%;background:var(--g);color:#fff;font-size:.75rem;font-weight:800;display:flex;align-items:center;justify-content:center;}
+.step-card h3{font-size:.9rem;font-weight:800;margin-bottom:.25rem;}
+.step-card p{font-size:.8rem;color:var(--t2);line-height:1.45;}
+.quote{background:var(--w);border:1px solid var(--bd);border-radius:12px;padding:1rem;margin-bottom:.65rem;font-size:.84rem;line-height:1.5;color:var(--t);}
+.quote cite{display:block;margin-top:.5rem;font-size:.75rem;color:var(--t2);font-style:normal;font-weight:600;}
+.support a{color:var(--gd);font-weight:700;}
+.foot{text-align:center;font-size:.72rem;color:var(--t2);margin-top:1.5rem;line-height:1.5;padding:0 .5rem;}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="ty-hero">
+    <div class="big">✅</div>
+    <h1>Thank you for purchasing App Spy!</h1>
+    <p>Your App Spy account has been activated and your access is ready</p>
+  </div>
+
+  <div class="notice">⚡ <strong>Important:</strong> Important: Check your email inbox for your login credentials. If you don't see it, check your spam folder.</div>
+
+  <div class="card" style="margin-bottom:1rem">
+    <h2>🎓 Exclusive Members Area with Video Lessons!</h2>
+    <p class="body" style="margin-bottom:.55rem">In addition to App Spy access, you'll receive exclusive access to our members area with:</p>
+    <ul class="check-list">
+      <li>Step-by-step video tutorials on how to use all features</li><li>Advanced monitoring strategies and techniques</li><li>Tips to identify suspicious behaviors</li><li>Regular updates with new features</li>
+    </ul>
+    <p class="body" style="margin-top:.75rem;font-weight:600;color:var(--gd)">📧 Your members area access will be sent to your email within the next 10 minutes!</p>
+  </div>
+
+  <div class="card" style="margin-bottom:1rem">
+    <h2 style="margin-bottom:.75rem">📱 How to Access App Spy</h2>
+    <div class="steps">
+      <div class="step-card"><h3>Check Your Email</h3><p>We've sent your exclusive access link and login credentials to the email you provided during registration. The email should arrive within 5 minutes.</p></div><div class="step-card"><h3>Access Your Dashboard</h3><p>Use the link in your email to access your personal dashboard where you can start monitoring immediately.</p></div><div class="step-card"><h3>Enter Target Number</h3><p>Once logged in, simply enter the phone number you want to monitor and let our advanced AI technology do the rest.</p></div>
+    </div>
+  </div>
+
+  <div class="notice" style="background:#fff7ed;border-color:#fed7aa">⚠️ Privacy Notice: Use App Spy responsibly and in accordance with local laws. This tool is designed for legitimate monitoring purposes only.</div>
+
+  <div class="quote">"I finally discovered the truth I was looking for. App Spy gave me the peace of mind I needed. The interface is incredibly easy to use, and the recovered messages feature is amazing!"<cite>— Sarah M., Verified Customer</cite></div><div class="quote">"Worth every penny! The real-time tracking and deleted message recovery helped me understand what was really happening. Professional and discreet service."<cite>— Michael R., Verified Customer</cite></div>
+
+  <div class="card support" style="text-align:center;margin-top:1rem">
+    <h2>Need Help? We're Here for You</h2>
+    <p class="body" style="margin:.4rem 0 .65rem">Our support team is available 24/7 to assist you with any questions</p>
+    <a href="mailto:suportwhatsdetect@gmail.com">suportwhatsdetect@gmail.com</a>
+  </div>
+
+  <div class="foot">
+    © App Spy. All rights reserved.<br>
+    This product is not affiliated with WhatsApp Inc.
+  </div>
+</div>
+
+
+</body>
+</html>
