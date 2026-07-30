@@ -1,11 +1,10 @@
 /**
- * Resolve cloaker block/pass reason for analytics (server-side fallback).
+ * Resolve reason labels for analytics (server-side fallback).
  * Client may omit fields (cached JS, Meta in-app, sendBeacon quirks) —
  * always prefer cookies + UA so the dashboard never shows empty Motivo.
  */
 
 import type { NextRequest } from "next/server";
-import { REASON_LABELS } from "@/utils/ContentFilter";
 import { checkBot, extractClientIp } from "@/utils/botDetect";
 
 export type ResolvedReason = {
@@ -15,7 +14,26 @@ export type ResolvedReason = {
   hasParam: boolean | null;
 };
 
-
+/** Labels for known reason codes (incl. legacy cloaker codes for old events). */
+export const REASON_LABELS: Record<string, string> = {
+  direct: "Link direto",
+  clean: "Link direto",
+  bot: "Bot / crawler detectado",
+  bot_ua: "Bot / crawler (User-Agent)",
+  meta_ip: "Bot Meta (IP datacenter Facebook)",
+  google_bot_ip: "Bot Google (IP crawler)",
+  empty_ua: "Bot / UA vazio",
+  force_black: "Teste local / force black",
+  test_param: "Parâmetro ?test= válido",
+  no_ad_source: "Sem origem Meta/Google/YouTube",
+  no_cat_param: "Sem parâmetro cat (cookie)",
+  cat_cookie: "Com parâmetro cat (cookie)",
+  blocked_country: "País bloqueado",
+  blocked_language: "Idioma bloqueado",
+  vpn_proxy: "VPN / Proxy / Datacenter",
+  white_blocked: "Bloqueado (white)",
+  upsell_open: "Upsell aberto",
+};
 
 function labelFor(code: string, fallback?: string): string {
   if (!code) return fallback || "";
@@ -32,50 +50,6 @@ function cookieBool(req: NextRequest, name: string): boolean | null {
   if (v === "1" || v === "true") return true;
   if (v === "0" || v === "false") return false;
   return null;
-}
-
-/**
- * Infer reason when body/cookies don't carry an explicit decision.
- */
-function inferFromContext(
-  layer: string,
-  isBot: boolean,
-  hasParam: boolean,
-  hasForceBlack: boolean,
-  hasCatCookie: boolean
-): { reason: string; reasonLabel: string } {
-  if (hasForceBlack) {
-    return {
-      reason: "force_black",
-      reasonLabel: REASON_LABELS.force_black,
-    };
-  }
-  if (layer === "black" || hasCatCookie) {
-    if (hasCatCookie) {
-      return {
-        reason: "cat_cookie",
-        reasonLabel: "Com parâmetro cat (cookie)",
-      };
-    }
-    return {
-      reason: "clean",
-      reasonLabel: REASON_LABELS.clean,
-    };
-  }
-  // white / unknown
-  if (isBot) {
-    return { reason: "bot", reasonLabel: REASON_LABELS.bot };
-  }
-  if (!hasParam) {
-    return {
-      reason: "no_cat_param",
-      reasonLabel: REASON_LABELS.no_cat_param,
-    };
-  }
-  return {
-    reason: "white_blocked",
-    reasonLabel: "Bloqueado (white)",
-  };
 }
 
 /**
@@ -100,11 +74,7 @@ export function resolveAnalyticsReason(
   const ua = bodyUa || headerUa;
   const ip = extractClientIp(req.headers);
   const botCheck = checkBot(ua, ip);
-  const layer = (opts.layer || req.cookies.get("zs_layer")?.value || "").toLowerCase();
   const device = (opts.device || "").toLowerCase();
-
-  const hasForceBlack = req.cookies.get("force_black")?.value === "1";
-  const hasCatCookie = req.cookies.get("cat_valid")?.value === "1";
 
   // --- isBot --- (server IP/UA wins over client "Humano" lies)
   let isBot: boolean | null =
@@ -121,7 +91,7 @@ export function resolveAnalyticsReason(
   }
   if (botCheck.isBot) isBot = true;
 
-  // --- hasParam ---
+  // --- hasParam --- (ad click ids / UTMs still useful for reporting)
   let hasParam: boolean | null =
     typeof opts.bodyHasParam === "boolean"
       ? opts.bodyHasParam
@@ -132,7 +102,7 @@ export function resolveAnalyticsReason(
           : cookieBool(req, "zs_has_param");
 
   if (hasParam === null) {
-    hasParam = hasCatCookie || hasForceBlack;
+    hasParam = false;
   }
 
   // --- reason code / label ---
@@ -162,34 +132,26 @@ export function resolveAnalyticsReason(
     /* keep raw */
   }
 
-  // Meta IP bots should never show as "passou em todos os filtros"
+  // Bot IP/UA should show bot reason, not "direct"
   if (botCheck.isBot && botCheck.reason) {
     if (
       !reason ||
       reason === "clean" ||
+      reason === "direct" ||
       reason === "cat_cookie" ||
-      reasonLabel.includes("passou em todos")
+      reasonLabel.includes("passou em todos") ||
+      reasonLabel.includes("Link direto")
     ) {
       reason = botCheck.reason;
       reasonLabel = botCheck.label || REASON_LABELS[botCheck.reason] || reasonLabel;
     }
   }
 
-  if (!reason || !reasonLabel) {
-    const inferred = inferFromContext(
-      layer,
-      !!isBot,
-      !!hasParam,
-      hasForceBlack,
-      hasCatCookie
-    );
-    if (!reason) reason = inferred.reason;
-    if (!reasonLabel) reasonLabel = inferred.reasonLabel;
-  } else if (!reasonLabel) {
-    reasonLabel = labelFor(reason);
-  } else if (!reason) {
-    // only label — try reverse map
-    reason = reasonLabel;
+  if (!reason) {
+    reason = isBot ? "bot" : "direct";
+  }
+  if (!reasonLabel) {
+    reasonLabel = labelFor(reason, isBot ? REASON_LABELS.bot : REASON_LABELS.direct);
   }
 
   // Prefer official label for known codes
@@ -200,8 +162,8 @@ export function resolveAnalyticsReason(
   }
 
   return {
-    reason: reason || "unknown",
-    reasonLabel: reasonLabel || labelFor(reason, "—"),
+    reason: reason || "direct",
+    reasonLabel: reasonLabel || labelFor(reason, "Link direto"),
     isBot,
     hasParam,
   };
@@ -220,15 +182,8 @@ export function displayReasonFallback(
     isBot === true ||
     (device || "").toLowerCase() === "bot";
   if (bot) return REASON_LABELS.bot;
-  if (layer === "black") {
-    if (hasParam) return "Com parâmetro cat (cookie)";
-    return REASON_LABELS.clean;
-  }
   if (layer === "white") {
-    if (hasParam === false || hasParam == null) {
-      return REASON_LABELS.no_cat_param;
-    }
     return "Bloqueado (white)";
   }
-  return "—";
+  return REASON_LABELS.direct;
 }

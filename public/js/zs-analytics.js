@@ -69,25 +69,14 @@
 
   function detectLayer() {
     try {
-      // Cookie set by middleware (rewrite keeps original URL, so path alone lies)
-      var zl = getCookie("zs_layer");
-      if (zl === "white") return "white";
-      if (zl === "black") return "black";
-      if (getCookie("force_black") === "1") return "black";
-      if (getCookie("cat_valid") === "1") return "black";
       var p = location.pathname.toLowerCase();
+      // Legacy safe page only
       if (p.indexOf("famguard") !== -1 || p.indexOf("/white") !== -1)
         return "white";
-      if (
-        p.indexOf("step") !== -1 ||
-        p.indexOf("index") !== -1 ||
-        p.indexOf("backredirect") !== -1 ||
-        p.indexOf("/upsell") !== -1 ||
-        p.indexOf("/en-m") !== -1
-      )
-        return "black";
+      // Direct-link funnel — always black
+      return "black";
     } catch (e) {}
-    return "unknown";
+    return "black";
   }
 
   function detectSource() {
@@ -113,10 +102,6 @@
 
   function stageFromPath(path) {
     path = (path || "").toLowerCase();
-    // White rewrite: URL may be / or /index.html but layer cookie says white
-    try {
-      if (getCookie("zs_layer") === "white") return "white";
-    } catch (e) {}
     if (path.indexOf("famguard") !== -1 || path.indexOf("/white") !== -1)
       return "white";
     if (path.indexOf("step6") !== -1) return "cta";
@@ -227,55 +212,24 @@
 
   function detectParam() {
     try {
-      if (getCookie("cat_valid") === "1") return true;
-      if (getCookie("force_black") === "1") return true;
-      if (getCookie("zs_has_param") === "1") return true;
-      if (qs("cat") || qs("test") || qs("fbclid") || qs("gclid")) return true;
+      if (qs("fbclid") || qs("gclid") || qs("wbraid") || qs("gbraid")) return true;
+      if (qs("utm_source") || qs("utm_campaign")) return true;
     } catch (e) {}
     return false;
   }
 
   function inferLayerReason() {
-    var reason = getCookie("zs_reason") || "";
-    var reasonLabel = getCookie("zs_reason_label") || "";
-    try {
-      if (!reason) reason = sessionStorage.getItem("zs_layer_reason") || "";
-      if (!reasonLabel)
-        reasonLabel = sessionStorage.getItem("zs_layer_reason_label") || "";
-    } catch (e) {}
-
     var layer = detectLayer();
     var hasParam = detectParam();
     var isBot =
-      getCookie("zs_is_bot") === "1" ||
       detectDevice() === "Bot" ||
       /bot|spider|crawler|facebookexternalhit/i.test(navigator.userAgent || "");
 
-    if (!reason || !reasonLabel) {
-      if (layer === "black") {
-        if (getCookie("force_black") === "1") {
-          reason = "force_black";
-          reasonLabel = "Teste local / force black";
-        } else if (getCookie("cat_valid") === "1") {
-          reason = "cat_cookie";
-          reasonLabel = "Com parâmetro cat (cookie)";
-        } else {
-          reason = "clean";
-          reasonLabel = "Humano · passou em todos os filtros";
-        }
-      } else {
-        // white
-        if (isBot) {
-          reason = "bot";
-          reasonLabel = "Bot / crawler detectado";
-        } else if (!hasParam) {
-          reason = "no_cat_param";
-          reasonLabel = "Sem parâmetro cat (cookie)";
-        } else {
-          reason = "white_blocked";
-          reasonLabel = "Bloqueado (white)";
-        }
-      }
+    var reason = "direct";
+    var reasonLabel = "Link direto";
+    if (isBot) {
+      reason = "bot";
+      reasonLabel = "Bot / crawler detectado";
     }
 
     try {
@@ -322,13 +276,10 @@
    */
   function bootClarity(projectId) {
     if (!projectId || window.__ZS_CLARITY__) return;
-    // Never track dashboard or white/safe page (famguard)
+    // Never track admin dashboard
     try {
       var path = (location.pathname || "").toLowerCase();
       if (path.indexOf("/dashboard") === 0) return;
-      if (path.indexOf("famguard") !== -1) return;
-      if (path === "/white" || path === "/white/") return;
-      if (stageFromPath(path) === "white") return;
     } catch (e0) {}
     window.__ZS_CLARITY__ = true;
     (function (c, l, a, r, i, t, y) {
@@ -438,7 +389,6 @@
       utmContent: o.utmContent || "",
       isHuman: !lr.isBot,
       hasCatParam: lr.hasParam,
-      hasCatCookie: getCookie("cat_valid") === "1",
       utmSource: o.utmSource,
       utmMedium: o.utmMedium,
       utmCampaign: o.utmCampaign,

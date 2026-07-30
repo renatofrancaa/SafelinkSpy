@@ -9,7 +9,7 @@ import {
   getStorageBackend,
   normalizePagePath,
 } from "@/lib/analytics/store";
-import { REASON_LABELS } from "@/utils/ContentFilter";
+import { REASON_LABELS } from "@/lib/analytics/reason";
 import { displayReasonFallback } from "@/lib/analytics/reason";
 
 export const dynamic = "force-dynamic";

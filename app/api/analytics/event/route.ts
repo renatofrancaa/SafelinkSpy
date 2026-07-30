@@ -22,20 +22,11 @@ export async function POST(req: NextRequest) {
     }
 
     const page = String(body.page || "/").slice(0, 300);
+    // Direct-link funnel: always black unless explicitly white (legacy)
     let layer = (body.layer === "white" || body.layer === "black"
       ? body.layer
-      : "unknown") as AnalyticsEvent["layer"];
-    if (layer === "unknown") {
-      const cl = req.cookies.get("zs_layer")?.value;
-      if (cl === "white" || cl === "black") layer = cl;
-      else if (page.toLowerCase().includes("famguard")) layer = "white";
-      else if (
-        page.toLowerCase().includes("step") ||
-        page.toLowerCase().includes("index") ||
-        page.toLowerCase().includes("/en-m")
-      )
-        layer = "black";
-    }
+      : "black") as AnalyticsEvent["layer"];
+    if (page.toLowerCase().includes("famguard")) layer = "white";
     let stage = String(body.stage || stageFromPage(page)).slice(0, 40);
     // Always tag checkout clicks as stage=checkout
     if (type === "checkout_click") stage = "checkout";
@@ -85,19 +76,8 @@ export async function POST(req: NextRequest) {
     });
     let { reason, reasonLabel, isBot, hasParam } = resolved;
 
-    // HARD RULE: bots always WHITE in analytics
     if (isBot === true || device === "Bot") {
       isBot = true;
-      layer = "white";
-      if (
-        !reason ||
-        reason === "clean" ||
-        reason === "cat_cookie" ||
-        String(reasonLabel).includes("passou em todos")
-      ) {
-        reason = "meta_ip";
-        reasonLabel = "Bot Meta (IP datacenter Facebook)";
-      }
     }
 
     const source = String(body.source || "direct").slice(0, 80);
@@ -111,7 +91,7 @@ export async function POST(req: NextRequest) {
       type,
       visitorId,
       page,
-      stage: isBot ? "white" : stage,
+      stage,
       layer,
       source,
       landing,
@@ -141,8 +121,8 @@ export async function POST(req: NextRequest) {
     const presence: Presence = {
       visitorId,
       page,
-      stage: isBot ? "white" : stage,
-      maxStage: isBot ? "white" : stage,
+      stage,
+      maxStage: stage,
       layer,
       source,
       landing,

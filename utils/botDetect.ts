@@ -1,5 +1,5 @@
 /**
- * Bot / scraper detection for cloaker.
+ * Bot / scraper detection for analytics.
  * Meta ad-review bots often use real Mobile Chrome UAs + Facebook ASN IPs.
  * Real users clicking ads use their ISP IP, not 173.252.x / 31.13.x.
  */

@@ -1,7 +1,7 @@
 /**
  * Microsoft Clarity — Project ID (SpyNew)
  * https://clarity.microsoft.com → Settings → Setup
- * Loaded on black funnel steps only (not famguard).
+ * Loaded on funnel steps (skips admin dashboard).
  */
 window.CLARITY_PROJECT_ID = "xqkud5a0mc";
 
@@ -11,8 +11,6 @@ window.CLARITY_PROJECT_ID = "xqkud5a0mc";
   if (!id || window.__ZS_CLARITY__) return;
   try {
     var path = (location.pathname || "").toLowerCase();
-    if (path.indexOf("famguard") !== -1) return;
-    if (path === "/white" || path === "/white/") return;
     if (path.indexOf("/dashboard") === 0) return;
   } catch (e0) {}
   window.__ZS_CLARITY__ = true;
