@@ -11,6 +11,7 @@ import {
 } from "@/lib/analytics/store";
 import { REASON_LABELS } from "@/lib/analytics/reason";
 import { displayReasonFallback } from "@/lib/analytics/reason";
+import { isNonHumanTraffic, isRealTraffic } from "@/utils/botDetect";
 
 export const dynamic = "force-dynamic";
 
@@ -148,14 +149,17 @@ export async function GET(req: NextRequest) {
   if (!checkAuth(req)) return unauthorized();
 
   const { from, to, range } = resolveRange(req);
-  const presence = await getPresenceList();
+  const presenceAll = await getPresenceList();
   // Load by range in DB (not "last N global") so yesterday never vanishes under today's volume
-  const events = await getEventsInRange(from, to, 15_000);
+  const eventsAll = await getEventsInRange(from, to, 15_000);
+  // Dashboard traffic = real campaign clicks only (exclude bots + Meta/Google analysts)
+  const events = eventsAll.filter(isRealTraffic);
+  const presence = presenceAll.filter(isRealTraffic);
   const now = Date.now();
   // Probe real connectivity — never report durable if Neon is down (quota/etc.)
   const storage = await getStorageBackend();
 
-  // Online by stage
+  // Online by stage (humans only)
   const onlineByStage: Record<string, number> = {};
   const onlineByLayer = { white: 0, black: 0, unknown: 0 };
   const onlineBySource: Record<string, number> = {};
@@ -241,13 +245,10 @@ export async function GET(req: NextRequest) {
     return e.stage;
   }
 
-  /** Black funnel + not bot (human / unknown device, never Bot) */
+  /** Black funnel + real traffic (not bot / Meta analyst) */
   function isBlackHumanEvent(e: (typeof events)[0]): boolean {
     if (e.layer !== "black") return false;
-    if (e.isBot === true) return false;
-    if (e.meta?.isBot === true) return false;
-    if (e.device === "Bot") return false;
-    return true;
+    return isRealTraffic(e);
   }
 
   // Max stage per visitor (for cumulative funnel)
@@ -291,14 +292,6 @@ export async function GET(req: NextRequest) {
       const key = String(REASON_LABELS[reason] || reason);
       if (!reasonVisitors[key]) reasonVisitors[key] = new Set();
       reasonVisitors[key].add(e.visitorId);
-
-      if (e.isBot === true || e.meta?.isBot === true) {
-        botHumanVisitors.bot.add(e.visitorId);
-      } else if (e.meta?.isHuman === true) {
-        botHumanVisitors.human.add(e.visitorId);
-      } else {
-        botHumanVisitors.unknown.add(e.visitorId);
-      }
 
       if (
         e.hasParam === true ||
@@ -362,6 +355,24 @@ export async function GET(req: NextRequest) {
   const reasonCounts: Record<string, number> = {};
   for (const [k, set] of Object.entries(reasonVisitors)) {
     reasonCounts[k] = set.size;
+  }
+
+  // Bot vs human diagnostics from FULL event set (before human filter)
+  for (const e of eventsAll) {
+    if (e.type !== "layer" && e.type !== "pageview") continue;
+    if (isNonHumanTraffic(e)) {
+      botHumanVisitors.bot.add(e.visitorId);
+    } else if (e.meta?.isHuman === true || e.isBot === false) {
+      botHumanVisitors.human.add(e.visitorId);
+    } else {
+      // Real traffic with unknown flag still counts as human for dash KPIs
+      botHumanVisitors.human.add(e.visitorId);
+    }
+  }
+  // A visitor marked both ways: bot wins
+  for (const id of botHumanVisitors.bot) {
+    botHumanVisitors.human.delete(id);
+    botHumanVisitors.unknown.delete(id);
   }
   const botHuman = {
     bot: botHumanVisitors.bot.size,
@@ -867,7 +878,15 @@ export async function GET(req: NextRequest) {
     ok: true,
     now,
     storage,
-    range: { key: range, from, to, eventCount: events.length },
+    range: {
+      key: range,
+      from,
+      to,
+      // Human/real traffic only (bots + Meta analysts excluded from dashboard counts)
+      eventCount: events.length,
+      eventCountAll: eventsAll.length,
+      botsExcluded: Math.max(0, eventsAll.length - events.length),
+    },
     online: {
       total: presence.length,
       byStage: Object.entries(onlineByStage)

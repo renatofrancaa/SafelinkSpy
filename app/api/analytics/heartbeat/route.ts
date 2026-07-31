@@ -4,11 +4,11 @@ import {
   pushEvent,
   stageFromPage,
   detectDevice,
-  extractIp,
   type Presence,
   type AnalyticsEvent,
 } from "@/lib/analytics/store";
 import { resolveAnalyticsReason } from "@/lib/analytics/reason";
+import { extractClientIp } from "@/utils/botDetect";
 
 export const dynamic = "force-dynamic";
 
@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
       req.headers.get("host") ||
       "";
     const ua = req.headers.get("user-agent") || String(body.ua || "");
-    const ip = extractIp(req.headers).slice(0, 64);
+    const ip = extractClientIp(req.headers).slice(0, 64);
     // Prefer server device (Meta IPs → Bot even if client sent "Mobile")
     const device = String(detectDevice(ua, ip) || body.device || "Desconhecido").slice(
       0,

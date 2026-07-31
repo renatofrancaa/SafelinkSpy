@@ -12,7 +12,14 @@ type Stats = {
     configured?: "postgres" | "redis" | "memory";
     error?: string;
   };
-  range: { key: string; from: number; to: number; eventCount?: number };
+  range: {
+    key: string;
+    from: number;
+    to: number;
+    eventCount?: number;
+    eventCountAll?: number;
+    botsExcluded?: number;
+  };
   online: {
     total: number;
     byStage: { stage: string; label: string; count: number }[];
@@ -595,7 +602,10 @@ export default function DashboardPage() {
         >
           Storage: <strong>{stats.storage.backend}</strong> (durável)
           {stats.range?.eventCount != null
-            ? ` · ${stats.range.eventCount} eventos no período`
+            ? ` · ${stats.range.eventCount} cliques reais no período`
+            : ""}
+          {stats.range?.botsExcluded
+            ? ` · ${stats.range.botsExcluded} bots/Meta excluídos`
             : ""}
         </div>
       ) : null}

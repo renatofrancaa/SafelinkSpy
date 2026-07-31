@@ -147,3 +147,65 @@ export function checkBot(ua: string, ip: string): BotCheck {
   }
   return { isBot: false, reason: null, label: "", ip: cleanIp };
 }
+
+/** Reason codes that mean bot / Meta analyst / crawler (not paid click) */
+export const BOT_REASON_CODES = new Set([
+  "bot",
+  "bot_ua",
+  "meta_ip",
+  "google_bot_ip",
+  "empty_ua",
+]);
+
+/**
+ * Dashboard filter: true = do NOT count as real campaign traffic.
+ * Covers stored isBot flag, device=Bot, reason codes, labels, and Meta/Google IPs
+ * (so old events / Meta ad-review analysts from FB ASNs are excluded even if
+ * isBot was null when logged).
+ */
+export function isNonHumanTraffic(row: {
+  isBot?: boolean | null;
+  device?: string | null;
+  reason?: string | null;
+  reasonLabel?: string | null;
+  ip?: string | null;
+  meta?: Record<string, unknown> | null;
+}): boolean {
+  if (row.isBot === true) return true;
+  if (row.meta?.isBot === true) return true;
+  if ((row.device || "").toLowerCase() === "bot") return true;
+
+  const reason = String(row.reason || row.meta?.reason || "")
+    .trim()
+    .toLowerCase();
+  if (reason && BOT_REASON_CODES.has(reason)) return true;
+
+  const label = String(
+    row.reasonLabel || row.meta?.reasonLabel || row.meta?.reason || ""
+  ).toLowerCase();
+  if (
+    label &&
+    /bot\b|crawler|spider|meta \(ip|datacenter facebook|analista.?meta|facebookexternalhit|facebot|meta-external/i.test(
+      label
+    )
+  ) {
+    return true;
+  }
+
+  const ip = String(row.ip || "").trim();
+  if (ip && (isMetaDatacenterIp(ip) || isGoogleBotIp(ip))) return true;
+
+  return false;
+}
+
+/** Inverse of isNonHumanTraffic — real people / campaign clicks */
+export function isRealTraffic(row: {
+  isBot?: boolean | null;
+  device?: string | null;
+  reason?: string | null;
+  reasonLabel?: string | null;
+  ip?: string | null;
+  meta?: Record<string, unknown> | null;
+}): boolean {
+  return !isNonHumanTraffic(row);
+}

@@ -10,6 +10,11 @@
  */
 
 import postgres, { type Sql } from "postgres";
+import {
+  isBotUserAgent,
+  isGoogleBotIp,
+  isMetaDatacenterIp,
+} from "@/utils/botDetect";
 
 export type Presence = {
   visitorId: string;
@@ -829,27 +834,12 @@ export function stageFromPage(page: string): string {
 }
 
 export function detectDevice(ua: string, ip?: string): string {
-  const u = (ua || "").toLowerCase();
-  if (ip) {
-    try {
-      if (
-        /^(31\.13\.|66\.220\.|69\.63\.|69\.171\.|157\.240\.|173\.252\.|185\.60\.21|66\.249\.)/.test(
-          ip
-        )
-      ) {
-        return "Bot";
-      }
-    } catch {
-      /* ignore */
-    }
-  }
-  if (!u) return "Desconhecido";
-  if (
-    /bot|spider|crawler|facebookexternalhit|facebot|meta-external|slurp|semrush|ahrefs|headless|puppeteer|playwright/i.test(
-      u
-    )
-  )
+  const cleanIp = (ip || "").replace(/^::ffff:/, "");
+  if (cleanIp && (isMetaDatacenterIp(cleanIp) || isGoogleBotIp(cleanIp))) {
     return "Bot";
+  }
+  if (isBotUserAgent(ua || "")) return "Bot";
+  const u = (ua || "").toLowerCase();
   if (/ipad|tablet|kindle|playbook|silk|(android(?!.*mobile))/i.test(u))
     return "Tablet";
   if (

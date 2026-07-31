@@ -4,11 +4,11 @@ import {
   upsertPresence,
   stageFromPage,
   detectDevice,
-  extractIp,
   type AnalyticsEvent,
   type Presence,
 } from "@/lib/analytics/store";
 import { resolveAnalyticsReason } from "@/lib/analytics/reason";
+import { extractClientIp } from "@/utils/botDetect";
 
 export const dynamic = "force-dynamic";
 
@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
       req.headers.get("x-forwarded-host") ||
       req.headers.get("host") ||
       "";
-    const ip = extractIp(req.headers).slice(0, 64);
+    const ip = extractClientIp(req.headers).slice(0, 64);
     const device = String(detectDevice(ua, ip) || body.device || "Desconhecido").slice(
       0,
       40
