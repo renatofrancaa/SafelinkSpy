@@ -152,22 +152,27 @@ export async function GET(req: NextRequest) {
   const presenceAll = await getPresenceList();
   // Load by range in DB (not "last N global") so yesterday never vanishes under today's volume
   const eventsAll = await getEventsInRange(from, to, 15_000);
-  // Dashboard traffic = real campaign clicks only (exclude bots + Meta/Google analysts)
+  // History + funnel + checkouts: real campaign clicks only (exclude bots + Meta/Google analysts)
   const events = eventsAll.filter(isRealTraffic);
-  const presence = presenceAll.filter(isRealTraffic);
+  // Live (ao vivo): show everyone, including bots and Meta analysts — just don't count them in history/funnel
+  const presence = presenceAll;
   const now = Date.now();
   // Probe real connectivity — never report durable if Neon is down (quota/etc.)
   const storage = await getStorageBackend();
 
-  // Online by stage (humans only)
+  // Online by stage (includes bots/analysts so they appear on live tab)
   const onlineByStage: Record<string, number> = {};
   const onlineByLayer = { white: 0, black: 0, unknown: 0 };
   const onlineBySource: Record<string, number> = {};
+  let onlineBots = 0;
+  let onlineHumans = 0;
   for (const p of presence) {
     onlineByStage[p.stage] = (onlineByStage[p.stage] || 0) + 1;
     onlineByLayer[p.layer] = (onlineByLayer[p.layer] || 0) + 1;
     const src = p.utmSource || p.source || "direct";
     onlineBySource[src] = (onlineBySource[src] || 0) + 1;
+    if (isNonHumanTraffic(p)) onlineBots += 1;
+    else onlineHumans += 1;
   }
 
   // Unique visitors who hit each stage in range
@@ -725,7 +730,8 @@ export async function GET(req: NextRequest) {
       : e.stage;
   }
 
-  // Latest layer decision reason per visitor (backfill for old presence)
+  // Latest layer decision reason per visitor (backfill for old presence).
+  // Use full event set so bots/Meta analysts still get Motivo when online.
   const latestLayerByVisitor: Record<
     string,
     {
@@ -736,7 +742,7 @@ export async function GET(req: NextRequest) {
       layer: string;
     }
   > = {};
-  for (const e of events) {
+  for (const e of eventsAll) {
     if (e.type !== "layer") continue;
     if (latestLayerByVisitor[e.visitorId]) continue; // events are newest-first
     latestLayerByVisitor[e.visitorId] = {
@@ -761,14 +767,23 @@ export async function GET(req: NextRequest) {
   const liveFeed = presence
     .slice()
     .sort((a, b) => b.ts - a.ts)
-    .slice(0, 50)
+    .slice(0, 80)
     .map((p) => {
       const back = latestLayerByVisitor[p.visitorId];
       const layer = p.layer || back?.layer || "unknown";
-      const isBot =
-        p.isBot ??
-        back?.isBot ??
-        (p.device === "Bot" ? true : null);
+      // Prefer stored flag, then full bot/Meta-analyst heuristics (IP ASN, UA, reason codes)
+      const isBot = isNonHumanTraffic({
+        isBot: p.isBot ?? back?.isBot ?? null,
+        device: p.device,
+        reason: p.reason || back?.reason,
+        reasonLabel: p.reasonLabel || back?.reasonLabel,
+        ip: p.ip,
+        meta: null,
+      })
+        ? true
+        : p.isBot === false || back?.isBot === false
+          ? false
+          : p.isBot ?? back?.isBot ?? (p.device === "Bot" ? true : null);
       const hasParam = p.hasParam ?? back?.hasParam ?? null;
       const rawReason =
         p.reasonLabel ||
@@ -889,6 +904,8 @@ export async function GET(req: NextRequest) {
     },
     online: {
       total: presence.length,
+      humans: onlineHumans,
+      bots: onlineBots,
       byStage: Object.entries(onlineByStage)
         .map(([stage, count]) => ({
           stage,

@@ -22,6 +22,10 @@ type Stats = {
   };
   online: {
     total: number;
+    /** Real humans currently online (optional; bots still listed in liveFeed) */
+    humans?: number;
+    /** Bots + Meta/Google analysts currently online */
+    bots?: number;
     byStage: { stage: string; label: string; count: number }[];
     byLayer: { white: number; black: number; unknown: number };
     bySource: { name: string; count: number }[];
@@ -213,6 +217,21 @@ function InstallHelpModal({
       </div>
     </div>
   );
+}
+
+/** Label for Bot? column on live feed (Meta analyst vs generic bot) */
+function liveBotLabel(
+  isBot?: boolean | null,
+  reason?: string | null
+): string {
+  if (isBot === true) {
+    const r = String(reason || "").toLowerCase();
+    if (/meta|facebook|analista/.test(r)) return "Analista Meta";
+    if (/google/.test(r)) return "Bot Google";
+    return "Bot";
+  }
+  if (isBot === false) return "Humano";
+  return "—";
 }
 
 function LayerBadge({ layer }: { layer: string }) {
@@ -621,6 +640,22 @@ export default function DashboardPage() {
               accent="#22c55e"
             />
             <Kpi
+              label="Humanos online"
+              value={String(
+                stats.online.humans ??
+                  Math.max(
+                    0,
+                    stats.online.total - (stats.online.bots ?? 0)
+                  )
+              )}
+              accent="#4ade80"
+            />
+            <Kpi
+              label="Bots / analistas"
+              value={String(stats.online.bots ?? 0)}
+              accent="#f59e0b"
+            />
+            <Kpi
               label="Black online"
               value={String(stats.online.byLayer.black || 0)}
               accent="#4ade80"
@@ -680,6 +715,12 @@ export default function DashboardPage() {
               </section>
 
               <Card title="Visitantes ao vivo">
+                <p style={{ ...styles.muted, margin: "0 0 10px", fontSize: 12 }}>
+                  Bots e analistas Meta/Google aparecem aqui (marcados em
+                  amarelo), mas{" "}
+                  <strong>não entram</strong> no histórico nem no funil de
+                  conversão.
+                </p>
                 <div style={styles.tableWrap}>
                   <table style={styles.table}>
                     <thead>
@@ -710,8 +751,20 @@ export default function DashboardPage() {
                           </td>
                         </tr>
                       ) : (
-                        stats.online.liveFeed.map((r, i) => (
-                          <tr key={r.visitorId + i}>
+                        stats.online.liveFeed.map((r, i) => {
+                          const botKind = liveBotLabel(r.isBot, r.reason);
+                          const isBotRow = r.isBot === true;
+                          return (
+                          <tr
+                            key={r.visitorId + i}
+                            style={
+                              isBotRow
+                                ? {
+                                    background: "rgba(245, 158, 11, 0.08)",
+                                  }
+                                : undefined
+                            }
+                          >
                             <td style={styles.tdMono}>
                               {fmtTime(r.ts)}
                               <div style={{ color: "#64748b" }}>{r.agoSec}s</div>
@@ -732,12 +785,14 @@ export default function DashboardPage() {
                               {countryLabel(r.country)}
                             </td>
                             <td style={styles.td}>{r.device || "—"}</td>
-                            <td style={styles.td}>
-                              {r.isBot === true
-                                ? "Bot"
-                                : r.isBot === false
-                                  ? "Humano"
-                                  : "—"}
+                            <td
+                              style={{
+                                ...styles.td,
+                                color: isBotRow ? "#fbbf24" : undefined,
+                                fontWeight: isBotRow ? 600 : undefined,
+                              }}
+                            >
+                              {botKind}
                             </td>
                             <td style={styles.td}>
                               {r.hasParam === true
@@ -767,7 +822,8 @@ export default function DashboardPage() {
                               {r.page}
                             </td>
                           </tr>
-                        ))
+                          );
+                        })
                       )}
                     </tbody>
                   </table>
