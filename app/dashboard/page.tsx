@@ -115,32 +115,57 @@ type Stats = {
       count: number;
       uniqueBuyers: number;
       revenue: number;
+      grossRevenue?: number;
+      refundedAmount?: number;
+      chargebackAmount?: number;
+      netRevenue?: number;
+      refundCount?: number;
+      chargebackCount?: number;
       avgTicket?: number;
       today?: {
         day: string;
         count: number;
         revenue: number;
+        grossRevenue?: number;
+        refunds?: number;
+        chargebacks?: number;
+        netRevenue?: number;
         uniqueBuyers: number;
       };
       byDay?: {
         day: string;
         count: number;
         revenue: number;
+        refunds?: number;
+        chargebacks?: number;
+        netRevenue?: number;
         uniqueBuyers: number;
         avgTicket: number;
       }[];
-      bySource: { name: string; count: number; revenue?: number }[];
+      bySource: {
+        name: string;
+        count: number;
+        revenue?: number;
+        refunds?: number;
+        chargebacks?: number;
+        netRevenue?: number;
+      }[];
       byProduct: {
         key: string;
         label: string;
         count: number;
         revenue: number;
+        refunds?: number;
+        chargebacks?: number;
+        netRevenue?: number;
       }[];
       feed: {
         id: string;
         orderCode: string;
         visitorId: string;
         value: number | null;
+        signedValue?: number | null;
+        kind?: "sale" | "refund" | "chargeback" | string;
         currency?: string;
         day?: string;
         planLabel: string;
@@ -764,14 +789,33 @@ export default function DashboardPage() {
               accent="#a78bfa"
             />
             <Kpi
-              label="Faturamento (período)"
-              value={fmtMoney(stats.history.sales?.revenue ?? 0, "USD")}
+              label="Faturamento líquido"
+              value={fmtMoney(
+                stats.history.sales?.netRevenue ??
+                  stats.history.sales?.revenue ??
+                  0,
+                "USD"
+              )}
               accent="#34d399"
             />
             <Kpi
-              label="Faturamento hoje"
-              value={fmtMoney(stats.history.sales?.today?.revenue ?? 0, "USD")}
+              label="Líquido hoje"
+              value={fmtMoney(
+                stats.history.sales?.today?.netRevenue ??
+                  stats.history.sales?.today?.revenue ??
+                  0,
+                "USD"
+              )}
               accent="#fbbf24"
+            />
+            <Kpi
+              label="Reembolsos + CB"
+              value={fmtMoney(
+                (stats.history.sales?.refundedAmount ?? 0) +
+                  (stats.history.sales?.chargebackAmount ?? 0),
+                "USD"
+              )}
+              accent="#f87171"
             />
             <Kpi
               label="Ticket médio"
@@ -1083,16 +1127,19 @@ export default function DashboardPage() {
                         style={{
                           color: "#fbbf24",
                           fontWeight: 800,
-                          fontSize: 22,
+                          fontSize: 20,
                         }}
                       >
                         {fmtMoney(
-                          stats.history.sales?.today?.revenue ?? 0,
+                          stats.history.sales?.today?.netRevenue ??
+                            stats.history.sales?.today?.revenue ??
+                            0,
                           "USD"
                         )}
                       </div>
                       <div style={styles.muted}>
-                        Hoje ({stats.history.sales?.today?.count ?? 0} vendas)
+                        Líquido hoje ({stats.history.sales?.today?.count ?? 0}{" "}
+                        vendas)
                       </div>
                     </div>
                     <div style={styles.layerBox}>
@@ -1100,33 +1147,55 @@ export default function DashboardPage() {
                         style={{
                           color: "#34d399",
                           fontWeight: 800,
-                          fontSize: 22,
+                          fontSize: 20,
                         }}
                       >
-                        {fmtMoney(stats.history.sales?.revenue ?? 0, "USD")}
+                        {fmtMoney(
+                          stats.history.sales?.netRevenue ??
+                            stats.history.sales?.revenue ??
+                            0,
+                          "USD"
+                        )}
                       </div>
                       <div style={styles.muted}>
-                        Período ({stats.history.sales?.count ?? 0} vendas)
+                        Líquido período ({stats.history.sales?.count ?? 0}{" "}
+                        vendas)
                       </div>
                     </div>
                     <div style={styles.layerBox}>
                       <div
                         style={{
-                          color: "#38bdf8",
+                          color: "#a78bfa",
                           fontWeight: 800,
-                          fontSize: 22,
+                          fontSize: 18,
                         }}
                       >
-                        {fmtMoney(stats.history.sales?.avgTicket ?? 0, "USD")}
+                        {fmtMoney(
+                          stats.history.sales?.grossRevenue ??
+                            stats.history.sales?.revenue ??
+                            0,
+                          "USD"
+                        )}
                       </div>
-                      <div style={styles.muted}>Ticket médio</div>
+                      <div style={styles.muted}>
+                        Bruto − reemb.{" "}
+                        {fmtMoney(
+                          stats.history.sales?.refundedAmount ?? 0,
+                          "USD"
+                        )}{" "}
+                        − CB{" "}
+                        {fmtMoney(
+                          stats.history.sales?.chargebackAmount ?? 0,
+                          "USD"
+                        )}
+                      </div>
                     </div>
                   </div>
 
                   <h3
                     style={{ ...styles.cardTitle, marginTop: 16, fontSize: 13 }}
                   >
-                    Faturamento por dia
+                    Faturamento por dia (bruto / reembolsos / líquido)
                   </h3>
                   {!stats.history.sales?.byDay?.length ? (
                     <Empty />
@@ -1137,9 +1206,10 @@ export default function DashboardPage() {
                           <tr>
                             <th style={styles.th}>Dia</th>
                             <th style={styles.th}>Vendas</th>
-                            <th style={styles.th}>Compradores</th>
-                            <th style={styles.th}>Ticket médio</th>
-                            <th style={styles.th}>Faturamento</th>
+                            <th style={styles.th}>Bruto</th>
+                            <th style={styles.th}>Reemb.</th>
+                            <th style={styles.th}>Chargeback</th>
+                            <th style={styles.th}>Líquido</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -1147,13 +1217,31 @@ export default function DashboardPage() {
                             <tr key={d.day}>
                               <td style={styles.tdMono}>{d.day}</td>
                               <td style={styles.td}>{d.count}</td>
-                              <td style={styles.td}>{d.uniqueBuyers}</td>
                               <td style={styles.tdMono}>
-                                {fmtMoney(d.avgTicket, "USD")}
+                                {fmtMoney(d.revenue, "USD")}
+                              </td>
+                              <td
+                                style={{
+                                  ...styles.tdMono,
+                                  color: "#f87171",
+                                }}
+                              >
+                                {fmtMoney(d.refunds ?? 0, "USD")}
+                              </td>
+                              <td
+                                style={{
+                                  ...styles.tdMono,
+                                  color: "#f87171",
+                                }}
+                              >
+                                {fmtMoney(d.chargebacks ?? 0, "USD")}
                               </td>
                               <td style={styles.tdMono}>
                                 <strong style={{ color: "#34d399" }}>
-                                  {fmtMoney(d.revenue, "USD")}
+                                  {fmtMoney(
+                                    d.netRevenue ?? d.revenue,
+                                    "USD"
+                                  )}
                                 </strong>
                               </td>
                             </tr>
@@ -1166,7 +1254,7 @@ export default function DashboardPage() {
                   <h3
                     style={{ ...styles.cardTitle, marginTop: 16, fontSize: 13 }}
                   >
-                    Por fonte (vendas + faturamento)
+                    Por fonte (líquido)
                   </h3>
                   {!stats.history.sales?.bySource?.length ? (
                     <Empty />
@@ -1177,7 +1265,8 @@ export default function DashboardPage() {
                           <tr>
                             <th style={styles.th}>Fonte</th>
                             <th style={styles.th}>Vendas</th>
-                            <th style={styles.th}>Faturamento</th>
+                            <th style={styles.th}>Bruto</th>
+                            <th style={styles.th}>Líquido</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -1187,6 +1276,12 @@ export default function DashboardPage() {
                               <td style={styles.td}>{s.count}</td>
                               <td style={styles.tdMono}>
                                 {fmtMoney(s.revenue ?? 0, "USD")}
+                              </td>
+                              <td style={styles.tdMono}>
+                                {fmtMoney(
+                                  s.netRevenue ?? s.revenue ?? 0,
+                                  "USD"
+                                )}
                               </td>
                             </tr>
                           ))}
@@ -1198,7 +1293,7 @@ export default function DashboardPage() {
                   <h3
                     style={{ ...styles.cardTitle, marginTop: 16, fontSize: 13 }}
                   >
-                    Por produto
+                    Por produto (líquido)
                   </h3>
                   {!stats.history.sales?.byProduct?.length ? (
                     <Empty />
@@ -1209,7 +1304,8 @@ export default function DashboardPage() {
                           <tr>
                             <th style={styles.th}>Produto</th>
                             <th style={styles.th}>Vendas</th>
-                            <th style={styles.th}>Faturamento</th>
+                            <th style={styles.th}>Bruto</th>
+                            <th style={styles.th}>Líquido</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -1222,6 +1318,9 @@ export default function DashboardPage() {
                               <td style={styles.tdMono}>
                                 {fmtMoney(p.revenue, "USD")}
                               </td>
+                              <td style={styles.tdMono}>
+                                {fmtMoney(p.netRevenue ?? p.revenue, "USD")}
+                              </td>
                             </tr>
                           ))}
                         </tbody>
@@ -1232,7 +1331,7 @@ export default function DashboardPage() {
                   <h3
                     style={{ ...styles.cardTitle, marginTop: 16, fontSize: 13 }}
                   >
-                    Cada venda (preço individual)
+                    Movimentações (venda / reembolso / chargeback)
                   </h3>
                   {!stats.history.sales?.feed?.length ? (
                     <Empty />
@@ -1242,43 +1341,76 @@ export default function DashboardPage() {
                         <thead>
                           <tr>
                             <th style={styles.th}>Quando</th>
+                            <th style={styles.th}>Tipo</th>
                             <th style={styles.th}>Pedido</th>
                             <th style={styles.th}>Produto</th>
-                            <th style={styles.th}>Preço</th>
+                            <th style={styles.th}>Valor</th>
                             <th style={styles.th}>Fonte</th>
-                            <th style={styles.th}>País</th>
                           </tr>
                         </thead>
                         <tbody>
-                          {stats.history.sales.feed.map((s) => (
-                            <tr key={s.id}>
-                              <td style={styles.tdMono}>{fmtTime(s.ts)}</td>
-                              <td style={styles.tdMono}>{s.orderCode}</td>
-                              <td style={styles.td}>
-                                {s.planLabel}
-                                {s.isUpsell ? (
-                                  <span
-                                    style={{
-                                      marginLeft: 6,
-                                      color: "#fbbf24",
-                                      fontSize: 11,
-                                    }}
-                                  >
-                                    upsell
-                                  </span>
-                                ) : null}
-                              </td>
-                              <td style={styles.tdMono}>
-                                <strong style={{ color: "#4ade80" }}>
-                                  {fmtMoney(s.value, s.currency || "USD")}
-                                </strong>
-                              </td>
-                              <td style={styles.td}>{s.source || "—"}</td>
-                              <td style={styles.td}>
-                                {countryLabel(s.country)}
-                              </td>
-                            </tr>
-                          ))}
+                          {stats.history.sales.feed.map((s) => {
+                            const kind = s.kind || "sale";
+                            const kindLabel =
+                              kind === "refund"
+                                ? "Reembolso"
+                                : kind === "chargeback"
+                                  ? "Chargeback"
+                                  : "Venda";
+                            const kindColor =
+                              kind === "sale" ? "#4ade80" : "#f87171";
+                            const display =
+                              s.signedValue != null
+                                ? s.signedValue
+                                : kind === "sale"
+                                  ? s.value
+                                  : s.value != null
+                                    ? -Math.abs(s.value)
+                                    : null;
+                            return (
+                              <tr key={s.id}>
+                                <td style={styles.tdMono}>{fmtTime(s.ts)}</td>
+                                <td
+                                  style={{
+                                    ...styles.td,
+                                    color: kindColor,
+                                    fontWeight: 700,
+                                  }}
+                                >
+                                  {kindLabel}
+                                </td>
+                                <td style={styles.tdMono}>{s.orderCode}</td>
+                                <td style={styles.td}>
+                                  {s.planLabel}
+                                  {s.isUpsell ? (
+                                    <span
+                                      style={{
+                                        marginLeft: 6,
+                                        color: "#fbbf24",
+                                        fontSize: 11,
+                                      }}
+                                    >
+                                      upsell
+                                    </span>
+                                  ) : null}
+                                </td>
+                                <td style={styles.tdMono}>
+                                  <strong style={{ color: kindColor }}>
+                                    {display != null && display < 0
+                                      ? `−${fmtMoney(
+                                          Math.abs(display),
+                                          s.currency || "USD"
+                                        )}`
+                                      : fmtMoney(
+                                          display,
+                                          s.currency || "USD"
+                                        )}
+                                  </strong>
+                                </td>
+                                <td style={styles.td}>{s.source || "—"}</td>
+                              </tr>
+                            );
+                          })}
                         </tbody>
                       </table>
                     </div>

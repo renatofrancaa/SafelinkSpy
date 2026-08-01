@@ -890,19 +890,30 @@ export async function GET(req: NextRequest) {
       .slice(0, 20)
       .map(([name, count]) => ({ name, count }));
 
-  // ─── Sales (PerfectPay webhook type=sale) — real humans only ───
-  const saleEvents = events
-    .filter((e) => e.type === "sale")
+  // ─── Sales + refunds + chargebacks (PerfectPay webhook) ───
+  const moneyTypes = new Set(["sale", "sale_refund", "sale_chargeback"]);
+  const moneyEvents = events
+    .filter((e) => moneyTypes.has(e.type))
     .sort((a, b) => b.ts - a.ts);
-  // Dedupe by order code (should already be unique server-side)
-  const saleByOrder = new Map<string, (typeof saleEvents)[0]>();
-  for (const e of saleEvents) {
-    const order = String(
-      e.meta?.orderCode || e.meta?.saleCode || e.meta?.code || e.id
-    );
-    if (!saleByOrder.has(order)) saleByOrder.set(order, e);
+
+  // Dedupe each type by order code
+  function dedupeMoney(
+    type: string
+  ): (typeof moneyEvents)[0][] {
+    const map = new Map<string, (typeof moneyEvents)[0]>();
+    for (const e of moneyEvents) {
+      if (e.type !== type) continue;
+      const order = String(
+        e.meta?.orderCode || e.meta?.saleCode || e.meta?.code || e.id
+      );
+      if (!map.has(order)) map.set(order, e);
+    }
+    return Array.from(map.values());
   }
-  const salesList = Array.from(saleByOrder.values()).sort((a, b) => b.ts - a.ts);
+
+  const salesList = dedupeMoney("sale").sort((a, b) => b.ts - a.ts);
+  const refundList = dedupeMoney("sale_refund");
+  const chargebackList = dedupeMoney("sale_chargeback");
 
   /** Day key in America/Sao_Paulo (YYYY-MM-DD) — same calendar as range filters */
   function dayKeySP(ts: number): string {
@@ -918,117 +929,208 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  function saleValue(e: (typeof salesList)[0]): number {
+  function saleValue(e: (typeof moneyEvents)[0]): number {
     const raw = e.meta?.value ?? e.meta?.saleAmount ?? e.meta?.sale_amount;
-    if (typeof raw === "number" && !isNaN(raw)) return raw;
+    if (typeof raw === "number" && !isNaN(raw)) return Math.abs(raw);
     if (raw != null && raw !== "") {
       const n = Number(String(raw).replace(",", "."));
-      return isNaN(n) ? 0 : n;
+      return isNaN(n) ? 0 : Math.abs(n);
     }
     return 0;
   }
 
-  function saleCurrency(e: (typeof salesList)[0]): string {
+  function saleCurrency(e: (typeof moneyEvents)[0]): string {
     const c = String(e.meta?.currency || "").toUpperCase();
     if (c === "BRL" || c === "USD") return c;
-    // PerfectPay currency_enum 1 = BRL (also stored as "BRL" on webhook)
     return "USD";
   }
 
-  let salesRevenue = 0;
-  const salesBySourceMap: Record<string, { count: number; revenue: number }> =
-    {};
+  let grossRevenue = 0;
+  let refundedAmount = 0;
+  let chargebackAmount = 0;
+  const salesBySourceMap: Record<
+    string,
+    { count: number; revenue: number; refunds: number; chargebacks: number }
+  > = {};
   const salesByProductMap: Record<
     string,
-    { label: string; count: number; revenue: number }
+    {
+      label: string;
+      count: number;
+      revenue: number;
+      refunds: number;
+      chargebacks: number;
+    }
   > = {};
   const salesByDayMap: Record<
     string,
-    { count: number; revenue: number; buyers: Set<string> }
+    {
+      count: number;
+      revenue: number;
+      refunds: number;
+      chargebacks: number;
+      buyers: Set<string>;
+    }
   > = {};
   const buyers = new Set<string>();
+
+  function touchSource(src: string) {
+    if (!salesBySourceMap[src]) {
+      salesBySourceMap[src] = {
+        count: 0,
+        revenue: 0,
+        refunds: 0,
+        chargebacks: 0,
+      };
+    }
+    return salesBySourceMap[src];
+  }
+  function touchProduct(key: string, label: string) {
+    if (!salesByProductMap[key]) {
+      salesByProductMap[key] = {
+        label,
+        count: 0,
+        revenue: 0,
+        refunds: 0,
+        chargebacks: 0,
+      };
+    }
+    return salesByProductMap[key];
+  }
+  function touchDay(day: string) {
+    if (!salesByDayMap[day]) {
+      salesByDayMap[day] = {
+        count: 0,
+        revenue: 0,
+        refunds: 0,
+        chargebacks: 0,
+        buyers: new Set(),
+      };
+    }
+    return salesByDayMap[day];
+  }
+
   for (const e of salesList) {
     const value = saleValue(e);
-    salesRevenue += value;
+    grossRevenue += value;
     buyers.add(e.visitorId);
     const src =
-      e.utmSource ||
-      e.source ||
-      String(e.meta?.placement || "") ||
-      "direct";
-    if (!salesBySourceMap[src]) {
-      salesBySourceMap[src] = { count: 0, revenue: 0 };
-    }
-    salesBySourceMap[src].count += 1;
-    salesBySourceMap[src].revenue += value;
+      e.utmSource || e.source || String(e.meta?.placement || "") || "direct";
+    const s = touchSource(src);
+    s.count += 1;
+    s.revenue += value;
     const productKey = String(
       e.meta?.productCode || e.meta?.code || e.meta?.tier || "unknown"
     );
     const productLabel = String(
       e.meta?.planLabel || e.meta?.productName || e.meta?.planName || productKey
     );
-    if (!salesByProductMap[productKey]) {
-      salesByProductMap[productKey] = {
-        label: productLabel,
-        count: 0,
-        revenue: 0,
-      };
-    }
-    salesByProductMap[productKey].count += 1;
-    salesByProductMap[productKey].revenue += value;
-
-    const day = dayKeySP(e.ts);
-    if (!salesByDayMap[day]) {
-      salesByDayMap[day] = { count: 0, revenue: 0, buyers: new Set() };
-    }
-    salesByDayMap[day].count += 1;
-    salesByDayMap[day].revenue += value;
-    salesByDayMap[day].buyers.add(e.visitorId);
+    const p = touchProduct(productKey, productLabel);
+    p.count += 1;
+    p.revenue += value;
+    const d = touchDay(dayKeySP(e.ts));
+    d.count += 1;
+    d.revenue += value;
+    d.buyers.add(e.visitorId);
   }
+
+  for (const e of refundList) {
+    const value = saleValue(e);
+    refundedAmount += value;
+    const src =
+      e.utmSource || e.source || String(e.meta?.placement || "") || "direct";
+    touchSource(src).refunds += value;
+    const productKey = String(
+      e.meta?.productCode || e.meta?.code || e.meta?.tier || "unknown"
+    );
+    const productLabel = String(
+      e.meta?.planLabel || e.meta?.productName || e.meta?.planName || productKey
+    );
+    touchProduct(productKey, productLabel).refunds += value;
+    touchDay(dayKeySP(e.ts)).refunds += value;
+  }
+
+  for (const e of chargebackList) {
+    const value = saleValue(e);
+    chargebackAmount += value;
+    const src =
+      e.utmSource || e.source || String(e.meta?.placement || "") || "direct";
+    touchSource(src).chargebacks += value;
+    const productKey = String(
+      e.meta?.productCode || e.meta?.code || e.meta?.tier || "unknown"
+    );
+    const productLabel = String(
+      e.meta?.planLabel || e.meta?.productName || e.meta?.planName || productKey
+    );
+    touchProduct(productKey, productLabel).chargebacks += value;
+    touchDay(dayKeySP(e.ts)).chargebacks += value;
+  }
+
+  const netRevenue = grossRevenue - refundedAmount - chargebackAmount;
+  const round2 = (n: number) => Math.round(n * 100) / 100;
 
   const todayKey = dayKeySP(Date.now());
   const todayBucket = salesByDayMap[todayKey];
-  const todayRevenue = todayBucket
-    ? Math.round(todayBucket.revenue * 100) / 100
-    : 0;
+  const todayGross = todayBucket?.revenue ?? 0;
+  const todayRefunds = todayBucket?.refunds ?? 0;
+  const todayChargebacks = todayBucket?.chargebacks ?? 0;
+  const todayNet = todayGross - todayRefunds - todayChargebacks;
   const todaySalesCount = todayBucket?.count ?? 0;
 
   const salesByDay = Object.entries(salesByDayMap)
     .sort((a, b) => (a[0] < b[0] ? 1 : -1))
-    .map(([day, v]) => ({
-      day,
-      count: v.count,
-      revenue: Math.round(v.revenue * 100) / 100,
-      uniqueBuyers: v.buyers.size,
-      avgTicket:
-        v.count > 0 ? Math.round((v.revenue / v.count) * 100) / 100 : 0,
-    }));
+    .map(([day, v]) => {
+      const net = v.revenue - v.refunds - v.chargebacks;
+      return {
+        day,
+        count: v.count,
+        revenue: round2(v.revenue),
+        refunds: round2(v.refunds),
+        chargebacks: round2(v.chargebacks),
+        netRevenue: round2(net),
+        uniqueBuyers: v.buyers.size,
+        avgTicket:
+          v.count > 0 ? round2(v.revenue / v.count) : 0,
+      };
+    });
 
-  const saleFeed = salesList.slice(0, 80).map((e) => {
-    const u = resolveUtms(e);
-    const value = saleValue(e);
-    return {
-      id: e.id,
-      orderCode: String(e.meta?.orderCode || e.meta?.saleCode || "—"),
-      visitorId: e.visitorId.slice(0, 14),
-      value: value || null,
-      currency: saleCurrency(e),
-      day: dayKeySP(e.ts),
-      planLabel: String(
-        e.meta?.planLabel || e.meta?.productName || e.meta?.planName || "—"
-      ),
-      productCode: String(e.meta?.productCode || e.meta?.code || "—"),
-      isUpsell: !!e.meta?.isUpsell,
-      source: u.source,
-      utmSource: u.source,
-      utmCampaign: u.campaign,
-      utmMedium: u.medium,
-      placement: String(e.meta?.placement || ""),
-      country: e.country || "—",
-      email: String(e.meta?.customerEmail || "").slice(0, 40) || null,
-      ts: e.ts,
-    };
-  });
+  // Combined feed: sales + refunds + chargebacks, newest first
+  const saleFeed = [...salesList, ...refundList, ...chargebackList]
+    .sort((a, b) => b.ts - a.ts)
+    .slice(0, 100)
+    .map((e) => {
+      const u = resolveUtms(e);
+      const value = saleValue(e);
+      const kind =
+        e.type === "sale_refund"
+          ? "refund"
+          : e.type === "sale_chargeback"
+            ? "chargeback"
+            : "sale";
+      return {
+        id: e.id,
+        orderCode: String(e.meta?.orderCode || e.meta?.saleCode || "—"),
+        visitorId: e.visitorId.slice(0, 14),
+        value: value || null,
+        signedValue: kind === "sale" ? value : -value,
+        kind,
+        currency: saleCurrency(e),
+        day: dayKeySP(e.ts),
+        planLabel: String(
+          e.meta?.planLabel || e.meta?.productName || e.meta?.planName || "—"
+        ),
+        productCode: String(e.meta?.productCode || e.meta?.code || "—"),
+        isUpsell: !!e.meta?.isUpsell,
+        source: u.source,
+        utmSource: u.source,
+        utmCampaign: u.campaign,
+        utmMedium: u.medium,
+        placement: String(e.meta?.placement || ""),
+        country: e.country || "—",
+        email: String(e.meta?.customerEmail || "").slice(0, 40) || null,
+        ts: e.ts,
+      };
+    });
 
   // ─── Upsell performance (view / accept / decline / thankyou) ───
   const upsellStats = UPSELL_FUNNEL_ORDER.map((stage) => {
@@ -1194,16 +1296,26 @@ export async function GET(req: NextRequest) {
       sales: {
         count: salesList.length,
         uniqueBuyers: buyers.size,
-        revenue: Math.round(salesRevenue * 100) / 100,
+        /** Bruto (só aprovadas) */
+        revenue: round2(grossRevenue),
+        grossRevenue: round2(grossRevenue),
+        refundedAmount: round2(refundedAmount),
+        chargebackAmount: round2(chargebackAmount),
+        /** Líquido = bruto − reembolsos − chargebacks */
+        netRevenue: round2(netRevenue),
+        refundCount: refundList.length,
+        chargebackCount: chargebackList.length,
         avgTicket:
-          salesList.length > 0
-            ? Math.round((salesRevenue / salesList.length) * 100) / 100
-            : 0,
+          salesList.length > 0 ? round2(grossRevenue / salesList.length) : 0,
         /** Faturamento do dia (America/Sao_Paulo) */
         today: {
           day: todayKey,
           count: todaySalesCount,
-          revenue: todayRevenue,
+          revenue: round2(todayGross),
+          grossRevenue: round2(todayGross),
+          refunds: round2(todayRefunds),
+          chargebacks: round2(todayChargebacks),
+          netRevenue: round2(todayNet),
           uniqueBuyers: todayBucket?.buyers.size ?? 0,
         },
         byDay: salesByDay,
@@ -1211,18 +1323,24 @@ export async function GET(req: NextRequest) {
           .map(([name, v]) => ({
             name,
             count: v.count,
-            revenue: Math.round(v.revenue * 100) / 100,
+            revenue: round2(v.revenue),
+            refunds: round2(v.refunds),
+            chargebacks: round2(v.chargebacks),
+            netRevenue: round2(v.revenue - v.refunds - v.chargebacks),
           }))
-          .sort((a, b) => b.revenue - a.revenue)
+          .sort((a, b) => b.netRevenue - a.netRevenue)
           .slice(0, 20),
         byProduct: Object.entries(salesByProductMap)
           .map(([key, v]) => ({
             key,
             label: v.label,
             count: v.count,
-            revenue: Math.round(v.revenue * 100) / 100,
+            revenue: round2(v.revenue),
+            refunds: round2(v.refunds),
+            chargebacks: round2(v.chargebacks),
+            netRevenue: round2(v.revenue - v.refunds - v.chargebacks),
           }))
-          .sort((a, b) => b.revenue - a.revenue),
+          .sort((a, b) => b.netRevenue - a.netRevenue),
         feed: saleFeed,
       },
       sources: sortObj(sourceHistory),

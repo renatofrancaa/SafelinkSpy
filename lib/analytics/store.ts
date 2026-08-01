@@ -460,6 +460,7 @@ export function normalizePagePath(page: string): string {
  * - upsell_accept / upsell_decline: 1× per visitor + stage
  * - thankyou_complete: 1× per visitor
  * - sale: 1× per PerfectPay order code
+ * - sale_refund / sale_chargeback: 1× per order code
  * Other types: no server dedupe (null).
  */
 function uniqueEventKey(e: AnalyticsEvent): string | null {
@@ -486,14 +487,14 @@ function uniqueEventKey(e: AnalyticsEvent): string | null {
     return `${t}:${vid}:${stage}`;
   }
   if (t === "thankyou_complete") return `ty:${vid}`;
-  if (t === "sale") {
+  if (t === "sale" || t === "sale_refund" || t === "sale_chargeback") {
     const order = String(
       e.meta?.orderCode || e.meta?.saleCode || e.meta?.code || e.id || ""
     )
       .trim()
       .toLowerCase();
     if (!order) return null;
-    return `sale:${order}`;
+    return `${t}:${order}`;
   }
   return null;
 }
@@ -526,7 +527,12 @@ function memHasUnique(
     } else if (t === "checkout_click" && et === "checkout_click") {
       if (uniqueEventKey(ev) === key) return true;
     } else if (
-      (t === "upsell_accept" || t === "upsell_decline" || t === "thankyou_complete" || t === "sale") &&
+      (t === "upsell_accept" ||
+        t === "upsell_decline" ||
+        t === "thankyou_complete" ||
+        t === "sale" ||
+        t === "sale_refund" ||
+        t === "sale_chargeback") &&
       et === t
     ) {
       if (uniqueEventKey(ev) === key) return true;
@@ -605,7 +611,11 @@ export async function pushEvent(
             WHERE visitor_id = ${e.visitorId} AND type = 'thankyou_complete'
             LIMIT 1
           `) as { id: string }[];
-        } else if (t === "sale") {
+        } else if (
+          t === "sale" ||
+          t === "sale_refund" ||
+          t === "sale_chargeback"
+        ) {
           const order = String(
             e.meta?.orderCode || e.meta?.saleCode || e.meta?.code || ""
           )
@@ -614,7 +624,7 @@ export async function pushEvent(
           if (order) {
             rows = (await q`
               SELECT id FROM zs_events
-              WHERE type = 'sale'
+              WHERE type = ${t}
                 AND (
                   lower(coalesce(meta->>'orderCode', '')) = ${order}
                   OR lower(coalesce(meta->>'saleCode', '')) = ${order}

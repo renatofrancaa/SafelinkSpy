@@ -13,20 +13,29 @@ export const dynamic = "force-dynamic";
  * Primary domain (always use this):
  *   https://safelinkspy.vercel.app/api/webhooks/perfectpay
  *
- * Configure in PerfectPay:
- *   Ferramentas → PostBack - Webhook
- *   URL: https://safelinkspy.vercel.app/api/webhooks/perfectpay
- *   Events: Aprovado (and optionally Completo / Autorizado)
- *   Optional: set env PERFECTPAY_WEBHOOK_TOKEN = token do webhook
+ * Configure in PerfectPay (recommended events for exact net revenue):
+ *   - Aprovado (2) / Autorizado (8) / Completo (10) → +faturamento
+ *   - Devolvido / Reembolsado (7) → -faturamento
+ *   - Charged back (9) → -faturamento
+ *   - Cancelado (6) → -faturamento se já havia venda
+ * Optional: PERFECTPAY_WEBHOOK_TOKEN = token do webhook
  *
- * Docs: sale_status_enum 2=approved, 8=authorized, 10=completed
+ * sale_status_enum:
+ *   2 approved, 6 cancelled, 7 refunded, 8 authorized, 9 charged_back, 10 completed
  */
 
 /** Canonical production host for webhooks / docs (not custom ad domains) */
 const PRIMARY_HOST = "safelinkspy.vercel.app";
 const PERFECTPAY_WEBHOOK_URL = `https://${PRIMARY_HOST}/api/webhooks/perfectpay`;
 
+/** Adds to gross revenue */
 const APPROVED_STATUSES = new Set([2, 8, 10]);
+/** Subtracts from net revenue */
+const REFUND_STATUSES = new Set([7]); // refunded
+const CHARGEBACK_STATUSES = new Set([9]); // charged_back
+const CANCEL_STATUSES = new Set([6]); // cancelled after payment
+
+type SaleKind = "sale" | "sale_refund" | "sale_chargeback" | "sale_cancel";
 
 function num(v: unknown): number | null {
   if (typeof v === "number" && !isNaN(v)) return v;
@@ -189,18 +198,49 @@ export async function POST(req: NextRequest) {
 
     const statusEnum = num(body.sale_status_enum);
     const statusDetail = str(body.sale_status_detail, 80).toLowerCase();
-    const isApproved =
-      (statusEnum != null && APPROVED_STATUSES.has(statusEnum)) ||
-      statusDetail === "approved" ||
-      statusDetail === "completed" ||
-      statusDetail === "authorized";
 
-    // Always ack non-sale events so PerfectPay does not retry forever
-    if (!isApproved) {
+    function resolveKind(): SaleKind | null {
+      if (
+        (statusEnum != null && APPROVED_STATUSES.has(statusEnum)) ||
+        statusDetail === "approved" ||
+        statusDetail === "completed" ||
+        statusDetail === "authorized"
+      ) {
+        return "sale";
+      }
+      if (
+        (statusEnum != null && REFUND_STATUSES.has(statusEnum)) ||
+        statusDetail.includes("refund") ||
+        statusDetail.includes("devolvido") ||
+        statusDetail.includes("reembolso")
+      ) {
+        return "sale_refund";
+      }
+      if (
+        (statusEnum != null && CHARGEBACK_STATUSES.has(statusEnum)) ||
+        statusDetail.includes("charge") ||
+        statusDetail.includes("chargeback")
+      ) {
+        return "sale_chargeback";
+      }
+      if (
+        (statusEnum != null && CANCEL_STATUSES.has(statusEnum)) ||
+        statusDetail.includes("cancel")
+      ) {
+        return "sale_cancel";
+      }
+      return null;
+    }
+
+    const kind = resolveKind();
+
+    // Ack ignored statuses so PerfectPay does not retry forever
+    // (pending, billet waiting, precheckout, etc.)
+    if (!kind) {
       return NextResponse.json({
         ok: true,
         ignored: true,
-        reason: "status_not_approved",
+        reason: "status_not_tracked",
         sale_status_enum: statusEnum,
         sale_status_detail: statusDetail,
       });
@@ -252,18 +292,13 @@ export async function POST(req: NextRequest) {
     const country =
       str(customer.country, 8).toUpperCase() || hist.country || "";
 
-    // Infer tier / plan label from product codes we already use
     let tier = pickMeta(metadata, ["plan", "tier", "upsell"]) || "";
-    if (!tier && productCode) {
-      // known upsell codes start with PPU…; main offer is product-specific
-      if (isUpsellPayment) tier = "upsell";
-    }
+    if (!tier && productCode && isUpsellPayment) tier = "upsell";
     const planLabel =
       planName ||
       productName ||
       (saleAmount != null ? `$${saleAmount}` : orderCode);
 
-    // Map upsell stage from metadata.plan (up1…) if present
     let stage = "checkout";
     const planMeta = pickMeta(metadata, ["plan", "upsell", "tier"]).toLowerCase();
     if (/^up[1-7]$/.test(planMeta)) stage = `upsell${planMeta.slice(2)}`;
@@ -274,15 +309,46 @@ export async function POST(req: NextRequest) {
 
     const ts = Date.now();
     const approvedAt = str(body.date_approved, 40);
-    if (approvedAt) {
-      const parsed = Date.parse(approvedAt.replace(" ", "T") + "Z");
-      // keep now if parse fails
-      void parsed;
-    }
+
+    // sale_cancel is stored as sale_refund for net math (same sign: negative)
+    const eventType: "sale" | "sale_refund" | "sale_chargeback" =
+      kind === "sale"
+        ? "sale"
+        : kind === "sale_chargeback"
+          ? "sale_chargeback"
+          : "sale_refund";
+
+    const reasonMap: Record<SaleKind, { reason: string; label: string }> = {
+      sale: {
+        reason: "sale_approved",
+        label: "Venda aprovada (PerfectPay)",
+      },
+      sale_refund: {
+        reason: "sale_refunded",
+        label: "Reembolso (PerfectPay)",
+      },
+      sale_chargeback: {
+        reason: "sale_chargeback",
+        label: "Chargeback (PerfectPay)",
+      },
+      sale_cancel: {
+        reason: "sale_cancelled",
+        label: "Cancelamento (PerfectPay)",
+      },
+    };
+    const { reason, label: reasonLabel } = reasonMap[kind];
+
+    // Signed amount for reporting convenience (sale +, adjustments -)
+    const signedAmount =
+      saleAmount == null
+        ? null
+        : eventType === "sale"
+          ? saleAmount
+          : -Math.abs(saleAmount);
 
     const ev: AnalyticsEvent = {
-      id: `sale_${orderCode}_${ts.toString(36)}`,
-      type: "sale",
+      id: `${eventType}_${orderCode}_${ts.toString(36)}`,
+      type: eventType,
       visitorId,
       page: hist.page || `/webhook/perfectpay/${orderCode}`,
       stage,
@@ -296,8 +362,8 @@ export async function POST(req: NextRequest) {
       domain: req.headers.get("host") || "",
       ip: "",
       device: "Webhook",
-      reason: "sale_approved",
-      reasonLabel: "Venda aprovada (PerfectPay)",
+      reason,
+      reasonLabel,
       isBot: false,
       hasParam: !!(utmSource || metaUtmContent),
       meta: {
@@ -311,6 +377,9 @@ export async function POST(req: NextRequest) {
         planLabel,
         value: saleAmount,
         saleAmount,
+        signedAmount,
+        kind,
+        eventType,
         tier: tier || null,
         currency: num(body.currency_enum) === 1 ? "BRL" : "USD",
         paymentType,
@@ -318,6 +387,7 @@ export async function POST(req: NextRequest) {
         saleStatus: statusEnum,
         saleStatusDetail: statusDetail,
         isUpsell: isUpsellPayment || /^up[1-7]$/i.test(planMeta),
+        isAdjustment: eventType !== "sale",
         customerEmail: str(customer.email, 120),
         customerName: str(customer.full_name, 120),
         placement: metaPlacement || metaUtmContent || "",
@@ -333,10 +403,12 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       ok: true,
-      sale: true,
+      kind,
+      eventType,
       orderCode,
       visitorId,
       amount: saleAmount,
+      signedAmount,
       deduped: !!result.deduped,
       pushed: result.ok,
     });
@@ -353,6 +425,14 @@ export async function GET() {
     endpoint: PERFECTPAY_WEBHOOK_URL,
     primaryHost: PRIMARY_HOST,
     path: "/api/webhooks/perfectpay",
-    hint: `Configure ${PERFECTPAY_WEBHOOK_URL} as PostBack/Webhook in PerfectPay (events: Aprovado).`,
+    recommendedEvents: [
+      "Aprovado",
+      "Autorizado",
+      "Completo",
+      "Devolvido / Reembolsado",
+      "Charged back",
+      "Cancelado",
+    ],
+    hint: `Configure ${PERFECTPAY_WEBHOOK_URL} in PerfectPay with Aprovado + Reembolso + Chargeback for exact net revenue.`,
   });
 }
