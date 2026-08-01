@@ -1174,10 +1174,11 @@ export default function DashboardPage() {
               <section style={styles.grid2Top}>
                 <Card title="Faturamento e vendas (PerfectPay)">
                   <p style={{ ...styles.muted, margin: "0 0 10px", fontSize: 11 }}>
-                    Preço de cada venda = valor aprovado no webhook. Postback:{" "}
-                    <code style={{ color: "#c4b5fd", wordBreak: "break-all" }}>
-                      https://safelinkspy.vercel.app/api/webhooks/perfectpay
-                    </code>
+                    Valores = <strong>comissão líquida</strong> (o que você
+                    recebe, após taxa PerfectPay) — não o preço cheio do
+                    produto. Cancelados/rejeitados não contam. Reembolso só se
+                    for reembolso real. Sync: botão{" "}
+                    <strong>↓ Vendas hoje</strong>.
                   </p>
                   <div style={styles.layerCards3}>
                     <div style={styles.layerBox}>

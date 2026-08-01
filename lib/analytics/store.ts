@@ -632,6 +632,30 @@ export async function pushEvent(
                 )
               LIMIT 1
             `) as { id: string }[];
+            // Re-sync from PerfectPay API: refresh commission / amounts on existing sale
+            if (
+              rows?.length &&
+              e.meta &&
+              (e.meta.commissionAmount != null || e.meta.importedFrom === "api")
+            ) {
+              try {
+                await q`
+                  UPDATE zs_events
+                  SET meta = ${q.json(e.meta as Record<string, unknown>)},
+                      ts = ${e.ts}
+                  WHERE id = ${rows[0].id}
+                `;
+                // also refresh in-memory copy if present
+                const list = memEvents();
+                const idx = list.findIndex((x) => x.id === rows[0].id);
+                if (idx >= 0) {
+                  list[idx] = { ...list[idx], meta: e.meta, ts: e.ts };
+                }
+                return { ok: true, path: "postgres", deduped: true };
+              } catch (updErr) {
+                console.error("sale meta refresh failed", updErr);
+              }
+            }
           }
         }
         if (rows?.length) {

@@ -44,7 +44,14 @@ function str(v: unknown, max = 200): string {
   return String(v).trim().slice(0, max);
 }
 
-/** Map PerfectPay sale_status (text or enum) → our event type */
+/**
+ * Map PerfectPay sale_status → event type.
+ * IMPORTANT:
+ * - cancelled / rejected / pending → ignore (not refunds; never paid or card failed)
+ * - refunded → sale_refund
+ * - charged_back → sale_chargeback
+ * - approved / authorized / completed → sale
+ */
 function mapKind(
   status: unknown
 ): "sale" | "sale_refund" | "sale_chargeback" | null {
@@ -53,13 +60,14 @@ function mapKind(
   const n = Number(s);
 
   // numeric enums (webhook-compatible)
-  if (!isNaN(n)) {
+  if (!isNaN(n) && s !== "" && String(n) === s) {
     if (n === 2 || n === 8 || n === 10) return "sale";
-    if (n === 7 || n === 6) return "sale_refund"; // refunded / cancelled
+    if (n === 7) return "sale_refund"; // refunded only (NOT cancelled=6)
     if (n === 9) return "sale_chargeback";
+    // 1 pending, 5 rejected, 6 cancelled → ignore
+    return null;
   }
 
-  // text keys from API
   if (
     s === "approved" ||
     s === "completed" ||
@@ -69,25 +77,54 @@ function mapKind(
   ) {
     return "sale";
   }
+  // Real money-back only — never treat cancel/reject as refund
   if (
     s === "refunded" ||
-    s === "cancelled" ||
-    s === "canceled" ||
     s === "devolvido" ||
     s === "reembolsado" ||
-    s === "cancelado"
+    s === "reembolso"
   ) {
     return "sale_refund";
   }
   if (
     s === "charged_back" ||
     s === "chargeback" ||
-    s === "chargedback" ||
-    s.includes("charge")
+    s === "chargedback"
   ) {
     return "sale_chargeback";
   }
   return null;
+}
+
+/**
+ * Producer net commission (what you actually earn after gateway fees).
+ * PerfectPay API: commissions[].value = $ amount, commissions[].commission = %
+ * affiliation_type 1 = producer
+ */
+function producerCommissionAmount(row: Record<string, unknown>): number | null {
+  const list = Array.isArray(row.commissions)
+    ? row.commissions
+    : Array.isArray(row.commission)
+      ? row.commission
+      : [];
+  let best: number | null = null;
+  for (const raw of list) {
+    if (!raw || typeof raw !== "object") continue;
+    const c = raw as Record<string, unknown>;
+    const type = num(c.affiliation_type ?? c.affiliation_type_enum);
+    // Prefer producer (1); accept sole commission if type missing
+    const amount =
+      num(c.value) ??
+      num(c.commission_amount) ??
+      num(c.commissionAmount);
+    if (amount == null) continue;
+    if (type === 1 || type === null) {
+      // If percentage-looking (commission field 100 and value is the $)
+      best = amount;
+      if (type === 1) return amount;
+    }
+  }
+  return best;
 }
 
 function currencyFromEnum(v: unknown): string {
@@ -225,8 +262,16 @@ function saleToEvent(row: PpSale, now: number): AnalyticsEvent | null {
     ? row.metadata
     : {}) as Record<string, unknown>;
 
+  // Customer paid (list/checkout price)
   const saleAmount =
     num(row.value) ?? num(row.sale_amount) ?? num(row.unit_value) ?? 0;
+  // What producer receives after PerfectPay fees (matches PerfectPay "comissão")
+  const commissionAmount = producerCommissionAmount(row);
+  // Faturamento no painel = comissão líquida quando disponível
+  const revenueAmount =
+    commissionAmount != null && commissionAmount > 0
+      ? commissionAmount
+      : saleAmount;
   const paymentType = num(row.payment_type ?? row.payment_type_enum);
   const isUpsell = paymentType === 6;
 
@@ -273,7 +318,8 @@ function saleToEvent(row: PpSale, now: number): AnalyticsEvent | null {
   const dateCreated = str(row.date_created || row.dateCreated, 40);
   const ts = parseTs(dateApproved || dateCreated, now);
 
-  const signedAmount = kind === "sale" ? saleAmount : -Math.abs(saleAmount);
+  const signedAmount =
+    kind === "sale" ? revenueAmount : -Math.abs(revenueAmount);
 
   return {
     id: `${kind}_${orderCode}_api`,
@@ -304,8 +350,11 @@ function saleToEvent(row: PpSale, now: number): AnalyticsEvent | null {
       planCode,
       planName,
       planLabel,
-      value: saleAmount,
+      // Primary amount for dashboard faturamento = comissão líquida
+      value: revenueAmount,
       saleAmount,
+      commissionAmount: commissionAmount ?? null,
+      listPrice: saleAmount,
       signedAmount,
       kind,
       eventType: kind,

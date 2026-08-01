@@ -30,12 +30,12 @@ const PERFECTPAY_WEBHOOK_URL = `https://${PRIMARY_HOST}/api/webhooks/perfectpay`
 
 /** Adds to gross revenue */
 const APPROVED_STATUSES = new Set([2, 8, 10]);
-/** Subtracts from net revenue */
+/** Subtracts from net revenue — real refund only (not cancelled/rejected) */
 const REFUND_STATUSES = new Set([7]); // refunded
 const CHARGEBACK_STATUSES = new Set([9]); // charged_back
-const CANCEL_STATUSES = new Set([6]); // cancelled after payment
+// Cancelled (6) / rejected (5) / pending (1) → ignore (no money moved as refund)
 
-type SaleKind = "sale" | "sale_refund" | "sale_chargeback" | "sale_cancel";
+type SaleKind = "sale" | "sale_refund" | "sale_chargeback";
 
 function num(v: unknown): number | null {
   if (typeof v === "number" && !isNaN(v)) return v;
@@ -218,17 +218,12 @@ export async function POST(req: NextRequest) {
       }
       if (
         (statusEnum != null && CHARGEBACK_STATUSES.has(statusEnum)) ||
-        statusDetail.includes("charge") ||
-        statusDetail.includes("chargeback")
+        statusDetail === "charged_back" ||
+        statusDetail === "chargeback"
       ) {
         return "sale_chargeback";
       }
-      if (
-        (statusEnum != null && CANCEL_STATUSES.has(statusEnum)) ||
-        statusDetail.includes("cancel")
-      ) {
-        return "sale_cancel";
-      }
+      // cancelled / rejected / pending → ignore (not a refund)
       return null;
     }
 
@@ -269,6 +264,29 @@ export async function POST(req: NextRequest) {
     const planCode = str(plan.code, 60);
     const planName = str(plan.name, 120);
     const saleAmount = num(body.sale_amount);
+    // Producer commission after fees (matches PerfectPay "comissão")
+    let commissionAmount: number | null = null;
+    const commissions = Array.isArray(body.commission)
+      ? body.commission
+      : Array.isArray(body.commissions)
+        ? body.commissions
+        : [];
+    for (const raw of commissions) {
+      if (!raw || typeof raw !== "object") continue;
+      const c = raw as Record<string, unknown>;
+      const type = num(c.affiliation_type_enum ?? c.affiliation_type);
+      const amount =
+        num(c.commission_amount) ?? num(c.value) ?? num(c.commissionAmount);
+      if (amount == null) continue;
+      if (type === 1 || type === null) {
+        commissionAmount = amount;
+        if (type === 1) break;
+      }
+    }
+    const revenueAmount =
+      commissionAmount != null && commissionAmount > 0
+        ? commissionAmount
+        : saleAmount ?? 0;
     const paymentType = num(body.payment_type_enum);
     const isUpsellPayment = paymentType === 6; // credit_card_upsell
 
@@ -310,13 +328,7 @@ export async function POST(req: NextRequest) {
     const ts = Date.now();
     const approvedAt = str(body.date_approved, 40);
 
-    // sale_cancel is stored as sale_refund for net math (same sign: negative)
-    const eventType: "sale" | "sale_refund" | "sale_chargeback" =
-      kind === "sale"
-        ? "sale"
-        : kind === "sale_chargeback"
-          ? "sale_chargeback"
-          : "sale_refund";
+    const eventType: "sale" | "sale_refund" | "sale_chargeback" = kind;
 
     const reasonMap: Record<SaleKind, { reason: string; label: string }> = {
       sale: {
@@ -331,20 +343,14 @@ export async function POST(req: NextRequest) {
         reason: "sale_chargeback",
         label: "Chargeback (PerfectPay)",
       },
-      sale_cancel: {
-        reason: "sale_cancelled",
-        label: "Cancelamento (PerfectPay)",
-      },
     };
     const { reason, label: reasonLabel } = reasonMap[kind];
 
-    // Signed amount for reporting convenience (sale +, adjustments -)
+    // Faturamento = comissão líquida (producer) when available
     const signedAmount =
-      saleAmount == null
-        ? null
-        : eventType === "sale"
-          ? saleAmount
-          : -Math.abs(saleAmount);
+      eventType === "sale"
+        ? revenueAmount
+        : -Math.abs(revenueAmount);
 
     const ev: AnalyticsEvent = {
       id: `${eventType}_${orderCode}_${ts.toString(36)}`,
@@ -375,8 +381,10 @@ export async function POST(req: NextRequest) {
         planCode,
         planName,
         planLabel,
-        value: saleAmount,
+        value: revenueAmount,
         saleAmount,
+        commissionAmount,
+        listPrice: saleAmount,
         signedAmount,
         kind,
         eventType,
@@ -407,7 +415,9 @@ export async function POST(req: NextRequest) {
       eventType,
       orderCode,
       visitorId,
-      amount: saleAmount,
+      amount: revenueAmount,
+      saleAmount,
+      commissionAmount,
       signedAmount,
       deduped: !!result.deduped,
       pushed: result.ok,

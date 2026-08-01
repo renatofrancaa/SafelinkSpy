@@ -893,10 +893,32 @@ export async function GET(req: NextRequest) {
       .slice(0, 20)
       .map(([name, count]) => ({ name, count }));
 
-  // ─── Sales + refunds + chargebacks (PerfectPay webhook) ───
+  // ─── Sales + refunds + chargebacks (PerfectPay webhook / API) ───
   const moneyTypes = new Set(["sale", "sale_refund", "sale_chargeback"]);
+  /** Ignore false "refunds" from cancelled/rejected (never paid) */
+  function isRealMoneyEvent(e: (typeof events)[0]): boolean {
+    if (!moneyTypes.has(e.type)) return false;
+    const st = String(
+      e.meta?.saleStatus ?? e.meta?.sale_status ?? e.meta?.saleStatusDetail ?? ""
+    )
+      .toLowerCase()
+      .trim();
+    if (
+      e.type === "sale_refund" &&
+      (st === "cancelled" ||
+        st === "canceled" ||
+        st === "cancelado" ||
+        st === "rejected" ||
+        st === "rejeitado" ||
+        st === "6" ||
+        st === "5")
+    ) {
+      return false;
+    }
+    return true;
+  }
   const moneyEvents = events
-    .filter((e) => moneyTypes.has(e.type))
+    .filter(isRealMoneyEvent)
     .sort((a, b) => b.ts - a.ts);
 
   // Dedupe each type by order code
@@ -933,7 +955,12 @@ export async function GET(req: NextRequest) {
   }
 
   function saleValue(e: (typeof moneyEvents)[0]): number {
-    const raw = e.meta?.value ?? e.meta?.saleAmount ?? e.meta?.sale_amount;
+    // Prefer producer commission (net) — matches PerfectPay "comissão"
+    const raw =
+      e.meta?.commissionAmount ??
+      e.meta?.value ??
+      e.meta?.saleAmount ??
+      e.meta?.sale_amount;
     if (typeof raw === "number" && !isNaN(raw)) return Math.abs(raw);
     if (raw != null && raw !== "") {
       const n = Number(String(raw).replace(",", "."));
