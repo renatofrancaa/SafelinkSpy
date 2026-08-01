@@ -641,7 +641,7 @@ export async function pushEvent(
               try {
                 await q`
                   UPDATE zs_events
-                  SET meta = ${q.json(e.meta as Record<string, unknown>)},
+                  SET meta = ${q.json((e.meta || {}) as never)},
                       ts = ${e.ts}
                   WHERE id = ${rows[0].id}
                 `;
