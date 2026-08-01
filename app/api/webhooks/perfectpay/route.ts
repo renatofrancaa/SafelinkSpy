@@ -23,8 +23,8 @@ export const dynamic = "force-dynamic";
  */
 
 /** Canonical production host for webhooks / docs (not custom ad domains) */
-export const PRIMARY_HOST = "safelinkspy.vercel.app";
-export const PERFECTPAY_WEBHOOK_URL = `https://${PRIMARY_HOST}/api/webhooks/perfectpay`;
+const PRIMARY_HOST = "safelinkspy.vercel.app";
+const PERFECTPAY_WEBHOOK_URL = `https://${PRIMARY_HOST}/api/webhooks/perfectpay`;
 
 const APPROVED_STATUSES = new Set([2, 8, 10]);
 
