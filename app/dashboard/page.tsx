@@ -381,6 +381,8 @@ export default function DashboardPage() {
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
   const [resetting, setResetting] = useState(false);
+  const [syncingSales, setSyncingSales] = useState(false);
+  const [syncMsg, setSyncMsg] = useState("");
   const [installPrompt, setInstallPrompt] =
     useState<BeforeInstallPromptEvent | null>(null);
   const [isStandalone, setIsStandalone] = useState(false);
@@ -503,6 +505,37 @@ export default function DashboardPage() {
     }
   }
 
+  /** Import PerfectPay sales from today only (API token on server) */
+  async function syncSalesToday() {
+    if (!secret) return;
+    setSyncingSales(true);
+    setSyncMsg("");
+    try {
+      const res = await fetch("/api/analytics/sales-sync", {
+        method: "POST",
+        headers: { "x-dashboard-secret": secret },
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setSyncMsg(
+          data.error ||
+            data.hint ||
+            "Falha no sync. Configure PERFECTPAY_API_TOKEN na Vercel."
+        );
+        return;
+      }
+      setSyncMsg(
+        data.message ||
+          `Sync ${data.day}: ${data.imported ?? 0} novas, ${data.deduped ?? 0} já existiam.`
+      );
+      await load(secret);
+    } catch {
+      setSyncMsg("Falha ao sincronizar vendas PerfectPay.");
+    } finally {
+      setSyncingSales(false);
+    }
+  }
+
   const ranges: { key: RangeKey; label: string }[] = [
     { key: "today", label: "Hoje" },
     { key: "yesterday", label: "Ontem" },
@@ -595,6 +628,15 @@ export default function DashboardPage() {
           >
             {loading ? "Atualizando…" : "↻ Atualizar"}
           </button>
+          <button
+            type="button"
+            style={styles.installBtn}
+            onClick={syncSalesToday}
+            disabled={syncingSales || loading}
+            title="Importar vendas PerfectPay de hoje (API)"
+          >
+            {syncingSales ? "Sync vendas…" : "↓ Vendas hoje"}
+          </button>
           {!isStandalone ? (
             <button
               type="button"
@@ -624,6 +666,22 @@ export default function DashboardPage() {
           </button>
         </div>
       </header>
+
+      {syncMsg ? (
+        <div
+          style={{
+            background: "rgba(167,139,250,0.12)",
+            border: "1px solid rgba(167,139,250,0.35)",
+            color: "#ddd6fe",
+            borderRadius: 12,
+            padding: "8px 12px",
+            marginBottom: 12,
+            fontSize: 12,
+          }}
+        >
+          PerfectPay: {syncMsg}
+        </div>
+      ) : null}
 
       {showInstallHelp ? (
         <InstallHelpModal

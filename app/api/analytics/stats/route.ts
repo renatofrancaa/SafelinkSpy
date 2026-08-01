@@ -13,6 +13,7 @@ import {
 import { REASON_LABELS } from "@/lib/analytics/reason";
 import { displayReasonFallback } from "@/lib/analytics/reason";
 import { isNonHumanTraffic, isRealTraffic } from "@/utils/botDetect";
+import { maybeAutoSyncPerfectPay } from "@/lib/analytics/perfectpaySync";
 
 export const dynamic = "force-dynamic";
 
@@ -148,6 +149,15 @@ function resolveRange(req: NextRequest): { from: number; to: number; range: stri
 
 export async function GET(req: NextRequest) {
   if (!checkAuth(req)) return unauthorized();
+
+  // Best-effort: pull PerfectPay sales from **today only** every few minutes
+  // (no historical import). Failures are ignored so stats still load.
+  let salesSync: Awaited<ReturnType<typeof maybeAutoSyncPerfectPay>> = null;
+  try {
+    salesSync = await maybeAutoSyncPerfectPay();
+  } catch {
+    salesSync = null;
+  }
 
   const { from, to, range } = resolveRange(req);
   const presenceAll = await getPresenceList();
@@ -1253,6 +1263,15 @@ export async function GET(req: NextRequest) {
     ok: true,
     now,
     storage,
+    salesSync: salesSync
+      ? {
+          day: salesSync.day,
+          imported: salesSync.imported,
+          deduped: salesSync.deduped,
+          fetched: salesSync.fetched,
+          ok: salesSync.ok,
+        }
+      : null,
     range: {
       key: range,
       from,
