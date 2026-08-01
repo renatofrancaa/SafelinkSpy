@@ -114,35 +114,42 @@ async function fetchSalesPage(
   token: string,
   body: Record<string, unknown>
 ): Promise<{ data: PpSale[]; lastPage: number; currentPage: number }> {
-  const res = await fetch(`${API_BASE}/v1/sales/get`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-      Accept: "application/json",
-    },
-    body: JSON.stringify(body),
-    cache: "no-store",
-  });
-  if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    throw new Error(`PerfectPay API ${res.status}: ${text.slice(0, 200)}`);
-  }
-  const json = (await res.json()) as {
-    sales?: {
-      data?: PpSale[];
-      last_page?: number;
-      lastPage?: number;
-      current_page?: number;
-      currentPage?: number;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 12_000);
+  try {
+    const res = await fetch(`${API_BASE}/v1/sales/get`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify(body),
+      cache: "no-store",
+      signal: controller.signal,
+    });
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      throw new Error(`PerfectPay API ${res.status}: ${text.slice(0, 200)}`);
+    }
+    const json = (await res.json()) as {
+      sales?: {
+        data?: PpSale[];
+        last_page?: number;
+        lastPage?: number;
+        current_page?: number;
+        currentPage?: number;
+      };
     };
-  };
-  const sales = json.sales || {};
-  return {
-    data: Array.isArray(sales.data) ? sales.data : [],
-    lastPage: Number(sales.last_page ?? sales.lastPage ?? 1) || 1,
-    currentPage: Number(sales.current_page ?? sales.currentPage ?? 1) || 1,
-  };
+    const sales = json.sales || {};
+    return {
+      data: Array.isArray(sales.data) ? sales.data : [],
+      lastPage: Number(sales.last_page ?? sales.lastPage ?? 1) || 1,
+      currentPage: Number(sales.current_page ?? sales.currentPage ?? 1) || 1,
+    };
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 /** Fetch all pages for a given filter (today only). */
