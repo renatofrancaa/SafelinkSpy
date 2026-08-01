@@ -910,11 +910,18 @@ function goCheckout() {
     var n = sessionStorage.getItem('buyer_name') || '';
     var e = sessionStorage.getItem('buyer_email') || '';
     var p = sessionStorage.getItem('buyer_phone') || dec || '';
+    var vid = '';
+    try {
+      if (window.ZSAnalytics && ZSAnalytics.getVisitorId) vid = ZSAnalytics.getVisitorId() || '';
+    } catch (eVid) {}
     navigateWithQuery('https://go.centerpag.com/' + CHECKOUT_CODE, {
       name: n,
       email: e,
       phone: p,
-      plan: PLAN_TIER
+      plan: PLAN_TIER,
+      // PerfectPay metadata: used by webhook to link sale → visitor + UTMs
+      src: vid,
+      zs_vid: vid
     });
   }, 1400);
 }

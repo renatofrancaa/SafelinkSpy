@@ -28,8 +28,19 @@ export async function POST(req: NextRequest) {
       : "black") as AnalyticsEvent["layer"];
     if (page.toLowerCase().includes("famguard")) layer = "white";
     let stage = String(body.stage || stageFromPage(page)).slice(0, 40);
-    // Always tag checkout clicks as stage=checkout
-    if (type === "checkout_click") stage = "checkout";
+    // Main offer checkout → stage=checkout; upsells keep upsellN stage
+    if (type === "checkout_click" && !stage.startsWith("upsell")) {
+      stage = "checkout";
+    }
+    if (type === "upsell_accept" || type === "upsell_decline") {
+      if (!stage.startsWith("upsell")) {
+        const m = String(body.meta?.upsell || body.meta?.tier || "").match(
+          /up?([1-7])/i
+        );
+        stage = m ? `upsell${m[1]}` : stageFromPage(page);
+      }
+    }
+    if (type === "thankyou_complete") stage = "thankyou";
     const ua = req.headers.get("user-agent") || String(body.ua || "");
     const meta =
       body.meta && typeof body.meta === "object"

@@ -97,11 +97,20 @@ export async function POST(req: NextRequest) {
     };
     await upsertPresence(presence);
 
-    // Always write history for pageview/layer/checkout.
+    const eventName = String(body.event || body.type || "").toLowerCase();
+    const specialTypes = new Set([
+      "checkout_click",
+      "upsell_accept",
+      "upsell_decline",
+      "thankyou_complete",
+      "sale",
+    ]);
+
+    // Always write history for pageview/layer/checkout/upsell actions.
     const shouldLog =
       body.event === "pageview" ||
       body.event === "layer" ||
-      body.event === "checkout_click" ||
+      specialTypes.has(eventName) ||
       body.type === "checkout_click" ||
       body.logHistory === true ||
       body.event === "heartbeat_log" ||
@@ -109,9 +118,9 @@ export async function POST(req: NextRequest) {
 
     if (shouldLog) {
       const isCheckout =
-        body.event === "checkout_click" ||
+        eventName === "checkout_click" ||
         body.type === "checkout_click" ||
-        stage === "checkout";
+        (stage === "checkout" && !specialTypes.has(eventName));
 
       // Promote plan fields into meta
       if (body.checkoutValue != null && meta.value == null) {
@@ -131,18 +140,23 @@ export async function POST(req: NextRequest) {
         meta.utmContent = String(body.utmContent).slice(0, 120);
       }
 
-      const evType = isCheckout
-        ? "checkout_click"
-        : body.event === "layer"
-          ? "layer"
-          : "pageview";
+      const evType = specialTypes.has(eventName)
+        ? eventName
+        : isCheckout
+          ? "checkout_click"
+          : body.event === "layer"
+            ? "layer"
+            : "pageview";
 
       const ev: AnalyticsEvent = {
         id: `${ts}_${Math.random().toString(36).slice(2, 8)}`,
         type: evType,
         visitorId,
         page,
-        stage: isCheckout ? "checkout" : stage,
+        stage:
+          evType === "checkout_click" && !String(stage).startsWith("upsell")
+            ? "checkout"
+            : stage,
         layer,
         source,
         landing,

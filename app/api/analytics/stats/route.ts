@@ -3,6 +3,7 @@ import {
   getPresenceList,
   getEventsInRange,
   FUNNEL_ORDER,
+  UPSELL_FUNNEL_ORDER,
   STAGE_LABELS,
   STAGE_RANK,
   maxStageOf,
@@ -889,6 +890,192 @@ export async function GET(req: NextRequest) {
       .slice(0, 20)
       .map(([name, count]) => ({ name, count }));
 
+  // ─── Sales (PerfectPay webhook type=sale) — real humans only ───
+  const saleEvents = events
+    .filter((e) => e.type === "sale")
+    .sort((a, b) => b.ts - a.ts);
+  // Dedupe by order code (should already be unique server-side)
+  const saleByOrder = new Map<string, (typeof saleEvents)[0]>();
+  for (const e of saleEvents) {
+    const order = String(
+      e.meta?.orderCode || e.meta?.saleCode || e.meta?.code || e.id
+    );
+    if (!saleByOrder.has(order)) saleByOrder.set(order, e);
+  }
+  const salesList = Array.from(saleByOrder.values()).sort((a, b) => b.ts - a.ts);
+  let salesRevenue = 0;
+  const salesBySourceMap: Record<string, number> = {};
+  const salesByProductMap: Record<
+    string,
+    { label: string; count: number; revenue: number }
+  > = {};
+  const buyers = new Set<string>();
+  for (const e of salesList) {
+    const value = Number(e.meta?.value ?? e.meta?.saleAmount ?? 0) || 0;
+    salesRevenue += value;
+    buyers.add(e.visitorId);
+    const src =
+      e.utmSource ||
+      e.source ||
+      String(e.meta?.placement || "") ||
+      "direct";
+    salesBySourceMap[src] = (salesBySourceMap[src] || 0) + 1;
+    const productKey = String(
+      e.meta?.productCode || e.meta?.code || e.meta?.tier || "unknown"
+    );
+    const productLabel = String(
+      e.meta?.planLabel || e.meta?.productName || e.meta?.planName || productKey
+    );
+    if (!salesByProductMap[productKey]) {
+      salesByProductMap[productKey] = {
+        label: productLabel,
+        count: 0,
+        revenue: 0,
+      };
+    }
+    salesByProductMap[productKey].count += 1;
+    salesByProductMap[productKey].revenue += value;
+  }
+  const saleFeed = salesList.slice(0, 50).map((e) => {
+    const u = resolveUtms(e);
+    return {
+      id: e.id,
+      orderCode: String(e.meta?.orderCode || e.meta?.saleCode || "—"),
+      visitorId: e.visitorId.slice(0, 14),
+      value: Number(e.meta?.value ?? e.meta?.saleAmount ?? 0) || null,
+      planLabel: String(
+        e.meta?.planLabel || e.meta?.productName || e.meta?.planName || "—"
+      ),
+      productCode: String(e.meta?.productCode || e.meta?.code || "—"),
+      isUpsell: !!e.meta?.isUpsell,
+      source: u.source,
+      utmSource: u.source,
+      utmCampaign: u.campaign,
+      utmMedium: u.medium,
+      placement: String(e.meta?.placement || ""),
+      country: e.country || "—",
+      email: String(e.meta?.customerEmail || "").slice(0, 40) || null,
+      ts: e.ts,
+    };
+  });
+
+  // ─── Upsell performance (view / accept / decline / thankyou) ───
+  const upsellStats = UPSELL_FUNNEL_ORDER.map((stage) => {
+    const views = new Set<string>();
+    const accepts = new Set<string>();
+    const declines = new Set<string>();
+    for (const e of events) {
+      const st = effectiveStage(e);
+      if (st === stage || e.stage === stage) {
+        if (e.type === "pageview" || e.type === "upsell_accept" || e.type === "upsell_decline" || e.type === "thankyou_complete") {
+          views.add(e.visitorId);
+        }
+      }
+      if (e.type === "upsell_accept" && (e.stage === stage || st === stage)) {
+        accepts.add(e.visitorId);
+      }
+      if (e.type === "upsell_decline" && (e.stage === stage || st === stage)) {
+        declines.add(e.visitorId);
+      }
+      if (stage === "thankyou" && e.type === "thankyou_complete") {
+        views.add(e.visitorId);
+      }
+    }
+    // Also count pageviews that land on upsell paths even if stage mis-tagged
+    for (const e of events) {
+      if (e.type !== "pageview") continue;
+      const p = (e.page || "").toLowerCase();
+      if (stage === "thankyou" && p.includes("thankyou")) views.add(e.visitorId);
+      const m = stage.match(/^upsell([1-7])$/);
+      if (m && (p.includes(`/up${m[1]}`) || p.includes(`up${m[1]}.html`))) {
+        views.add(e.visitorId);
+      }
+    }
+    const v = views.size;
+    const a = accepts.size;
+    const d = declines.size;
+    return {
+      stage,
+      label: STAGE_LABELS[stage] || stage,
+      views: v,
+      accepts: a,
+      declines: d,
+      acceptRate: v ? Math.round((a / v) * 1000) / 10 : 0,
+      declineRate: v ? Math.round((d / v) * 1000) / 10 : 0,
+    };
+  });
+
+  // Upsell funnel cumulative (viewed each stage)
+  const upsellFunnelStageSets: Record<string, Set<string>> = {};
+  for (const st of UPSELL_FUNNEL_ORDER) upsellFunnelStageSets[st] = new Set();
+  for (const [vid, maxSt] of Object.entries(visitorMaxStage)) {
+    const maxRank = STAGE_RANK[maxSt] ?? 0;
+    for (const st of UPSELL_FUNNEL_ORDER) {
+      const r = STAGE_RANK[st] ?? 0;
+      if (r > 0 && r <= maxRank) upsellFunnelStageSets[st].add(vid);
+    }
+  }
+  // Also add accept/decline/thankyou hits
+  for (const e of events) {
+    if (
+      e.type === "upsell_accept" ||
+      e.type === "upsell_decline" ||
+      e.type === "thankyou_complete" ||
+      (e.type === "pageview" &&
+        (String(e.stage).startsWith("upsell") || e.stage === "thankyou"))
+    ) {
+      const st = e.stage;
+      if (upsellFunnelStageSets[st]) upsellFunnelStageSets[st].add(e.visitorId);
+      const maxRank = STAGE_RANK[st] ?? 0;
+      for (const s of UPSELL_FUNNEL_ORDER) {
+        const r = STAGE_RANK[s] ?? 0;
+        if (r > 0 && r <= maxRank) upsellFunnelStageSets[s].add(e.visitorId);
+      }
+    }
+  }
+  const upsellFunnel = UPSELL_FUNNEL_ORDER.map((stage, i, arr) => {
+    const unique = upsellFunnelStageSets[stage]?.size || 0;
+    const prev = i === 0 ? unique : upsellFunnelStageSets[arr[i - 1]]?.size || 0;
+    const top = upsellFunnelStageSets[arr[0]]?.size || 0;
+    return {
+      stage,
+      label: STAGE_LABELS[stage] || stage,
+      unique,
+      rateFromStart: top ? Math.round((unique / top) * 1000) / 10 : 0,
+      rateFromPrev:
+        i === 0 ? 100 : prev ? Math.round((unique / prev) * 1000) / 10 : 0,
+    };
+  });
+
+  // ─── Drop-off: last stage reached (visitors who did NOT buy + not thankyou) ───
+  const buyerIds = new Set(salesList.map((e) => e.visitorId));
+  const thankyouIds = new Set(
+    events
+      .filter(
+        (e) =>
+          e.type === "thankyou_complete" ||
+          e.stage === "thankyou" ||
+          (e.page || "").toLowerCase().includes("thankyou")
+      )
+      .map((e) => e.visitorId)
+  );
+  const dropOffMap: Record<string, number> = {};
+  for (const [vid, maxSt] of Object.entries(visitorMaxStage)) {
+    if (buyerIds.has(vid) || thankyouIds.has(vid)) continue;
+    // Only count people who entered the main funnel
+    if ((STAGE_RANK[maxSt] ?? 0) < 1) continue;
+    dropOffMap[maxSt] = (dropOffMap[maxSt] || 0) + 1;
+  }
+  const dropOff = Object.entries(dropOffMap)
+    .map(([stage, count]) => ({
+      stage,
+      label: STAGE_LABELS[stage] || stage,
+      count,
+    }))
+    .sort((a, b) => b.count - a.count);
+
+  // Include max stage from full funnel order in visitorMaxStage (already from all events)
+
   return NextResponse.json({
     ok: true,
     now,
@@ -930,6 +1117,24 @@ export async function GET(req: NextRequest) {
       layerDecisions,
       layerUniques: layerCounts,
       funnel: funnelWithRate,
+      upsellFunnel,
+      upsellStats,
+      dropOff,
+      sales: {
+        count: salesList.length,
+        uniqueBuyers: buyers.size,
+        revenue: Math.round(salesRevenue * 100) / 100,
+        bySource: sortObj(salesBySourceMap),
+        byProduct: Object.entries(salesByProductMap)
+          .map(([key, v]) => ({
+            key,
+            label: v.label,
+            count: v.count,
+            revenue: Math.round(v.revenue * 100) / 100,
+          }))
+          .sort((a, b) => b.count - a.count),
+        feed: saleFeed,
+      },
       sources: sortObj(sourceHistory),
       campaigns: sortObj(campaignHistory),
       blackCountries: Object.entries(blackCountryVisitors)

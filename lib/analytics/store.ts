@@ -291,6 +291,14 @@ export const STAGE_RANK: Record<string, number> = {
   chat: 5,
   cta: 6,
   checkout: 7,
+  upsell1: 8,
+  upsell2: 9,
+  upsell3: 10,
+  upsell4: 11,
+  upsell5: 12,
+  upsell6: 13,
+  upsell7: 14,
+  thankyou: 15,
   white: 0,
   black: 1,
   dashboard: 0,
@@ -448,7 +456,10 @@ export function normalizePagePath(page: string): string {
  * Unique key for events that must never duplicate.
  * - pageview: 1× per visitor + stage + path
  * - layer: 1× per visitor
- * - checkout_click: 1× per visitor
+ * - checkout_click: 1× per visitor + product code (main + each upsell)
+ * - upsell_accept / upsell_decline: 1× per visitor + stage
+ * - thankyou_complete: 1× per visitor
+ * - sale: 1× per PerfectPay order code
  * Other types: no server dedupe (null).
  */
 function uniqueEventKey(e: AnalyticsEvent): string | null {
@@ -461,7 +472,29 @@ function uniqueEventKey(e: AnalyticsEvent): string | null {
     return `pv:${vid}:${stage}:${page}`;
   }
   if (t === "layer") return `layer:${vid}`;
-  if (t === "checkout_click") return `co:${vid}`;
+  if (t === "checkout_click") {
+    const code = String(
+      e.meta?.code || e.meta?.productCode || e.meta?.tier || "main"
+    )
+      .trim()
+      .toLowerCase()
+      .slice(0, 40);
+    return `co:${vid}:${code || "main"}`;
+  }
+  if (t === "upsell_accept" || t === "upsell_decline") {
+    const stage = (e.stage || "upsell").toLowerCase();
+    return `${t}:${vid}:${stage}`;
+  }
+  if (t === "thankyou_complete") return `ty:${vid}`;
+  if (t === "sale") {
+    const order = String(
+      e.meta?.orderCode || e.meta?.saleCode || e.meta?.code || e.id || ""
+    )
+      .trim()
+      .toLowerCase();
+    if (!order) return null;
+    return `sale:${order}`;
+  }
   return null;
 }
 
@@ -491,7 +524,12 @@ function memHasUnique(
     } else if (t === "layer" && et === "layer") {
       return true;
     } else if (t === "checkout_click" && et === "checkout_click") {
-      return true;
+      if (uniqueEventKey(ev) === key) return true;
+    } else if (
+      (t === "upsell_accept" || t === "upsell_decline" || t === "thankyou_complete" || t === "sale") &&
+      et === t
+    ) {
+      if (uniqueEventKey(ev) === key) return true;
     }
   }
   void key;
@@ -536,11 +574,55 @@ export async function pushEvent(
             LIMIT 1
           `) as { id: string }[];
         } else if (t === "checkout_click") {
+          const code = String(
+            e.meta?.code || e.meta?.productCode || e.meta?.tier || "main"
+          )
+            .trim()
+            .toLowerCase()
+            .slice(0, 40);
+          // Match same product code in meta (main + each upsell separately)
           rows = (await q`
             SELECT id FROM zs_events
-            WHERE visitor_id = ${e.visitorId} AND type = 'checkout_click'
+            WHERE visitor_id = ${e.visitorId}
+              AND type = 'checkout_click'
+              AND (
+                lower(coalesce(meta->>'code', meta->>'productCode', meta->>'tier', 'main')) = ${code || "main"}
+              )
             LIMIT 1
           `) as { id: string }[];
+        } else if (t === "upsell_accept" || t === "upsell_decline") {
+          const stageN = (e.stage || "upsell").toLowerCase();
+          rows = (await q`
+            SELECT id FROM zs_events
+            WHERE visitor_id = ${e.visitorId}
+              AND type = ${t}
+              AND lower(coalesce(stage, 'upsell')) = ${stageN}
+            LIMIT 1
+          `) as { id: string }[];
+        } else if (t === "thankyou_complete") {
+          rows = (await q`
+            SELECT id FROM zs_events
+            WHERE visitor_id = ${e.visitorId} AND type = 'thankyou_complete'
+            LIMIT 1
+          `) as { id: string }[];
+        } else if (t === "sale") {
+          const order = String(
+            e.meta?.orderCode || e.meta?.saleCode || e.meta?.code || ""
+          )
+            .trim()
+            .toLowerCase();
+          if (order) {
+            rows = (await q`
+              SELECT id FROM zs_events
+              WHERE type = 'sale'
+                AND (
+                  lower(coalesce(meta->>'orderCode', '')) = ${order}
+                  OR lower(coalesce(meta->>'saleCode', '')) = ${order}
+                  OR lower(coalesce(meta->>'code', '')) = ${order}
+                )
+              LIMIT 1
+            `) as { id: string }[];
+          }
         }
         if (rows?.length) {
           return { ok: true, path: "postgres", deduped: true };
@@ -814,6 +896,9 @@ export async function clearHistory(): Promise<void> {
 export function stageFromPage(page: string): string {
   const p = (page || "").toLowerCase();
   if (p.includes("famguard") || p === "/white" || p === "/white/") return "white";
+  if (p.includes("/upsell/thankyou") || p.includes("thankyou")) return "thankyou";
+  const up = p.match(/\/upsell\/up([1-7])/);
+  if (up) return `upsell${up[1]}`;
   if (p.includes("backredirect")) return "cta";
   if (p.includes("step6") || p.includes("checkout") || p.includes("centerpag") || p.includes("pay."))
     return p.includes("centerpag") || p.includes("pay.") ? "checkout" : "cta";
@@ -874,6 +959,14 @@ export const STAGE_LABELS: Record<string, string> = {
   chat: "Chat",
   cta: "Step 6 — Oferta",
   checkout: "Checkout",
+  upsell1: "Upsell 1",
+  upsell2: "Upsell 2",
+  upsell3: "Upsell 3",
+  upsell4: "Upsell 4",
+  upsell5: "Upsell 5",
+  upsell6: "Upsell 6",
+  upsell7: "Upsell 7",
+  thankyou: "Thank you (fim)",
   dashboard: "Dashboard",
   other: "Outras",
 };
@@ -887,4 +980,22 @@ export const FUNNEL_ORDER = [
   "conversas",
   "cta",
   "checkout",
+] as const;
+
+/** Post-purchase upsell chain */
+export const UPSELL_FUNNEL_ORDER = [
+  "upsell1",
+  "upsell2",
+  "upsell3",
+  "upsell4",
+  "upsell5",
+  "upsell6",
+  "upsell7",
+  "thankyou",
+] as const;
+
+/** Full journey including upsells */
+export const FULL_FUNNEL_ORDER = [
+  ...FUNNEL_ORDER,
+  ...UPSELL_FUNNEL_ORDER,
 ] as const;

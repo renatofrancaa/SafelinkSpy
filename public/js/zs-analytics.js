@@ -488,15 +488,131 @@
         track("pageview", { stageSet: true }, stage);
       }
     },
+    getVisitorId: function () {
+      return state.visitorId || "";
+    },
+    /** Sync event before redirect (upsell accept/decline, checkout, thankyou) */
+    trackSync: function (type, meta, stage) {
+      meta = meta || {};
+      var body = payload({
+        stage: stage || state.stage || "other",
+        event: type,
+        meta: meta,
+        logHistory: true,
+      });
+      body.type = type;
+      body.meta = Object.assign({}, body.meta || {}, meta);
+      if (meta.value != null) {
+        body.checkoutValue = meta.value;
+        body.meta.value = meta.value;
+      }
+      if (meta.tier) {
+        body.checkoutTier = meta.tier;
+        body.meta.tier = meta.tier;
+      }
+      if (meta.planLabel) {
+        body.planLabel = meta.planLabel;
+        body.meta.planLabel = meta.planLabel;
+      }
+      if (meta.code) body.meta.code = meta.code;
+      var ok = false;
+      try {
+        if (typeof XMLHttpRequest !== "undefined") {
+          var xhr = new XMLHttpRequest();
+          xhr.open("POST", "/api/analytics/event", false);
+          xhr.setRequestHeader("Content-Type", "application/json");
+          xhr.send(JSON.stringify(body));
+          ok = xhr.status >= 200 && xhr.status < 300;
+        }
+      } catch (e1) {}
+      if (!ok) {
+        try {
+          ok = !!send("/api/analytics/event", body, true);
+        } catch (e2) {}
+      }
+      return ok;
+    },
+    /** Clicked YES on an upsell page */
+    upsellAccept: function (extra) {
+      extra = extra || {};
+      var upsell = String(extra.upsell || extra.tier || "upsell").toLowerCase();
+      var stage =
+        extra.stage ||
+        (upsell.match(/^up[1-7]$/)
+          ? "upsell" + upsell.slice(2)
+          : upsell.indexOf("upsell") === 0
+            ? upsell
+            : "upsell");
+      state.stage = stage;
+      var meta = {
+        value: extra.value != null ? Number(extra.value) : null,
+        tier: extra.tier || upsell,
+        planLabel: extra.planLabel || null,
+        code: extra.code || null,
+        upsell: upsell,
+        action: "accept",
+      };
+      // Accept + product checkout_click (one per product code)
+      this.trackSync("upsell_accept", meta, stage);
+      return this.checkout({
+        tier: meta.tier,
+        value: meta.value,
+        planLabel: meta.planLabel,
+        code: meta.code,
+        force: true,
+        stage: stage,
+      });
+    },
+    /** Clicked NO / decline on an upsell page */
+    upsellDecline: function (extra) {
+      extra = extra || {};
+      var upsell = String(extra.upsell || extra.tier || "upsell").toLowerCase();
+      var stage =
+        extra.stage ||
+        (upsell.match(/^up[1-7]$/)
+          ? "upsell" + upsell.slice(2)
+          : upsell.indexOf("upsell") === 0
+            ? upsell
+            : "upsell");
+      state.stage = stage;
+      return this.trackSync(
+        "upsell_decline",
+        {
+          tier: extra.tier || upsell,
+          upsell: upsell,
+          next: extra.next || null,
+          action: "decline",
+        },
+        stage
+      );
+    },
+    /** Reached thankyou (end of upsell chain) */
+    thankyouComplete: function (extra) {
+      extra = extra || {};
+      state.stage = "thankyou";
+      return this.trackSync(
+        "thankyou_complete",
+        { action: "complete", source: extra.source || "thankyou" },
+        "thankyou"
+      );
+    },
     checkout: function (extra) {
       extra = extra || {};
       var force = !!extra.force;
+      var productCode = String(
+        extra.code || window.checkoutCode || extra.tier || "main"
+      );
 
-      // One checkout per visitor — only skip if already SUCCESSFULLY sent
+      // One checkout per product code (main + each upsell) — not once forever
       try {
         if (!force) {
-          if (sessionStorage.getItem("zs_checkout_ok") === "1") return true;
-          if (localStorage.getItem("zs_checkout_ok_" + state.visitorId) === "1")
+          var ck = "zs_checkout_ok_" + productCode;
+          if (sessionStorage.getItem(ck) === "1") return true;
+          if (
+            localStorage.getItem(
+              "zs_checkout_ok_" + state.visitorId + "_" + productCode
+            ) === "1"
+          )
             return true;
         }
       } catch (e) {}
@@ -547,10 +663,11 @@
           localStorage.getItem("utm_content") || state.utmContent || "",
       };
 
+      var stage = extra.stage || "checkout";
       // Use HEARTBEAT path (same as pageviews that already work in history)
       // + sync XHR so redirect to Centerpag does not drop the event
       var body = payload({
-        stage: "checkout",
+        stage: stage,
         event: "checkout_click",
         meta: meta,
         logHistory: true,
@@ -581,8 +698,11 @@
 
       if (ok) {
         try {
-          sessionStorage.setItem("zs_checkout_ok", "1");
-          localStorage.setItem("zs_checkout_ok_" + state.visitorId, "1");
+          sessionStorage.setItem("zs_checkout_ok_" + productCode, "1");
+          localStorage.setItem(
+            "zs_checkout_ok_" + state.visitorId + "_" + productCode,
+            "1"
+          );
           sessionStorage.setItem("zs_checkout_plan", planLabel);
           localStorage.setItem(
             "zs_checkout_value_" + state.visitorId,

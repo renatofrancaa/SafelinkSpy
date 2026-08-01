@@ -554,6 +554,24 @@ html.hide-utm-price .price-box{display:none!important;}
       } catch (e3) {}
     });
   }
+
+  // Mark end of upsell chain (for dashboard funnel)
+  function fireThankyou() {
+    try {
+      if (window.ZSAnalytics && ZSAnalytics.thankyouComplete) {
+        ZSAnalytics.thankyouComplete({ source: 'thankyou' });
+        return true;
+      }
+    } catch (e4) {}
+    return false;
+  }
+  if (!fireThankyou()) {
+    var tries = 0;
+    var t = setInterval(function () {
+      tries++;
+      if (fireThankyou() || tries > 20) clearInterval(t);
+    }, 200);
+  }
 })();
 </script>
 

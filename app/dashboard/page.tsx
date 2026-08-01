@@ -94,6 +94,52 @@ type Stats = {
       rateFromStart: number;
       rateFromPrev: number;
     }[];
+    upsellFunnel?: {
+      stage: string;
+      label: string;
+      unique: number;
+      rateFromStart: number;
+      rateFromPrev: number;
+    }[];
+    upsellStats?: {
+      stage: string;
+      label: string;
+      views: number;
+      accepts: number;
+      declines: number;
+      acceptRate: number;
+      declineRate: number;
+    }[];
+    dropOff?: { stage: string; label: string; count: number }[];
+    sales?: {
+      count: number;
+      uniqueBuyers: number;
+      revenue: number;
+      bySource: { name: string; count: number }[];
+      byProduct: {
+        key: string;
+        label: string;
+        count: number;
+        revenue: number;
+      }[];
+      feed: {
+        id: string;
+        orderCode: string;
+        visitorId: string;
+        value: number | null;
+        planLabel: string;
+        productCode: string;
+        isUpsell: boolean;
+        source: string;
+        utmSource?: string;
+        utmCampaign?: string;
+        utmMedium?: string;
+        placement?: string;
+        country: string;
+        email?: string | null;
+        ts: number;
+      }[];
+    };
     sources: { name: string; count: number }[];
     campaigns?: { name: string; count: number }[];
     blackCountries?: { code: string; name: string; count: number }[];
@@ -671,11 +717,27 @@ export default function DashboardPage() {
               accent="#60a5fa"
             />
             <Kpi
-              label="Checkout (únicos)"
+              label="Checkout (cliques)"
               value={String(
                 stats.history.checkoutUniques ?? stats.history.checkouts ?? 0
               )}
               accent="#f472b6"
+            />
+            <Kpi
+              label="Vendas (webhook)"
+              value={String(stats.history.sales?.count ?? 0)}
+              accent="#a78bfa"
+            />
+            <Kpi
+              label="Receita"
+              value={
+                stats.history.sales?.revenue
+                  ? `$${Number(stats.history.sales.revenue).toLocaleString("en-US", {
+                      maximumFractionDigits: 0,
+                    })}`
+                  : "$0"
+              }
+              accent="#34d399"
             />
           </section>
 
@@ -835,6 +897,9 @@ export default function DashboardPage() {
               {/* Top row: Funil | White/Black + Checkout resumo */}
               <section style={styles.grid2Top}>
                 <Card title="Funil de conversão (Step 1–6 → Checkout)">
+                  <p style={{ ...styles.muted, margin: "0 0 8px", fontSize: 11 }}>
+                    Só tráfego real (sem bots). Clique em checkout ≠ venda paga.
+                  </p>
                   {!stats.history.funnel?.length ||
                   !stats.history.funnel.some((f) => f.unique > 0) ? (
                     <Empty />
@@ -960,6 +1025,233 @@ export default function DashboardPage() {
                         );
                       })}
                     </div>
+                  </Card>
+                </div>
+              </section>
+
+              {/* Vendas PerfectPay + Upsells */}
+              <section style={styles.grid2Top}>
+                <Card title="Vendas confirmadas (PerfectPay webhook)">
+                  <p style={{ ...styles.muted, margin: "0 0 10px", fontSize: 11 }}>
+                    Pagamentos aprovados via CenterPag/PerfectPay. Configure o
+                    postback em Ferramentas → PostBack →{" "}
+                    <code>/api/webhooks/perfectpay</code>
+                  </p>
+                  <div style={styles.layerCards3}>
+                    <div style={styles.layerBox}>
+                      <div
+                        style={{
+                          color: "#a78bfa",
+                          fontWeight: 800,
+                          fontSize: 28,
+                        }}
+                      >
+                        {stats.history.sales?.count ?? 0}
+                      </div>
+                      <div style={styles.muted}>Vendas</div>
+                    </div>
+                    <div style={styles.layerBox}>
+                      <div
+                        style={{
+                          color: "#34d399",
+                          fontWeight: 800,
+                          fontSize: 28,
+                        }}
+                      >
+                        {stats.history.sales?.uniqueBuyers ?? 0}
+                      </div>
+                      <div style={styles.muted}>Compradores</div>
+                    </div>
+                    <div style={styles.layerBox}>
+                      <div
+                        style={{
+                          color: "#fbbf24",
+                          fontWeight: 800,
+                          fontSize: 22,
+                        }}
+                      >
+                        $
+                        {Number(stats.history.sales?.revenue ?? 0).toLocaleString(
+                          "en-US",
+                          { maximumFractionDigits: 0 }
+                        )}
+                      </div>
+                      <div style={styles.muted}>Receita</div>
+                    </div>
+                  </div>
+
+                  <h3
+                    style={{ ...styles.cardTitle, marginTop: 16, fontSize: 13 }}
+                  >
+                    Por fonte
+                  </h3>
+                  {!stats.history.sales?.bySource?.length ? (
+                    <Empty />
+                  ) : (
+                    stats.history.sales.bySource.map((s) => (
+                      <BarRow
+                        key={s.name}
+                        label={s.name}
+                        value={s.count}
+                        max={stats.history.sales!.bySource[0]?.count || 1}
+                        color="#a78bfa"
+                      />
+                    ))
+                  )}
+
+                  <h3
+                    style={{ ...styles.cardTitle, marginTop: 16, fontSize: 13 }}
+                  >
+                    Por produto
+                  </h3>
+                  {!stats.history.sales?.byProduct?.length ? (
+                    <Empty />
+                  ) : (
+                    <div style={styles.tableWrap}>
+                      <table style={styles.table}>
+                        <thead>
+                          <tr>
+                            <th style={styles.th}>Produto</th>
+                            <th style={styles.th}>Vendas</th>
+                            <th style={styles.th}>Receita</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {stats.history.sales.byProduct.map((p) => (
+                            <tr key={p.key}>
+                              <td style={styles.td}>{p.label}</td>
+                              <td style={styles.td}>
+                                <strong>{p.count}</strong>
+                              </td>
+                              <td style={styles.tdMono}>
+                                ${Number(p.revenue).toLocaleString("en-US")}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+
+                  <h3
+                    style={{ ...styles.cardTitle, marginTop: 16, fontSize: 13 }}
+                  >
+                    Últimas vendas
+                  </h3>
+                  {!stats.history.sales?.feed?.length ? (
+                    <Empty />
+                  ) : (
+                    <div style={styles.tableWrap}>
+                      <table style={styles.table}>
+                        <thead>
+                          <tr>
+                            <th style={styles.th}>Quando</th>
+                            <th style={styles.th}>Pedido</th>
+                            <th style={styles.th}>Produto</th>
+                            <th style={styles.th}>Valor</th>
+                            <th style={styles.th}>Fonte</th>
+                            <th style={styles.th}>País</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {stats.history.sales.feed.map((s) => (
+                            <tr key={s.id}>
+                              <td style={styles.tdMono}>{fmtTime(s.ts)}</td>
+                              <td style={styles.tdMono}>{s.orderCode}</td>
+                              <td style={styles.td}>
+                                {s.planLabel}
+                                {s.isUpsell ? (
+                                  <span
+                                    style={{
+                                      marginLeft: 6,
+                                      color: "#fbbf24",
+                                      fontSize: 11,
+                                    }}
+                                  >
+                                    upsell
+                                  </span>
+                                ) : null}
+                              </td>
+                              <td style={styles.tdMono}>
+                                {s.value != null ? `$${s.value}` : "—"}
+                              </td>
+                              <td style={styles.td}>{s.source || "—"}</td>
+                              <td style={styles.td}>
+                                {countryLabel(s.country)}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </Card>
+
+                <div style={styles.stackCol}>
+                  <Card title="Upsells — aceitou / recusou / fim">
+                    <p
+                      style={{ ...styles.muted, margin: "0 0 10px", fontSize: 11 }}
+                    >
+                      Por página: quantos viram, clicaram SIM, clicaram NÃO.
+                      Thank you = chegou ao fim da cadeia.
+                    </p>
+                    {!stats.history.upsellStats?.length ||
+                    !stats.history.upsellStats.some(
+                      (u) => u.views || u.accepts || u.declines
+                    ) ? (
+                      <Empty />
+                    ) : (
+                      <div style={styles.tableWrap}>
+                        <table style={styles.table}>
+                          <thead>
+                            <tr>
+                              <th style={styles.th}>Etapa</th>
+                              <th style={styles.th}>Viu</th>
+                              <th style={styles.th}>SIM</th>
+                              <th style={styles.th}>NÃO</th>
+                              <th style={styles.th}>% SIM</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {stats.history.upsellStats.map((u) => (
+                              <tr key={u.stage}>
+                                <td style={styles.td}>{u.label}</td>
+                                <td style={styles.td}>{u.views}</td>
+                                <td style={{ ...styles.td, color: "#4ade80" }}>
+                                  {u.accepts}
+                                </td>
+                                <td style={{ ...styles.td, color: "#f87171" }}>
+                                  {u.declines}
+                                </td>
+                                <td style={styles.tdMono}>{u.acceptRate}%</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </Card>
+
+                  <Card title="Onde o lead saiu (última etapa)">
+                    <p
+                      style={{ ...styles.muted, margin: "0 0 10px", fontSize: 11 }}
+                    >
+                      Visitantes que não compraram e não chegaram no thank you —
+                      contados pela última etapa alcançada.
+                    </p>
+                    {!stats.history.dropOff?.length ? (
+                      <Empty />
+                    ) : (
+                      stats.history.dropOff.map((d) => (
+                        <BarRow
+                          key={d.stage}
+                          label={d.label}
+                          value={d.count}
+                          max={stats.history.dropOff![0]?.count || 1}
+                          color="#fb923c"
+                        />
+                      ))
+                    )}
                   </Card>
                 </div>
               </section>
@@ -1336,6 +1628,14 @@ const FUNNEL_SHORT: Record<string, string> = {
   conversas: "Step 5",
   cta: "Step 6",
   checkout: "Checkout",
+  upsell1: "Up 1",
+  upsell2: "Up 2",
+  upsell3: "Up 3",
+  upsell4: "Up 4",
+  upsell5: "Up 5",
+  upsell6: "Up 6",
+  upsell7: "Up 7",
+  thankyou: "Fim",
   chat: "Chat",
   landing: "Landing",
   dashboard: "Dash",
@@ -1352,6 +1652,14 @@ const FUNNEL_SUB: Record<string, string> = {
   conversas: "Conversas",
   cta: "Oferta",
   checkout: "Pagamento",
+  upsell1: "Upsell 1",
+  upsell2: "Upsell 2",
+  upsell3: "Upsell 3",
+  upsell4: "Upsell 4",
+  upsell5: "Upsell 5",
+  upsell6: "Upsell 6",
+  upsell7: "Upsell 7",
+  thankyou: "Thank you",
 };
 
 /**
