@@ -903,15 +903,52 @@ export async function GET(req: NextRequest) {
     if (!saleByOrder.has(order)) saleByOrder.set(order, e);
   }
   const salesList = Array.from(saleByOrder.values()).sort((a, b) => b.ts - a.ts);
+
+  /** Day key in America/Sao_Paulo (YYYY-MM-DD) — same calendar as range filters */
+  function dayKeySP(ts: number): string {
+    try {
+      return new Intl.DateTimeFormat("en-CA", {
+        timeZone: "America/Sao_Paulo",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      }).format(new Date(ts));
+    } catch {
+      return new Date(ts).toISOString().slice(0, 10);
+    }
+  }
+
+  function saleValue(e: (typeof salesList)[0]): number {
+    const raw = e.meta?.value ?? e.meta?.saleAmount ?? e.meta?.sale_amount;
+    if (typeof raw === "number" && !isNaN(raw)) return raw;
+    if (raw != null && raw !== "") {
+      const n = Number(String(raw).replace(",", "."));
+      return isNaN(n) ? 0 : n;
+    }
+    return 0;
+  }
+
+  function saleCurrency(e: (typeof salesList)[0]): string {
+    const c = String(e.meta?.currency || "").toUpperCase();
+    if (c === "BRL" || c === "USD") return c;
+    // PerfectPay currency_enum 1 = BRL (also stored as "BRL" on webhook)
+    return "USD";
+  }
+
   let salesRevenue = 0;
-  const salesBySourceMap: Record<string, number> = {};
+  const salesBySourceMap: Record<string, { count: number; revenue: number }> =
+    {};
   const salesByProductMap: Record<
     string,
     { label: string; count: number; revenue: number }
   > = {};
+  const salesByDayMap: Record<
+    string,
+    { count: number; revenue: number; buyers: Set<string> }
+  > = {};
   const buyers = new Set<string>();
   for (const e of salesList) {
-    const value = Number(e.meta?.value ?? e.meta?.saleAmount ?? 0) || 0;
+    const value = saleValue(e);
     salesRevenue += value;
     buyers.add(e.visitorId);
     const src =
@@ -919,7 +956,11 @@ export async function GET(req: NextRequest) {
       e.source ||
       String(e.meta?.placement || "") ||
       "direct";
-    salesBySourceMap[src] = (salesBySourceMap[src] || 0) + 1;
+    if (!salesBySourceMap[src]) {
+      salesBySourceMap[src] = { count: 0, revenue: 0 };
+    }
+    salesBySourceMap[src].count += 1;
+    salesBySourceMap[src].revenue += value;
     const productKey = String(
       e.meta?.productCode || e.meta?.code || e.meta?.tier || "unknown"
     );
@@ -935,14 +976,44 @@ export async function GET(req: NextRequest) {
     }
     salesByProductMap[productKey].count += 1;
     salesByProductMap[productKey].revenue += value;
+
+    const day = dayKeySP(e.ts);
+    if (!salesByDayMap[day]) {
+      salesByDayMap[day] = { count: 0, revenue: 0, buyers: new Set() };
+    }
+    salesByDayMap[day].count += 1;
+    salesByDayMap[day].revenue += value;
+    salesByDayMap[day].buyers.add(e.visitorId);
   }
-  const saleFeed = salesList.slice(0, 50).map((e) => {
+
+  const todayKey = dayKeySP(Date.now());
+  const todayBucket = salesByDayMap[todayKey];
+  const todayRevenue = todayBucket
+    ? Math.round(todayBucket.revenue * 100) / 100
+    : 0;
+  const todaySalesCount = todayBucket?.count ?? 0;
+
+  const salesByDay = Object.entries(salesByDayMap)
+    .sort((a, b) => (a[0] < b[0] ? 1 : -1))
+    .map(([day, v]) => ({
+      day,
+      count: v.count,
+      revenue: Math.round(v.revenue * 100) / 100,
+      uniqueBuyers: v.buyers.size,
+      avgTicket:
+        v.count > 0 ? Math.round((v.revenue / v.count) * 100) / 100 : 0,
+    }));
+
+  const saleFeed = salesList.slice(0, 80).map((e) => {
     const u = resolveUtms(e);
+    const value = saleValue(e);
     return {
       id: e.id,
       orderCode: String(e.meta?.orderCode || e.meta?.saleCode || "—"),
       visitorId: e.visitorId.slice(0, 14),
-      value: Number(e.meta?.value ?? e.meta?.saleAmount ?? 0) || null,
+      value: value || null,
+      currency: saleCurrency(e),
+      day: dayKeySP(e.ts),
       planLabel: String(
         e.meta?.planLabel || e.meta?.productName || e.meta?.planName || "—"
       ),
@@ -1124,7 +1195,26 @@ export async function GET(req: NextRequest) {
         count: salesList.length,
         uniqueBuyers: buyers.size,
         revenue: Math.round(salesRevenue * 100) / 100,
-        bySource: sortObj(salesBySourceMap),
+        avgTicket:
+          salesList.length > 0
+            ? Math.round((salesRevenue / salesList.length) * 100) / 100
+            : 0,
+        /** Faturamento do dia (America/Sao_Paulo) */
+        today: {
+          day: todayKey,
+          count: todaySalesCount,
+          revenue: todayRevenue,
+          uniqueBuyers: todayBucket?.buyers.size ?? 0,
+        },
+        byDay: salesByDay,
+        bySource: Object.entries(salesBySourceMap)
+          .map(([name, v]) => ({
+            name,
+            count: v.count,
+            revenue: Math.round(v.revenue * 100) / 100,
+          }))
+          .sort((a, b) => b.revenue - a.revenue)
+          .slice(0, 20),
         byProduct: Object.entries(salesByProductMap)
           .map(([key, v]) => ({
             key,
@@ -1132,7 +1222,7 @@ export async function GET(req: NextRequest) {
             count: v.count,
             revenue: Math.round(v.revenue * 100) / 100,
           }))
-          .sort((a, b) => b.count - a.count),
+          .sort((a, b) => b.revenue - a.revenue),
         feed: saleFeed,
       },
       sources: sortObj(sourceHistory),

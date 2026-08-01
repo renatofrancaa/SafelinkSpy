@@ -115,7 +115,21 @@ type Stats = {
       count: number;
       uniqueBuyers: number;
       revenue: number;
-      bySource: { name: string; count: number }[];
+      avgTicket?: number;
+      today?: {
+        day: string;
+        count: number;
+        revenue: number;
+        uniqueBuyers: number;
+      };
+      byDay?: {
+        day: string;
+        count: number;
+        revenue: number;
+        uniqueBuyers: number;
+        avgTicket: number;
+      }[];
+      bySource: { name: string; count: number; revenue?: number }[];
       byProduct: {
         key: string;
         label: string;
@@ -127,6 +141,8 @@ type Stats = {
         orderCode: string;
         visitorId: string;
         value: number | null;
+        currency?: string;
+        day?: string;
         planLabel: string;
         productCode: string;
         isUpsell: boolean;
@@ -202,6 +218,25 @@ function fmtTime(ts: number) {
     });
   } catch {
     return "—";
+  }
+}
+
+/** Money for sales feed (USD default; BRL when PerfectPay sends BRL) */
+function fmtMoney(
+  value: number | null | undefined,
+  currency: string = "USD"
+): string {
+  if (value == null || isNaN(Number(value))) return "—";
+  const n = Number(value);
+  const cur = (currency || "USD").toUpperCase() === "BRL" ? "BRL" : "USD";
+  try {
+    return new Intl.NumberFormat(cur === "BRL" ? "pt-BR" : "en-US", {
+      style: "currency",
+      currency: cur,
+      maximumFractionDigits: 2,
+    }).format(n);
+  } catch {
+    return cur === "BRL" ? `R$ ${n.toFixed(2)}` : `$${n.toFixed(2)}`;
   }
 }
 
@@ -724,20 +759,24 @@ export default function DashboardPage() {
               accent="#f472b6"
             />
             <Kpi
-              label="Vendas (webhook)"
+              label="Vendas (período)"
               value={String(stats.history.sales?.count ?? 0)}
               accent="#a78bfa"
             />
             <Kpi
-              label="Receita"
-              value={
-                stats.history.sales?.revenue
-                  ? `$${Number(stats.history.sales.revenue).toLocaleString("en-US", {
-                      maximumFractionDigits: 0,
-                    })}`
-                  : "$0"
-              }
+              label="Faturamento (período)"
+              value={fmtMoney(stats.history.sales?.revenue ?? 0, "USD")}
               accent="#34d399"
+            />
+            <Kpi
+              label="Faturamento hoje"
+              value={fmtMoney(stats.history.sales?.today?.revenue ?? 0, "USD")}
+              accent="#fbbf24"
+            />
+            <Kpi
+              label="Ticket médio"
+              value={fmtMoney(stats.history.sales?.avgTicket ?? 0, "USD")}
+              accent="#38bdf8"
             />
           </section>
 
@@ -1031,11 +1070,9 @@ export default function DashboardPage() {
 
               {/* Vendas PerfectPay + Upsells */}
               <section style={styles.grid2Top}>
-                <Card title="Vendas confirmadas (PerfectPay webhook)">
+                <Card title="Faturamento e vendas (PerfectPay)">
                   <p style={{ ...styles.muted, margin: "0 0 10px", fontSize: 11 }}>
-                    Pagamentos aprovados via CenterPag/PerfectPay. No PerfectPay
-                    use sempre este postback (domínio principal):
-                    <br />
+                    Preço de cada venda = valor aprovado no webhook. Postback:{" "}
                     <code style={{ color: "#c4b5fd", wordBreak: "break-all" }}>
                       https://safelinkspy.vercel.app/api/webhooks/perfectpay
                     </code>
@@ -1044,62 +1081,118 @@ export default function DashboardPage() {
                     <div style={styles.layerBox}>
                       <div
                         style={{
-                          color: "#a78bfa",
+                          color: "#fbbf24",
                           fontWeight: 800,
-                          fontSize: 28,
+                          fontSize: 22,
                         }}
                       >
-                        {stats.history.sales?.count ?? 0}
+                        {fmtMoney(
+                          stats.history.sales?.today?.revenue ?? 0,
+                          "USD"
+                        )}
                       </div>
-                      <div style={styles.muted}>Vendas</div>
+                      <div style={styles.muted}>
+                        Hoje ({stats.history.sales?.today?.count ?? 0} vendas)
+                      </div>
                     </div>
                     <div style={styles.layerBox}>
                       <div
                         style={{
                           color: "#34d399",
                           fontWeight: 800,
-                          fontSize: 28,
+                          fontSize: 22,
                         }}
                       >
-                        {stats.history.sales?.uniqueBuyers ?? 0}
+                        {fmtMoney(stats.history.sales?.revenue ?? 0, "USD")}
                       </div>
-                      <div style={styles.muted}>Compradores</div>
+                      <div style={styles.muted}>
+                        Período ({stats.history.sales?.count ?? 0} vendas)
+                      </div>
                     </div>
                     <div style={styles.layerBox}>
                       <div
                         style={{
-                          color: "#fbbf24",
+                          color: "#38bdf8",
                           fontWeight: 800,
                           fontSize: 22,
                         }}
                       >
-                        $
-                        {Number(stats.history.sales?.revenue ?? 0).toLocaleString(
-                          "en-US",
-                          { maximumFractionDigits: 0 }
-                        )}
+                        {fmtMoney(stats.history.sales?.avgTicket ?? 0, "USD")}
                       </div>
-                      <div style={styles.muted}>Receita</div>
+                      <div style={styles.muted}>Ticket médio</div>
                     </div>
                   </div>
 
                   <h3
                     style={{ ...styles.cardTitle, marginTop: 16, fontSize: 13 }}
                   >
-                    Por fonte
+                    Faturamento por dia
+                  </h3>
+                  {!stats.history.sales?.byDay?.length ? (
+                    <Empty />
+                  ) : (
+                    <div style={styles.tableWrap}>
+                      <table style={styles.table}>
+                        <thead>
+                          <tr>
+                            <th style={styles.th}>Dia</th>
+                            <th style={styles.th}>Vendas</th>
+                            <th style={styles.th}>Compradores</th>
+                            <th style={styles.th}>Ticket médio</th>
+                            <th style={styles.th}>Faturamento</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {stats.history.sales.byDay.map((d) => (
+                            <tr key={d.day}>
+                              <td style={styles.tdMono}>{d.day}</td>
+                              <td style={styles.td}>{d.count}</td>
+                              <td style={styles.td}>{d.uniqueBuyers}</td>
+                              <td style={styles.tdMono}>
+                                {fmtMoney(d.avgTicket, "USD")}
+                              </td>
+                              <td style={styles.tdMono}>
+                                <strong style={{ color: "#34d399" }}>
+                                  {fmtMoney(d.revenue, "USD")}
+                                </strong>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+
+                  <h3
+                    style={{ ...styles.cardTitle, marginTop: 16, fontSize: 13 }}
+                  >
+                    Por fonte (vendas + faturamento)
                   </h3>
                   {!stats.history.sales?.bySource?.length ? (
                     <Empty />
                   ) : (
-                    stats.history.sales.bySource.map((s) => (
-                      <BarRow
-                        key={s.name}
-                        label={s.name}
-                        value={s.count}
-                        max={stats.history.sales!.bySource[0]?.count || 1}
-                        color="#a78bfa"
-                      />
-                    ))
+                    <div style={styles.tableWrap}>
+                      <table style={styles.table}>
+                        <thead>
+                          <tr>
+                            <th style={styles.th}>Fonte</th>
+                            <th style={styles.th}>Vendas</th>
+                            <th style={styles.th}>Faturamento</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {stats.history.sales.bySource.map((s) => (
+                            <tr key={s.name}>
+                              <td style={styles.td}>{s.name}</td>
+                              <td style={styles.td}>{s.count}</td>
+                              <td style={styles.tdMono}>
+                                {fmtMoney(s.revenue ?? 0, "USD")}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                   )}
 
                   <h3
@@ -1116,7 +1209,7 @@ export default function DashboardPage() {
                           <tr>
                             <th style={styles.th}>Produto</th>
                             <th style={styles.th}>Vendas</th>
-                            <th style={styles.th}>Receita</th>
+                            <th style={styles.th}>Faturamento</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -1127,7 +1220,7 @@ export default function DashboardPage() {
                                 <strong>{p.count}</strong>
                               </td>
                               <td style={styles.tdMono}>
-                                ${Number(p.revenue).toLocaleString("en-US")}
+                                {fmtMoney(p.revenue, "USD")}
                               </td>
                             </tr>
                           ))}
@@ -1139,7 +1232,7 @@ export default function DashboardPage() {
                   <h3
                     style={{ ...styles.cardTitle, marginTop: 16, fontSize: 13 }}
                   >
-                    Últimas vendas
+                    Cada venda (preço individual)
                   </h3>
                   {!stats.history.sales?.feed?.length ? (
                     <Empty />
@@ -1151,7 +1244,7 @@ export default function DashboardPage() {
                             <th style={styles.th}>Quando</th>
                             <th style={styles.th}>Pedido</th>
                             <th style={styles.th}>Produto</th>
-                            <th style={styles.th}>Valor</th>
+                            <th style={styles.th}>Preço</th>
                             <th style={styles.th}>Fonte</th>
                             <th style={styles.th}>País</th>
                           </tr>
@@ -1176,7 +1269,9 @@ export default function DashboardPage() {
                                 ) : null}
                               </td>
                               <td style={styles.tdMono}>
-                                {s.value != null ? `$${s.value}` : "—"}
+                                <strong style={{ color: "#4ade80" }}>
+                                  {fmtMoney(s.value, s.currency || "USD")}
+                                </strong>
                               </td>
                               <td style={styles.td}>{s.source || "—"}</td>
                               <td style={styles.td}>
