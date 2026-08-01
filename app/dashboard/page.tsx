@@ -1033,9 +1033,12 @@ export default function DashboardPage() {
               <section style={styles.grid2Top}>
                 <Card title="Vendas confirmadas (PerfectPay webhook)">
                   <p style={{ ...styles.muted, margin: "0 0 10px", fontSize: 11 }}>
-                    Pagamentos aprovados via CenterPag/PerfectPay. Configure o
-                    postback em Ferramentas → PostBack →{" "}
-                    <code>/api/webhooks/perfectpay</code>
+                    Pagamentos aprovados via CenterPag/PerfectPay. No PerfectPay
+                    use sempre este postback (domínio principal):
+                    <br />
+                    <code style={{ color: "#c4b5fd", wordBreak: "break-all" }}>
+                      https://safelinkspy.vercel.app/api/webhooks/perfectpay
+                    </code>
                   </p>
                   <div style={styles.layerCards3}>
                     <div style={styles.layerBox}>

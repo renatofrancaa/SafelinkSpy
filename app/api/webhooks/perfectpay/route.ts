@@ -10,14 +10,21 @@ export const dynamic = "force-dynamic";
 /**
  * PerfectPay / CenterPag postback webhook.
  *
+ * Primary domain (always use this):
+ *   https://safelinkspy.vercel.app/api/webhooks/perfectpay
+ *
  * Configure in PerfectPay:
  *   Ferramentas → PostBack - Webhook
- *   URL: https://SEU-DOMINIO/api/webhooks/perfectpay
+ *   URL: https://safelinkspy.vercel.app/api/webhooks/perfectpay
  *   Events: Aprovado (and optionally Completo / Autorizado)
  *   Optional: set env PERFECTPAY_WEBHOOK_TOKEN = token do webhook
  *
  * Docs: sale_status_enum 2=approved, 8=authorized, 10=completed
  */
+
+/** Canonical production host for webhooks / docs (not custom ad domains) */
+export const PRIMARY_HOST = "safelinkspy.vercel.app";
+export const PERFECTPAY_WEBHOOK_URL = `https://${PRIMARY_HOST}/api/webhooks/perfectpay`;
 
 const APPROVED_STATUSES = new Set([2, 8, 10]);
 
@@ -343,7 +350,9 @@ export async function POST(req: NextRequest) {
 export async function GET() {
   return NextResponse.json({
     ok: true,
-    endpoint: "/api/webhooks/perfectpay",
-    hint: "Configure this URL as PostBack/Webhook in PerfectPay (events: Aprovado).",
+    endpoint: PERFECTPAY_WEBHOOK_URL,
+    primaryHost: PRIMARY_HOST,
+    path: "/api/webhooks/perfectpay",
+    hint: `Configure ${PERFECTPAY_WEBHOOK_URL} as PostBack/Webhook in PerfectPay (events: Aprovado).`,
   });
 }
