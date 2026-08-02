@@ -291,6 +291,8 @@ export const STAGE_RANK: Record<string, number> = {
   chat: 5,
   cta: 6,
   checkout: 7,
+  /** Paid sale (PerfectPay approved) — after checkout click, before upsells */
+  sale: 7.5,
   upsell1: 8,
   upsell2: 9,
   upsell3: 10,
@@ -1002,6 +1004,7 @@ export const STAGE_LABELS: Record<string, string> = {
   chat: "Chat",
   cta: "Step 6 — Oferta",
   checkout: "Checkout",
+  sale: "Venda (paga)",
   upsell1: "Upsell 1",
   upsell2: "Upsell 2",
   upsell3: "Upsell 3",
@@ -1014,7 +1017,7 @@ export const STAGE_LABELS: Record<string, string> = {
   other: "Outras",
 };
 
-/** SafelinkSpy funnel: index (step1) → step2…step6 → checkout */
+/** SafelinkSpy funnel: index (step1) → step2…step6 → checkout → venda paga */
 export const FUNNEL_ORDER = [
   "entry",
   "phone",
@@ -1023,6 +1026,7 @@ export const FUNNEL_ORDER = [
   "conversas",
   "cta",
   "checkout",
+  "sale",
 ] as const;
 
 /** Post-purchase upsell chain */

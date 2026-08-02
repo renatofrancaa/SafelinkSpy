@@ -1042,9 +1042,10 @@ export default function DashboardPage() {
             <>
               {/* Top row: Funil | White/Black + Checkout resumo */}
               <section style={styles.grid2Top}>
-                <Card title="Funil de conversão (Step 1–6 → Checkout)">
+                <Card title="Funil de conversão (Step 1–6 → Checkout → Venda)">
                   <p style={{ ...styles.muted, margin: "0 0 8px", fontSize: 11 }}>
-                    Só tráfego real (sem bots). Clique em checkout ≠ venda paga.
+                    Só tráfego real (sem bots). Checkout = clicou em pagar ·{" "}
+                    <strong>Venda</strong> = pagamento aprovado (comissão).
                   </p>
                   {!stats.history.funnel?.length ||
                   !stats.history.funnel.some((f) => f.unique > 0) ? (
@@ -1954,6 +1955,7 @@ const FUNNEL_SHORT: Record<string, string> = {
   conversas: "Step 5",
   cta: "Step 6",
   checkout: "Checkout",
+  sale: "Venda",
   upsell1: "Up 1",
   upsell2: "Up 2",
   upsell3: "Up 3",
@@ -1977,7 +1979,8 @@ const FUNNEL_SUB: Record<string, string> = {
   recovery: "Cloud",
   conversas: "Conversas",
   cta: "Oferta",
-  checkout: "Pagamento",
+  checkout: "Clique pagar",
+  sale: "Paga",
   upsell1: "Upsell 1",
   upsell2: "Upsell 2",
   upsell3: "Upsell 3",
@@ -2071,7 +2074,7 @@ function FunnelStream({
     [...botEdge].reverse()
   ).replace(/^M/, "L")} Z`;
 
-  const pctSize = n > 5 ? 15 : 18;
+  const pctSize = n > 6 ? 13 : n > 5 ? 15 : 18;
 
   return (
     <div style={styles.funnelStreamWrap}>

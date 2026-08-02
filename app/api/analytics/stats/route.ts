@@ -407,8 +407,9 @@ export async function GET(req: NextRequest) {
 
   for (const [vid, maxSt] of Object.entries(visitorMaxStage)) {
     const maxRank = STAGE_RANK[maxSt] ?? 0;
-    // Also count checkout_click as checkout stage
+    // Fill stages from entry → checkout only (not "sale" — that needs paid event)
     for (const st of FUNNEL_ORDER) {
+      if (st === "sale") continue;
       const r = STAGE_RANK[st] ?? 0;
       if (r > 0 && r <= maxRank) {
         funnelStageSets[st].add(vid);
@@ -419,17 +420,27 @@ export async function GET(req: NextRequest) {
   for (const e of events) {
     if (!isRealCheckoutEvent(e)) continue;
     for (const st of FUNNEL_ORDER) {
+      if (st === "sale") continue;
       const r = STAGE_RANK[st] ?? 0;
       if (r > 0 && r <= (STAGE_RANK.checkout ?? 7)) {
         funnelStageSets[st].add(e.visitorId);
       }
     }
   }
+  // Paid sales (PerfectPay approved) → final funnel step "Venda"
+  // Also ensure buyer is counted in all earlier steps
+  for (const e of events) {
+    if (e.type !== "sale") continue;
+    for (const st of FUNNEL_ORDER) {
+      funnelStageSets[st].add(e.visitorId);
+    }
+  }
 
   const funnel = FUNNEL_ORDER.map((stage) => {
     // Prefer cumulative; fall back to raw stage hits
+    // "sale" only from type=sale events (no raw pageview stage)
     const cum = funnelStageSets[stage]?.size || 0;
-    const raw = stageVisitors[stage]?.size || 0;
+    const raw = stage === "sale" ? 0 : stageVisitors[stage]?.size || 0;
     return {
       stage,
       label: STAGE_LABELS[stage] || stage,
