@@ -487,14 +487,62 @@ function submitLead() {
   nameEl.classList.toggle('err', !nameOk);
   emailEl.classList.toggle('err', !emailOk);
   if (!nameOk || !emailOk) return;
-  sessionStorage.setItem('buyer_name',  nameEl.value.trim());
-  sessionStorage.setItem('buyer_email', emailEl.value.trim());
+  var nameVal = nameEl.value.trim();
+  var emailVal = emailEl.value.trim();
+  sessionStorage.setItem('buyer_name',  nameVal);
+  sessionStorage.setItem('buyer_email', emailVal);
+  try { localStorage.setItem('buyer_name', nameVal); localStorage.setItem('buyer_email', emailVal); } catch (eLs) {}
+
+  // Lead capture → server → n8n (Resend recovery). Non-blocking.
+  try {
+    var vid = '';
+    try {
+      if (window.ZSAnalytics && ZSAnalytics.getVisitorId) vid = ZSAnalytics.getVisitorId() || '';
+    } catch (eVid) {}
+    if (!vid) {
+      try { vid = localStorage.getItem('funnelVisitorId') || ''; } catch (e2) {}
+    }
+    var ph = sessionStorage.getItem('sl_phone') || (typeof dec !== 'undefined' ? dec : '') || '';
+    var body = {
+      name: nameVal,
+      email: emailVal,
+      phone: ph,
+      visitorId: vid,
+      utmSource: localStorage.getItem('utm_source') || sessionStorage.getItem('utm_source') || '',
+      utmMedium: localStorage.getItem('utm_medium') || sessionStorage.getItem('utm_medium') || '',
+      utmCampaign: localStorage.getItem('utm_campaign') || sessionStorage.getItem('utm_campaign') || '',
+      page: location.pathname + (location.search || ''),
+      event: 'email_captured',
+      stage: 'lead_captured'
+    };
+    if (navigator.sendBeacon) {
+      try {
+        var blob = new Blob([JSON.stringify(body)], { type: 'application/json' });
+        navigator.sendBeacon('/api/leads/capture', blob);
+      } catch (eB) {
+        fetch('/api/leads/capture', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+          keepalive: true
+        }).catch(function () {});
+      }
+    } else {
+      fetch('/api/leads/capture', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+        keepalive: true
+      }).catch(function () {});
+    }
+  } catch (eCap) {}
+
   var btn = document.querySelector('#pop-step2 .pop-btn');
   if (btn) { btn.textContent = 'Unlocking...'; btn.disabled = true; }
   var g = sessionStorage.getItem('sl_gender') || '';
   setTimeout(function() {
-    var ph = sessionStorage.getItem('sl_phone') || dec || '';
-    var params = { phone: ph };
+    var ph2 = sessionStorage.getItem('sl_phone') || dec || '';
+    var params = { phone: ph2 };
     if (g) params.gender = g;
     navigateWithQuery('step6.html', params);
   }, 800);
