@@ -325,11 +325,10 @@ function saleToEvent(row: PpSale, now: number): AnalyticsEvent | null {
     num(row.value) ?? num(row.sale_amount) ?? num(row.unit_value) ?? 0;
   // What producer receives after PerfectPay fees (matches PerfectPay "comissão")
   const commissionAmount = producerCommissionAmount(row);
-  // Faturamento no painel = comissão líquida quando disponível
+  // Faturamento = SEMPRE comissão líquida (após taxa PerfectPay).
+  // Sem comissão na API → 0 (não inventar com preço cheio do produto).
   const revenueAmount =
-    commissionAmount != null && commissionAmount > 0
-      ? commissionAmount
-      : saleAmount;
+    commissionAmount != null && commissionAmount > 0 ? commissionAmount : 0;
   const paymentType = num(row.payment_type ?? row.payment_type_enum);
 
   const utmSource = str(metadata.utm_source || metadata.utmSource, 80);
@@ -424,11 +423,16 @@ function saleToEvent(row: PpSale, now: number): AnalyticsEvent | null {
       planCode,
       planName,
       planLabel,
-      // Primary amount for dashboard faturamento = comissão líquida
-      value: kind === "sale_rejected" ? saleAmount : revenueAmount,
+      // Primary amount for dashboard faturamento = comissão líquida only
+      value: kind === "sale_rejected" ? 0 : revenueAmount,
+      valueIsCommission: true,
       saleAmount,
       commissionAmount: commissionAmount ?? null,
       listPrice: saleAmount,
+      platformFee:
+        saleAmount > 0 && revenueAmount > 0 && saleAmount > revenueAmount
+          ? Math.round((saleAmount - revenueAmount) * 100) / 100
+          : null,
       signedAmount,
       kind,
       eventType: kind,

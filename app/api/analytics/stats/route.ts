@@ -965,19 +965,63 @@ export async function GET(req: NextRequest) {
     }
   }
 
+  /**
+   * Faturamento = APENAS comissão líquida do produtor (após taxa PerfectPay).
+   * Nunca usa o preço cheio do produto (listPrice / saleAmount).
+   *
+   * PerfectPay API: commissions[].value = $ líquido · product value = preço cliente
+   */
   function saleValue(e: (typeof moneyEvents)[0]): number {
-    // Prefer producer commission (net) — matches PerfectPay "comissão"
-    const raw =
-      e.meta?.commissionAmount ??
-      e.meta?.value ??
-      e.meta?.saleAmount ??
-      e.meta?.sale_amount;
-    if (typeof raw === "number" && !isNaN(raw)) return Math.abs(raw);
-    if (raw != null && raw !== "") {
-      const n = Number(String(raw).replace(",", "."));
-      return isNaN(n) ? 0 : Math.abs(n);
+    const toN = (raw: unknown): number | null => {
+      if (typeof raw === "number" && !isNaN(raw)) return Math.abs(raw);
+      if (raw != null && raw !== "") {
+        const n = Number(String(raw).replace(",", "."));
+        return isNaN(n) ? null : Math.abs(n);
+      }
+      return null;
+    };
+
+    // 1) Explicit commission from sync/webhook
+    const commission = toN(e.meta?.commissionAmount);
+    if (commission != null && commission > 0) return commission;
+
+    const list =
+      toN(e.meta?.listPrice) ??
+      toN(e.meta?.saleAmount) ??
+      toN(e.meta?.sale_amount);
+    const val = toN(e.meta?.value);
+
+    // 2) If value is clearly net (less than list price), use it
+    if (val != null && list != null && val > 0 && val < list - 0.001) {
+      return val;
     }
+
+    // 3) value marked as commission
+    if (e.meta?.valueIsCommission === true && val != null && val > 0) {
+      return val;
+    }
+
+    // 4) Do NOT fall back to full product price — would inflate faturamento
+    //    (missing commission → 0 until re-sync from PerfectPay API)
+    if (commission != null) return commission;
     return 0;
+  }
+
+  function listPriceOf(e: (typeof moneyEvents)[0]): number | null {
+    const toN = (raw: unknown): number | null => {
+      if (typeof raw === "number" && !isNaN(raw)) return Math.abs(raw);
+      if (raw != null && raw !== "") {
+        const n = Number(String(raw).replace(",", "."));
+        return isNaN(n) ? null : Math.abs(n);
+      }
+      return null;
+    };
+    return (
+      toN(e.meta?.listPrice) ??
+      toN(e.meta?.saleAmount) ??
+      toN(e.meta?.sale_amount) ??
+      null
+    );
   }
 
   function saleCurrency(e: (typeof moneyEvents)[0]): string {
@@ -1169,11 +1213,21 @@ export async function GET(req: NextRequest) {
             : e.type === "sale_rejected"
               ? "rejected"
               : "sale";
+      const listP = listPriceOf(e);
+      const fee =
+        listP != null && value > 0 && listP > value
+          ? Math.round((listP - value) * 100) / 100
+          : null;
       return {
         id: e.id,
         orderCode: String(e.meta?.orderCode || e.meta?.saleCode || "—"),
         visitorId: e.visitorId.slice(0, 14),
+        /** Comissão líquida (sua) — base do faturamento */
         value: value || null,
+        /** Preço pago pelo cliente (antes da taxa PerfectPay) */
+        listPrice: listP,
+        /** Taxa plataforma ≈ listPrice − comissão */
+        platformFee: fee,
         signedValue:
           kind === "sale" ? value : kind === "rejected" ? 0 : -value,
         kind,

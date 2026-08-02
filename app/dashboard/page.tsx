@@ -169,6 +169,8 @@ type Stats = {
         orderCode: string;
         visitorId: string;
         value: number | null;
+        listPrice?: number | null;
+        platformFee?: number | null;
         signedValue?: number | null;
         kind?: "sale" | "refund" | "chargeback" | "rejected" | string;
         currency?: string;
@@ -852,7 +854,7 @@ export default function DashboardPage() {
               accent="#a78bfa"
             />
             <Kpi
-              label="Faturamento líquido"
+              label="Comissão (período)"
               value={fmtMoney(
                 stats.history.sales?.netRevenue ??
                   stats.history.sales?.revenue ??
@@ -862,7 +864,7 @@ export default function DashboardPage() {
               accent="#34d399"
             />
             <Kpi
-              label="Líquido hoje"
+              label="Comissão hoje"
               value={fmtMoney(
                 stats.history.sales?.today?.netRevenue ??
                   stats.history.sales?.today?.revenue ??
@@ -1178,13 +1180,12 @@ export default function DashboardPage() {
 
               {/* Vendas PerfectPay + Upsells */}
               <section style={styles.grid2Top}>
-                <Card title="Faturamento e vendas (PerfectPay)">
+                <Card title="Sua comissão (sem taxa PerfectPay)">
                   <p style={{ ...styles.muted, margin: "0 0 10px", fontSize: 11 }}>
-                    Valores = <strong>comissão líquida</strong> (o que você
-                    recebe, após taxa PerfectPay) — não o preço cheio do
-                    produto. Cancelados/rejeitados não contam. Reembolso só se
-                    for reembolso real. Sync: botão{" "}
-                    <strong>↓ Vendas hoje</strong>.
+                    Tudo aqui é a <strong>sua comissão líquida</strong> da
+                    PerfectPay (<code>commissions.value</code>) — já{" "}
+                    <strong>sem a taxa da plataforma</strong>. Não é o preço
+                    que o cliente pagou. Sync: <strong>↓ Vendas hoje</strong>.
                   </p>
                   <div style={styles.layerCards3}>
                     <div style={styles.layerBox}>
@@ -1203,8 +1204,8 @@ export default function DashboardPage() {
                         )}
                       </div>
                       <div style={styles.muted}>
-                        Líquido hoje ({stats.history.sales?.today?.count ?? 0}{" "}
-                        vendas)
+                        Comissão hoje (
+                        {stats.history.sales?.today?.count ?? 0} vendas)
                       </div>
                     </div>
                     <div style={styles.layerBox}>
@@ -1223,36 +1224,22 @@ export default function DashboardPage() {
                         )}
                       </div>
                       <div style={styles.muted}>
-                        Líquido período ({stats.history.sales?.count ?? 0}{" "}
-                        vendas)
+                        Comissão período (
+                        {stats.history.sales?.count ?? 0} vendas)
                       </div>
                     </div>
                     <div style={styles.layerBox}>
                       <div
                         style={{
-                          color: "#a78bfa",
+                          color: "#38bdf8",
                           fontWeight: 800,
-                          fontSize: 18,
+                          fontSize: 20,
                         }}
                       >
-                        {fmtMoney(
-                          stats.history.sales?.grossRevenue ??
-                            stats.history.sales?.revenue ??
-                            0,
-                          "USD"
-                        )}
+                        {fmtMoney(stats.history.sales?.avgTicket ?? 0, "USD")}
                       </div>
                       <div style={styles.muted}>
-                        Bruto − reemb.{" "}
-                        {fmtMoney(
-                          stats.history.sales?.refundedAmount ?? 0,
-                          "USD"
-                        )}{" "}
-                        − CB{" "}
-                        {fmtMoney(
-                          stats.history.sales?.chargebackAmount ?? 0,
-                          "USD"
-                        )}
+                        Ticket médio (comissão)
                       </div>
                     </div>
                   </div>
@@ -1409,8 +1396,9 @@ export default function DashboardPage() {
                             <th style={styles.th}>Tipo</th>
                             <th style={styles.th}>Pedido</th>
                             <th style={styles.th}>Produto</th>
-                            <th style={styles.th}>Valor</th>
-                            <th style={styles.th}>Fonte</th>
+                            <th style={styles.th}>Sua comissão</th>
+                            <th style={styles.th}>Preço cliente</th>
+                            <th style={styles.th}>Taxa PP</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -1468,10 +1456,7 @@ export default function DashboardPage() {
                                 <td style={styles.tdMono}>
                                   <strong style={{ color: kindColor }}>
                                     {kind === "rejected"
-                                      ? `${fmtMoney(
-                                          display,
-                                          s.currency || "USD"
-                                        )} (não pago)`
+                                      ? "—"
                                       : display != null && display < 0
                                         ? `−${fmtMoney(
                                             Math.abs(display),
@@ -1483,7 +1468,19 @@ export default function DashboardPage() {
                                           )}
                                   </strong>
                                 </td>
-                                <td style={styles.td}>{s.source || "—"}</td>
+                                <td style={styles.tdMono}>
+                                  {s.listPrice != null
+                                    ? fmtMoney(s.listPrice, s.currency || "USD")
+                                    : "—"}
+                                </td>
+                                <td style={styles.tdMono}>
+                                  {s.platformFee != null
+                                    ? fmtMoney(
+                                        s.platformFee,
+                                        s.currency || "USD"
+                                      )
+                                    : "—"}
+                                </td>
                               </tr>
                             );
                           })}

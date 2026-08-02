@@ -291,10 +291,11 @@ export async function POST(req: NextRequest) {
         if (type === 1) break;
       }
     }
+    // Faturamento = só comissão líquida (sem taxa PerfectPay). Sem comissão → 0.
     const revenueAmount =
       commissionAmount != null && commissionAmount > 0
         ? commissionAmount
-        : saleAmount ?? 0;
+        : 0;
     const paymentType = num(body.payment_type_enum);
     const isUpsellPayment = paymentType === 6; // credit_card_upsell
 
@@ -409,11 +410,17 @@ export async function POST(req: NextRequest) {
         planCode,
         planName,
         planLabel,
-        value:
-          eventType === "sale_rejected" ? saleAmount ?? 0 : revenueAmount,
+        value: eventType === "sale_rejected" ? 0 : revenueAmount,
+        valueIsCommission: true,
         saleAmount,
         commissionAmount,
         listPrice: saleAmount,
+        platformFee:
+          saleAmount != null &&
+          revenueAmount > 0 &&
+          saleAmount > revenueAmount
+            ? Math.round((saleAmount - revenueAmount) * 100) / 100
+            : null,
         signedAmount,
         kind,
         eventType,
