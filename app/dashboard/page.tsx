@@ -107,8 +107,11 @@ type Stats = {
       views: number;
       accepts: number;
       declines: number;
+      rejects?: number;
+      paid?: number;
       acceptRate: number;
       declineRate: number;
+      rejectRate?: number;
     }[];
     dropOff?: { stage: string; label: string; count: number }[];
     sales?: {
@@ -121,6 +124,8 @@ type Stats = {
       netRevenue?: number;
       refundCount?: number;
       chargebackCount?: number;
+      rejectedCount?: number;
+      rejectedUpsellCount?: number;
       avgTicket?: number;
       today?: {
         day: string;
@@ -165,7 +170,7 @@ type Stats = {
         visitorId: string;
         value: number | null;
         signedValue?: number | null;
-        kind?: "sale" | "refund" | "chargeback" | string;
+        kind?: "sale" | "refund" | "chargeback" | "rejected" | string;
         currency?: string;
         day?: string;
         planLabel: string;
@@ -1415,17 +1420,25 @@ export default function DashboardPage() {
                                 ? "Reembolso"
                                 : kind === "chargeback"
                                   ? "Chargeback"
-                                  : "Venda";
+                                  : kind === "rejected"
+                                    ? "Rejeitado"
+                                    : "Venda";
                             const kindColor =
-                              kind === "sale" ? "#4ade80" : "#f87171";
+                              kind === "sale"
+                                ? "#4ade80"
+                                : kind === "rejected"
+                                  ? "#fbbf24"
+                                  : "#f87171";
                             const display =
-                              s.signedValue != null
-                                ? s.signedValue
-                                : kind === "sale"
-                                  ? s.value
-                                  : s.value != null
-                                    ? -Math.abs(s.value)
-                                    : null;
+                              kind === "rejected"
+                                ? s.value
+                                : s.signedValue != null
+                                  ? s.signedValue
+                                  : kind === "sale"
+                                    ? s.value
+                                    : s.value != null
+                                      ? -Math.abs(s.value)
+                                      : null;
                             return (
                               <tr key={s.id}>
                                 <td style={styles.tdMono}>{fmtTime(s.ts)}</td>
@@ -1437,33 +1450,36 @@ export default function DashboardPage() {
                                   }}
                                 >
                                   {kindLabel}
-                                </td>
-                                <td style={styles.tdMono}>{s.orderCode}</td>
-                                <td style={styles.td}>
-                                  {s.planLabel}
                                   {s.isUpsell ? (
-                                    <span
+                                    <div
                                       style={{
-                                        marginLeft: 6,
-                                        color: "#fbbf24",
-                                        fontSize: 11,
+                                        fontSize: 10,
+                                        fontWeight: 600,
+                                        color: "#c4b5fd",
                                       }}
                                     >
                                       upsell
-                                    </span>
+                                    </div>
                                   ) : null}
                                 </td>
+                                <td style={styles.tdMono}>{s.orderCode}</td>
+                                <td style={styles.td}>{s.planLabel}</td>
                                 <td style={styles.tdMono}>
                                   <strong style={{ color: kindColor }}>
-                                    {display != null && display < 0
-                                      ? `−${fmtMoney(
-                                          Math.abs(display),
-                                          s.currency || "USD"
-                                        )}`
-                                      : fmtMoney(
+                                    {kind === "rejected"
+                                      ? `${fmtMoney(
                                           display,
                                           s.currency || "USD"
-                                        )}
+                                        )} (não pago)`
+                                      : display != null && display < 0
+                                        ? `−${fmtMoney(
+                                            Math.abs(display),
+                                            s.currency || "USD"
+                                          )}`
+                                        : fmtMoney(
+                                            display,
+                                            s.currency || "USD"
+                                          )}
                                   </strong>
                                 </td>
                                 <td style={styles.td}>{s.source || "—"}</td>
@@ -1477,16 +1493,25 @@ export default function DashboardPage() {
                 </Card>
 
                 <div style={styles.stackCol}>
-                  <Card title="Upsells — aceitou / recusou / fim">
+                  <Card title="Upsells — SIM / NÃO / rejeitado cartão">
                     <p
                       style={{ ...styles.muted, margin: "0 0 10px", fontSize: 11 }}
                     >
-                      Por página: quantos viram, clicaram SIM, clicaram NÃO.
-                      Thank you = chegou ao fim da cadeia.
+                      SIM = clicou no upsell · NÃO = recusou · Rejeitado = cartão
+                      recusado na PerfectPay (não conta no faturamento) · Pago =
+                      comissão aprovada.
+                      {stats.history.sales?.rejectedUpsellCount
+                        ? ` Hoje/período: ${stats.history.sales.rejectedUpsellCount} upsell(s) rejeitado(s).`
+                        : ""}
                     </p>
                     {!stats.history.upsellStats?.length ||
                     !stats.history.upsellStats.some(
-                      (u) => u.views || u.accepts || u.declines
+                      (u) =>
+                        u.views ||
+                        u.accepts ||
+                        u.declines ||
+                        (u.rejects ?? 0) > 0 ||
+                        (u.paid ?? 0) > 0
                     ) ? (
                       <Empty />
                     ) : (
@@ -1498,7 +1523,8 @@ export default function DashboardPage() {
                               <th style={styles.th}>Viu</th>
                               <th style={styles.th}>SIM</th>
                               <th style={styles.th}>NÃO</th>
-                              <th style={styles.th}>% SIM</th>
+                              <th style={styles.th}>Rejeitado</th>
+                              <th style={styles.th}>Pago</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -1509,10 +1535,21 @@ export default function DashboardPage() {
                                 <td style={{ ...styles.td, color: "#4ade80" }}>
                                   {u.accepts}
                                 </td>
-                                <td style={{ ...styles.td, color: "#f87171" }}>
+                                <td style={{ ...styles.td, color: "#94a3b8" }}>
                                   {u.declines}
                                 </td>
-                                <td style={styles.tdMono}>{u.acceptRate}%</td>
+                                <td
+                                  style={{
+                                    ...styles.td,
+                                    color: "#fbbf24",
+                                    fontWeight: (u.rejects ?? 0) > 0 ? 700 : 400,
+                                  }}
+                                >
+                                  {u.rejects ?? 0}
+                                </td>
+                                <td style={{ ...styles.td, color: "#a78bfa" }}>
+                                  {u.paid ?? 0}
+                                </td>
                               </tr>
                             ))}
                           </tbody>

@@ -35,7 +35,7 @@ const REFUND_STATUSES = new Set([7]); // refunded
 const CHARGEBACK_STATUSES = new Set([9]); // charged_back
 // Cancelled (6) / rejected (5) / pending (1) → ignore (no money moved as refund)
 
-type SaleKind = "sale" | "sale_refund" | "sale_chargeback";
+type SaleKind = "sale" | "sale_refund" | "sale_chargeback" | "sale_rejected";
 
 function num(v: unknown): number | null {
   if (typeof v === "number" && !isNaN(v)) return v;
@@ -223,7 +223,15 @@ export async function POST(req: NextRequest) {
       ) {
         return "sale_chargeback";
       }
-      // cancelled / rejected / pending → ignore (not a refund)
+      if (
+        statusEnum === 5 ||
+        statusDetail === "rejected" ||
+        statusDetail === "rejeitado" ||
+        statusDetail === "recusado"
+      ) {
+        return "sale_rejected";
+      }
+      // cancelled / pending → ignore
       return null;
     }
 
@@ -328,7 +336,7 @@ export async function POST(req: NextRequest) {
     const ts = Date.now();
     const approvedAt = str(body.date_approved, 40);
 
-    const eventType: "sale" | "sale_refund" | "sale_chargeback" = kind;
+    const eventType = kind;
 
     const reasonMap: Record<SaleKind, { reason: string; label: string }> = {
       sale: {
@@ -343,14 +351,34 @@ export async function POST(req: NextRequest) {
         reason: "sale_chargeback",
         label: "Chargeback (PerfectPay)",
       },
+      sale_rejected: {
+        reason: "sale_rejected",
+        label: "Pagamento rejeitado (PerfectPay)",
+      },
     };
     const { reason, label: reasonLabel } = reasonMap[kind];
 
-    // Faturamento = comissão líquida (producer) when available
+    // Faturamento = comissão líquida (producer) when available; rejected = $0 revenue
     const signedAmount =
       eventType === "sale"
         ? revenueAmount
-        : -Math.abs(revenueAmount);
+        : eventType === "sale_rejected"
+          ? 0
+          : -Math.abs(revenueAmount);
+
+    // Upsell detection (plan / payment_type 6 / PPU codes)
+    const planMetaWh = pickMeta(metadata, ["plan", "upsell", "tier"]).toLowerCase();
+    const isUpsellWh =
+      isUpsellPayment ||
+      /^up[1-7]$/i.test(planMetaWh) ||
+      /up\s*[1-7]/i.test(planName) ||
+      productCode.toUpperCase().startsWith("PPU");
+    if (isUpsellWh && /^up[1-7]$/i.test(planMetaWh)) {
+      stage = `upsell${planMetaWh.replace(/\D/g, "")}`;
+    } else if (isUpsellWh && /up\s*([1-7])/i.test(planName)) {
+      const m = planName.match(/up\s*([1-7])/i);
+      if (m) stage = `upsell${m[1]}`;
+    }
 
     const ev: AnalyticsEvent = {
       id: `${eventType}_${orderCode}_${ts.toString(36)}`,
@@ -381,21 +409,24 @@ export async function POST(req: NextRequest) {
         planCode,
         planName,
         planLabel,
-        value: revenueAmount,
+        value:
+          eventType === "sale_rejected" ? saleAmount ?? 0 : revenueAmount,
         saleAmount,
         commissionAmount,
         listPrice: saleAmount,
         signedAmount,
         kind,
         eventType,
-        tier: tier || null,
+        tier: tier || planMetaWh || null,
         currency: num(body.currency_enum) === 1 ? "BRL" : "USD",
         paymentType,
         paymentMethod: num(body.payment_method_enum),
         saleStatus: statusEnum,
         saleStatusDetail: statusDetail,
-        isUpsell: isUpsellPayment || /^up[1-7]$/i.test(planMeta),
-        isAdjustment: eventType !== "sale",
+        isUpsell: isUpsellWh,
+        isAdjustment:
+          eventType === "sale_refund" || eventType === "sale_chargeback",
+        countsAsRevenue: eventType === "sale",
         customerEmail: str(customer.email, 120),
         customerName: str(customer.full_name, 120),
         placement: metaPlacement || metaUtmContent || "",

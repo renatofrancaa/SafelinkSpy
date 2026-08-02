@@ -460,7 +460,7 @@ export function normalizePagePath(page: string): string {
  * - upsell_accept / upsell_decline: 1× per visitor + stage
  * - thankyou_complete: 1× per visitor
  * - sale: 1× per PerfectPay order code
- * - sale_refund / sale_chargeback: 1× per order code
+ * - sale_refund / sale_chargeback / sale_rejected: 1× per order code
  * Other types: no server dedupe (null).
  */
 function uniqueEventKey(e: AnalyticsEvent): string | null {
@@ -487,7 +487,12 @@ function uniqueEventKey(e: AnalyticsEvent): string | null {
     return `${t}:${vid}:${stage}`;
   }
   if (t === "thankyou_complete") return `ty:${vid}`;
-  if (t === "sale" || t === "sale_refund" || t === "sale_chargeback") {
+  if (
+    t === "sale" ||
+    t === "sale_refund" ||
+    t === "sale_chargeback" ||
+    t === "sale_rejected"
+  ) {
     const order = String(
       e.meta?.orderCode || e.meta?.saleCode || e.meta?.code || e.id || ""
     )
@@ -532,7 +537,8 @@ function memHasUnique(
         t === "thankyou_complete" ||
         t === "sale" ||
         t === "sale_refund" ||
-        t === "sale_chargeback") &&
+        t === "sale_chargeback" ||
+        t === "sale_rejected") &&
       et === t
     ) {
       if (uniqueEventKey(ev) === key) return true;
@@ -614,7 +620,8 @@ export async function pushEvent(
         } else if (
           t === "sale" ||
           t === "sale_refund" ||
-          t === "sale_chargeback"
+          t === "sale_chargeback" ||
+          t === "sale_rejected"
         ) {
           const order = String(
             e.meta?.orderCode || e.meta?.saleCode || e.meta?.code || ""
@@ -636,7 +643,9 @@ export async function pushEvent(
             if (
               rows?.length &&
               e.meta &&
-              (e.meta.commissionAmount != null || e.meta.importedFrom === "api")
+              (e.meta.commissionAmount != null ||
+                e.meta.importedFrom === "api" ||
+                t === "sale_rejected")
             ) {
               try {
                 await q`

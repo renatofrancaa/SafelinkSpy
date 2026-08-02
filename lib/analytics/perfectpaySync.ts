@@ -47,14 +47,15 @@ function str(v: unknown, max = 200): string {
 /**
  * Map PerfectPay sale_status → event type.
  * IMPORTANT:
- * - cancelled / rejected / pending → ignore (not refunds; never paid or card failed)
+ * - approved / authorized / completed → sale (revenue)
  * - refunded → sale_refund
  * - charged_back → sale_chargeback
- * - approved / authorized / completed → sale
+ * - rejected → sale_rejected (tracked for upsells; NO revenue)
+ * - cancelled / pending → ignore
  */
 function mapKind(
   status: unknown
-): "sale" | "sale_refund" | "sale_chargeback" | null {
+): "sale" | "sale_refund" | "sale_chargeback" | "sale_rejected" | null {
   if (status == null) return null;
   const s = String(status).toLowerCase().trim();
   const n = Number(s);
@@ -62,9 +63,10 @@ function mapKind(
   // numeric enums (webhook-compatible)
   if (!isNaN(n) && s !== "" && String(n) === s) {
     if (n === 2 || n === 8 || n === 10) return "sale";
-    if (n === 7) return "sale_refund"; // refunded only (NOT cancelled=6)
+    if (n === 7) return "sale_refund";
     if (n === 9) return "sale_chargeback";
-    // 1 pending, 5 rejected, 6 cancelled → ignore
+    if (n === 5) return "sale_rejected"; // card rejected
+    // 1 pending, 6 cancelled → ignore
     return null;
   }
 
@@ -77,7 +79,6 @@ function mapKind(
   ) {
     return "sale";
   }
-  // Real money-back only — never treat cancel/reject as refund
   if (
     s === "refunded" ||
     s === "devolvido" ||
@@ -93,7 +94,64 @@ function mapKind(
   ) {
     return "sale_chargeback";
   }
+  if (s === "rejected" || s === "rejeitado" || s === "recusado") {
+    return "sale_rejected";
+  }
   return null;
+}
+
+/** Detect upsell product from PerfectPay row (plan Up1…, payment_type 6, etc.) */
+function detectUpsell(
+  row: Record<string, unknown>,
+  planName: string,
+  planCode: string,
+  productName: string,
+  paymentType: number | null
+): { isUpsell: boolean; stage: string; tier: string } {
+  const meta = (row.metadata && typeof row.metadata === "object"
+    ? row.metadata
+    : {}) as Record<string, unknown>;
+  const planMeta = str(
+    meta.plan || meta.upsell || meta.tier || planName || planCode,
+    40
+  ).toLowerCase();
+  const name = (productName || "").toLowerCase();
+  const code = str(row.product_code || row.productCode, 40).toUpperCase();
+
+  let tier = "";
+  let stage = "checkout";
+
+  const upMatch =
+    planMeta.match(/^up\s*([1-7])$/) ||
+    planMeta.match(/^upsell\s*([1-7])$/) ||
+    planMeta.match(/up([1-7])/);
+  if (upMatch) {
+    tier = `up${upMatch[1]}`;
+    stage = `upsell${upMatch[1]}`;
+  } else if (paymentType === 6 || planMeta.includes("upsell")) {
+    tier = "upsell";
+    stage = "upsell";
+  } else if (
+    /message vault|360 tracker|vip priority|live room|behavior|gps|social network/i.test(
+      name
+    )
+  ) {
+    // known upsell product names from catalog
+    tier = "upsell";
+    stage = "upsell";
+  } else if (code.startsWith("PPU") && !/unique/i.test(planName)) {
+    // CenterPag upsell checkout codes often start with PPU
+    tier = "upsell";
+    stage = "upsell";
+  }
+
+  const isUpsell =
+    !!tier ||
+    paymentType === 6 ||
+    /^up[1-7]$/i.test(planMeta) ||
+    planMeta.includes("upsell");
+
+  return { isUpsell, stage: isUpsell ? stage : "checkout", tier: tier || "" };
 }
 
 /**
@@ -273,7 +331,6 @@ function saleToEvent(row: PpSale, now: number): AnalyticsEvent | null {
       ? commissionAmount
       : saleAmount;
   const paymentType = num(row.payment_type ?? row.payment_type_enum);
-  const isUpsell = paymentType === 6;
 
   const utmSource = str(metadata.utm_source || metadata.utmSource, 80);
   const utmMedium = str(metadata.utm_medium || metadata.utmMedium, 80);
@@ -293,10 +350,18 @@ function saleToEvent(row: PpSale, now: number): AnalyticsEvent | null {
   const planLabel =
     planName || productName || (saleAmount ? `$${saleAmount}` : orderCode);
 
-  let stage = "checkout";
-  const planMeta = str(metadata.plan || metadata.upsell || metadata.tier, 20).toLowerCase();
+  const up = detectUpsell(row, planName, planCode, productName, paymentType);
+  let stage = up.isUpsell ? up.stage : "checkout";
+  const planMeta = str(
+    metadata.plan || metadata.upsell || metadata.tier,
+    20
+  ).toLowerCase();
   if (/^up[1-7]$/.test(planMeta)) stage = `upsell${planMeta.slice(2)}`;
-  else if (isUpsell) stage = "upsell";
+  else if (/^up\s*[1-7]$/i.test(planName)) {
+    const m = planName.toLowerCase().match(/up\s*([1-7])/);
+    if (m) stage = `upsell${m[1]}`;
+  }
+  const tier = up.tier || planMeta || "";
 
   const reasonMap = {
     sale: {
@@ -311,6 +376,10 @@ function saleToEvent(row: PpSale, now: number): AnalyticsEvent | null {
       reason: "sale_chargeback",
       label: "Chargeback (API PerfectPay)",
     },
+    sale_rejected: {
+      reason: "sale_rejected",
+      label: "Pagamento rejeitado (API PerfectPay)",
+    },
   } as const;
   const { reason, label: reasonLabel } = reasonMap[kind];
 
@@ -318,8 +387,13 @@ function saleToEvent(row: PpSale, now: number): AnalyticsEvent | null {
   const dateCreated = str(row.date_created || row.dateCreated, 40);
   const ts = parseTs(dateApproved || dateCreated, now);
 
+  // Rejected: keep amount for display but do NOT affect faturamento
   const signedAmount =
-    kind === "sale" ? revenueAmount : -Math.abs(revenueAmount);
+    kind === "sale"
+      ? revenueAmount
+      : kind === "sale_rejected"
+        ? 0
+        : -Math.abs(revenueAmount);
 
   return {
     id: `${kind}_${orderCode}_api`,
@@ -351,7 +425,7 @@ function saleToEvent(row: PpSale, now: number): AnalyticsEvent | null {
       planName,
       planLabel,
       // Primary amount for dashboard faturamento = comissão líquida
-      value: revenueAmount,
+      value: kind === "sale_rejected" ? saleAmount : revenueAmount,
       saleAmount,
       commissionAmount: commissionAmount ?? null,
       listPrice: saleAmount,
@@ -361,8 +435,10 @@ function saleToEvent(row: PpSale, now: number): AnalyticsEvent | null {
       currency: currencyFromEnum(row.currency_enum ?? row.currencyEnum),
       paymentType,
       saleStatus: row.sale_status ?? row.sale_status_enum ?? null,
-      isUpsell,
-      isAdjustment: kind !== "sale",
+      isUpsell: up.isUpsell,
+      tier: tier || null,
+      isAdjustment: kind === "sale_refund" || kind === "sale_chargeback",
+      countsAsRevenue: kind === "sale",
       customerEmail: str(customer?.email, 120),
       customerName: str(customer?.full_name, 120),
       placement: str(metadata.utm_content || metadata.placement, 120),

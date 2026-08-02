@@ -1124,8 +1124,27 @@ export async function GET(req: NextRequest) {
       };
     });
 
-  // Combined feed: sales + refunds + chargebacks, newest first
-  const saleFeed = [...salesList, ...refundList, ...chargebackList]
+  // Rejected payments (card failed) — tracked, not in faturamento
+  const rejectedList = events
+    .filter((e) => e.type === "sale_rejected")
+    .sort((a, b) => b.ts - a.ts);
+  const rejectedByOrder = new Map<string, (typeof rejectedList)[0]>();
+  for (const e of rejectedList) {
+    const order = String(
+      e.meta?.orderCode || e.meta?.saleCode || e.meta?.code || e.id
+    );
+    if (!rejectedByOrder.has(order)) rejectedByOrder.set(order, e);
+  }
+  const rejectedUniq = Array.from(rejectedByOrder.values());
+  const rejectedUpsells = rejectedUniq.filter((e) => !!e.meta?.isUpsell);
+
+  // Combined feed: sales + refunds + chargebacks + rejected, newest first
+  const saleFeed = [
+    ...salesList,
+    ...refundList,
+    ...chargebackList,
+    ...rejectedUniq,
+  ]
     .sort((a, b) => b.ts - a.ts)
     .slice(0, 100)
     .map((e) => {
@@ -1136,13 +1155,16 @@ export async function GET(req: NextRequest) {
           ? "refund"
           : e.type === "sale_chargeback"
             ? "chargeback"
-            : "sale";
+            : e.type === "sale_rejected"
+              ? "rejected"
+              : "sale";
       return {
         id: e.id,
         orderCode: String(e.meta?.orderCode || e.meta?.saleCode || "—"),
         visitorId: e.visitorId.slice(0, 14),
         value: value || null,
-        signedValue: kind === "sale" ? value : -value,
+        signedValue:
+          kind === "sale" ? value : kind === "rejected" ? 0 : -value,
         kind,
         currency: saleCurrency(e),
         day: dayKeySP(e.ts),
@@ -1162,15 +1184,24 @@ export async function GET(req: NextRequest) {
       };
     });
 
-  // ─── Upsell performance (view / accept / decline / thankyou) ───
+  // ─── Upsell performance (view / accept / decline / reject / thankyou) ───
   const upsellStats = UPSELL_FUNNEL_ORDER.map((stage) => {
     const views = new Set<string>();
     const accepts = new Set<string>();
     const declines = new Set<string>();
+    const rejects = new Set<string>();
+    const paid = new Set<string>();
     for (const e of events) {
       const st = effectiveStage(e);
       if (st === stage || e.stage === stage) {
-        if (e.type === "pageview" || e.type === "upsell_accept" || e.type === "upsell_decline" || e.type === "thankyou_complete") {
+        if (
+          e.type === "pageview" ||
+          e.type === "upsell_accept" ||
+          e.type === "upsell_decline" ||
+          e.type === "thankyou_complete" ||
+          e.type === "sale" ||
+          e.type === "sale_rejected"
+        ) {
           views.add(e.visitorId);
         }
       }
@@ -1179,6 +1210,35 @@ export async function GET(req: NextRequest) {
       }
       if (e.type === "upsell_decline" && (e.stage === stage || st === stage)) {
         declines.add(e.visitorId);
+      }
+      // Card rejected on this upsell (PerfectPay)
+      if (e.type === "sale_rejected" && e.meta?.isUpsell) {
+        const tier = String(e.meta?.tier || e.meta?.planName || "")
+          .toLowerCase()
+          .replace(/\s+/g, "");
+        const stageKey = stage.replace("upsell", "up");
+        const matchStage =
+          e.stage === stage ||
+          st === stage ||
+          tier === stageKey ||
+          tier.includes(stageKey) ||
+          (stage.startsWith("upsell") &&
+            String(e.meta?.planName || "")
+              .toLowerCase()
+              .includes(stageKey));
+        if (matchStage) rejects.add(e.visitorId);
+      }
+      // Paid upsell sale
+      if (
+        e.type === "sale" &&
+        e.meta?.isUpsell &&
+        (e.stage === stage ||
+          st === stage ||
+          String(e.meta?.planName || "")
+            .toLowerCase()
+            .includes(stage.replace("upsell", "up")))
+      ) {
+        paid.add(e.visitorId);
       }
       if (stage === "thankyou" && e.type === "thankyou_complete") {
         views.add(e.visitorId);
@@ -1194,17 +1254,33 @@ export async function GET(req: NextRequest) {
         views.add(e.visitorId);
       }
     }
+    // Global upsell rejects without stage: put on upsell1 bucket only as fallback? 
+    // Better: match plan UpN → upsellN already above; unmatched upsell rejects go to any stage with "upsell" generic
+    if (stage === "upsell1") {
+      for (const e of rejectedUpsells) {
+        const pn = String(e.meta?.planName || e.meta?.tier || "").toLowerCase();
+        if (!/up\s*[1-7]/.test(pn) && !String(e.stage || "").startsWith("upsell")) {
+          // generic upsell reject without number — count once on up1 for visibility
+          rejects.add(e.visitorId + ":generic");
+        }
+      }
+    }
     const v = views.size;
     const a = accepts.size;
     const d = declines.size;
+    const r = rejects.size;
+    const p = paid.size;
     return {
       stage,
       label: STAGE_LABELS[stage] || stage,
       views: v,
       accepts: a,
       declines: d,
+      rejects: r,
+      paid: p,
       acceptRate: v ? Math.round((a / v) * 1000) / 10 : 0,
       declineRate: v ? Math.round((d / v) * 1000) / 10 : 0,
+      rejectRate: v ? Math.round((r / v) * 1000) / 10 : 0,
     };
   });
 
@@ -1335,6 +1411,8 @@ export async function GET(req: NextRequest) {
         netRevenue: round2(netRevenue),
         refundCount: refundList.length,
         chargebackCount: chargebackList.length,
+        rejectedCount: rejectedUniq.length,
+        rejectedUpsellCount: rejectedUpsells.length,
         avgTicket:
           salesList.length > 0 ? round2(grossRevenue / salesList.length) : 0,
         /** Faturamento do dia (America/Sao_Paulo) */
