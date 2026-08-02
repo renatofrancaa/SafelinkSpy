@@ -4,6 +4,7 @@ import {
   getEventsInRange,
   type AnalyticsEvent,
 } from "@/lib/analytics/store";
+import { notifyN8nPurchase } from "@/lib/analytics/n8nNotify";
 
 export const dynamic = "force-dynamic";
 
@@ -447,6 +448,22 @@ export async function POST(req: NextRequest) {
 
     const result = await pushEvent(ev);
 
+    // Tell n8n this email purchased → recovery sequence must skip Resend
+    let n8nPurchase: { ok: boolean; status?: number } = { ok: false };
+    if (eventType === "sale") {
+      const buyerEmail = str(customer.email, 120);
+      if (buyerEmail) {
+        n8nPurchase = await notifyN8nPurchase({
+          email: buyerEmail,
+          name: str(customer.full_name, 120),
+          orderCode,
+          amount: revenueAmount,
+          productName,
+          status: "purchased",
+        });
+      }
+    }
+
     return NextResponse.json({
       ok: true,
       kind,
@@ -459,6 +476,7 @@ export async function POST(req: NextRequest) {
       signedAmount,
       deduped: !!result.deduped,
       pushed: result.ok,
+      n8nPurchaseNotified: n8nPurchase.ok,
     });
   } catch (e) {
     console.error("perfectpay webhook error", e);

@@ -7,6 +7,7 @@
  */
 
 import { pushEvent, type AnalyticsEvent } from "@/lib/analytics/store";
+import { notifyN8nPurchase } from "@/lib/analytics/n8nNotify";
 
 const API_BASE = "https://app.perfectpay.com.br/api";
 
@@ -531,6 +532,25 @@ export async function syncPerfectPayToday(): Promise<SyncResult> {
         } else if (pushed.ok) {
           result.imported += 1;
           result.byKind[ev.type] = (result.byKind[ev.type] || 0) + 1;
+          // New approved sale → tell n8n (skip recovery email)
+          if (ev.type === "sale") {
+            const em = String(ev.meta?.customerEmail || "");
+            if (em) {
+              void notifyN8nPurchase({
+                email: em,
+                name: String(ev.meta?.customerName || ""),
+                orderCode: String(ev.meta?.orderCode || ""),
+                amount:
+                  typeof ev.meta?.commissionAmount === "number"
+                    ? ev.meta.commissionAmount
+                    : typeof ev.meta?.value === "number"
+                      ? ev.meta.value
+                      : null,
+                productName: String(ev.meta?.productName || ""),
+                status: "purchased",
+              });
+            }
+          }
         } else {
           result.errors.push(pushed.error || "push failed");
         }
