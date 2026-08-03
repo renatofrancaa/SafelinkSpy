@@ -1,0 +1,9 @@
+﻿{
+  "projectId": "prj_b3ey219D9RElNFxLwg4NGiFXwgLn",
+  "orgId": "team_8TvClLvzqCr4WZ7ezMgyOk8A",
+  "projectName": "member-report",
+  "productionDomain": "en.safelinkspy.com",
+  "legacyRepo": "renatofrancaa/member-report",
+  "monorepoPath": "apps/member-report",
+  "note": "After cutover, Vercel Root Directory must be apps/member-report on SafelinkSpy repo. This file is documentation only; do not commit real tokens."
+}

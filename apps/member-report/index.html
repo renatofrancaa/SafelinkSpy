@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>SafeLink Spy · Member Access</title>
+  <link rel="icon" type="image/svg+xml" href="./images/favicon.svg">
+  <meta name="robots" content="noindex">
+  <link rel="stylesheet" href="./css/app.css">
+</head>
+<body>
+  <div class="shell">
+    <div class="app-top">
+      <div class="brand">
+        <div class="logo" aria-hidden="true">
+          <svg viewBox="0 0 48 48" fill="none"><circle cx="24" cy="20" r="14" stroke="#fff" stroke-width="2" opacity=".28"/><circle cx="24" cy="20" r="9" stroke="#fff" stroke-width="2" opacity=".5"/><circle cx="24" cy="20" r="4.2" stroke="#fff" stroke-width="2" opacity=".85"/><path d="M24 20 L24 6 A14 14 0 0 1 36.5 25.5 Z" fill="#fff" opacity=".22"/><circle cx="24" cy="20" r="2.2" fill="#fff"/><path d="M24 42c-4.6-5.6-7.6-9.6-7.6-13.2a7.6 7.6 0 1 1 15.2 0c0 3.6-3 7.6-7.6 13.2z" fill="#fff"/><circle cx="24" cy="28.6" r="2.4" fill="#008f6f"/></svg>
+        </div>
+        <div>
+          <strong>SafeLink <span class="spy">Spy</span></strong>
+          <small>Member access</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" id="card">
+      <h1>Enter your purchase email</h1>
+      <p class="lead" id="lead">
+        Use the <strong>same email you used at checkout</strong>. Access is linked to your order
+        so only the buyer can open the case dashboard.
+      </p>
+      <form id="form">
+        <label for="email">Purchase email</label>
+        <input id="email" name="email" type="email" required autocomplete="email" placeholder="you@email.com">
+        <button type="submit" id="btn">Continue →</button>
+      </form>
+      <div class="trust">
+        <span>1 scan per order</span>
+        <span>IP-bound session</span>
+        <span>Result on this link</span>
+        <span>Email copy too</span>
+      </div>
+      <p class="note" id="note">Enter your purchase email to continue.</p>
+    </div>
+  </div>
+  <script src="./js/case-store.js"></script>
+  <script>
+    (function () {
+      var form = document.getElementById('form');
+      var btn = document.getElementById('btn');
+      var note = document.getElementById('note');
+      var navigating = false;
+
+      function enableBtn() {
+        if (!navigating) btn.disabled = false;
+      }
+
+      function goResume(c, msgReady, msgWait) {
+        if (!c) {
+          enableBtn();
+          return;
+        }
+        navigating = true;
+        if (c.email) CaseStore.setSessionEmail(c.email);
+        CaseStore.persistCaseCookies(c);
+        var ready = CaseStore.isReady(c);
+        note.textContent = ready
+          ? (msgReady || 'Scan finished — opening your complete report…')
+          : (msgWait || 'Scan still running — opening waiting room…');
+        // ready → report.html | waiting → status.html
+        location.replace(CaseStore.resumeUrl(c));
+      }
+
+      // ?demo=reset → clear local cases so you can start a new test scan
+      try {
+        if (new URLSearchParams(location.search).get('demo') === 'reset') {
+          CaseStore.resetAllDemo();
+          note.textContent = 'Reset done. Enter any email to start a new test scan.';
+        }
+      } catch (e) {}
+
+      // Soft auto-resume only if we already know this visitor's case (cookie/IP).
+      // Never leave Continue permanently disabled.
+      btn.disabled = true;
+      CaseStore.resolveIp()
+        .then(function (ip) {
+          return CaseStore.findExistingForVisitor({ ip: ip });
+        })
+        .then(function (existing) {
+          if (existing) {
+            var dest = CaseStore.resumeUrl(existing);
+            try {
+              var d = new URLSearchParams(location.search).get('demo');
+              if (d === 'fast' || d === 'now') {
+                dest = 'status.html?id=' + encodeURIComponent(existing.id) + '&demo=' + d;
+              }
+            } catch (e) {}
+            goResume(existing);
+            // If demo forced a different dest, override
+            try {
+              var d2 = new URLSearchParams(location.search).get('demo');
+              if (d2 === 'fast' || d2 === 'now') {
+                location.replace(
+                  'status.html?id=' + encodeURIComponent(existing.id) + '&demo=' + d2
+                );
+              }
+            } catch (e) {}
+            return;
+          }
+          var email = CaseStore.getSessionEmail();
+          if (email && CaseStore.hasCase(email)) {
+            var c = CaseStore.getPrimaryCase(email);
+            if (c) {
+              goResume(c);
+              return;
+            }
+          }
+          enableBtn();
+          note.textContent =
+            'Tip: check spam for your receipt if you’re not sure which email you used.';
+        })
+        .catch(function () {
+          enableBtn();
+          note.textContent = 'Continue with your purchase email.';
+        });
+
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var email = document.getElementById('email').value.trim().toLowerCase();
+        if (!email) return;
+
+        btn.disabled = true;
+        note.textContent = 'Checking your order access…';
+        CaseStore.setSessionEmail(email);
+
+        // 1) Same email already has a case → report if ready, else waiting room
+        var byEmail = CaseStore.getPrimaryCase(email);
+        if (byEmail) {
+          goResume(
+            byEmail,
+            'Scan finished — opening your complete report…',
+            'Scan still running — opening waiting room…'
+          );
+          return;
+        }
+
+        // 2) Cookie / IP / server case for this visitor
+        CaseStore.resolveIp()
+          .then(function (ip) {
+            return CaseStore.findExistingForVisitor({ email: email, ip: ip });
+          })
+          .then(function (existing) {
+            if (existing) {
+              goResume(
+                existing,
+                'Scan finished — opening your complete report…',
+                'Scan still running — opening waiting room…'
+              );
+              return;
+            }
+            // 3) No case yet → start new scan on dashboard
+            navigating = true;
+            location.href = 'dashboard.html';
+          })
+          .catch(function () {
+            // Network / lookup failed — still allow new access
+            navigating = true;
+            location.href = 'dashboard.html';
+          });
+      });
+    })();
+  </script>
+</body>
+</html>

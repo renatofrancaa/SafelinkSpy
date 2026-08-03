@@ -271,16 +271,18 @@
   };
 
   /**
-   * Microsoft Clarity — session replay + heatmaps on funnel steps.
-   * Skips admin dashboard. Tags stage/layer/visitor for filtering in Clarity.
+   * Microsoft Clarity — session replay + heatmaps.
+   * ONLY on /upsell/* pages (not main funnel steps, not dashboard).
    */
   function bootClarity(projectId) {
     if (!projectId || window.__ZS_CLARITY__) return;
-    // Never track admin dashboard
     try {
       var path = (location.pathname || "").toLowerCase();
+      if (path.indexOf("/upsell") === -1) return;
       if (path.indexOf("/dashboard") === 0) return;
-    } catch (e0) {}
+    } catch (e0) {
+      return;
+    }
     window.__ZS_CLARITY__ = true;
     (function (c, l, a, r, i, t, y) {
       c[a] =

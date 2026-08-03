@@ -12,7 +12,7 @@ const catalog = JSON.parse(
   readFileSync(join(root, "public/upsell/catalog.json"), "utf8")
 );
 
-const HEAD_SCRIPTS = `<!-- Clarity (funnel only) -->
+const HEAD_SCRIPTS = `<!-- Microsoft Clarity (upsell only) · xqkud5a0mc -->
 <script src="/js/clarity-id.js"></script>
 <!-- UTMify UTMs -->
 <script

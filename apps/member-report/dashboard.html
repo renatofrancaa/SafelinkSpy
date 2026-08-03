@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>SafeLink Spy · Case dashboard</title>
+  <link rel="icon" type="image/svg+xml" href="./images/favicon.svg">
+  <meta name="robots" content="noindex">
+  <link rel="stylesheet" href="./css/app.css">
+</head>
+<body>
+  <!-- Animation between form submit and waiting room -->
+  <div class="pre-scan" id="preScan" aria-hidden="true">
+    <div class="pre-scan-inner">
+      <div class="pre-scan-avatar" aria-hidden="true">
+        <svg viewBox="0 0 48 48" fill="none"><circle cx="24" cy="20" r="14" stroke="#fff" stroke-width="2" opacity=".28"/><circle cx="24" cy="20" r="9" stroke="#fff" stroke-width="2" opacity=".5"/><circle cx="24" cy="20" r="4.2" stroke="#fff" stroke-width="2" opacity=".85"/><path d="M24 20 L24 6 A14 14 0 0 1 36.5 25.5 Z" fill="#fff" opacity=".22"/><circle cx="24" cy="20" r="2.2" fill="#fff"/><path d="M24 42c-4.6-5.6-7.6-9.6-7.6-13.2a7.6 7.6 0 1 1 15.2 0c0 3.6-3 7.6-7.6 13.2z" fill="#fff"/><circle cx="24" cy="28.6" r="2.4" fill="#008f6f"/></svg>
+      </div>
+      <h2>Connecting to SafeLink Spy</h2>
+      <p class="target-line" id="preTarget">Preparing case…</p>
+      <div class="pre-bars">
+        <div class="pre-bar-row" data-i="0"><span style="width:72px">Intake</span><div class="pre-bar-track"><i></i></div></div>
+        <div class="pre-bar-row" data-i="1"><span style="width:72px">Target</span><div class="pre-bar-track"><i></i></div></div>
+        <div class="pre-bar-row" data-i="2"><span style="width:72px">Queue</span><div class="pre-bar-track"><i></i></div></div>
+        <div class="pre-bar-row" data-i="3"><span style="width:72px">Secure</span><div class="pre-bar-track"><i></i></div></div>
+      </div>
+      <p class="hint">Opening your protected case file. Do not close this screen.</p>
+    </div>
+  </div>
+
+  <div class="shell">
+    <div class="app-top">
+      <div class="brand">
+        <div class="logo" aria-hidden="true">
+          <svg viewBox="0 0 48 48" fill="none"><circle cx="24" cy="20" r="14" stroke="#fff" stroke-width="2" opacity=".28"/><circle cx="24" cy="20" r="9" stroke="#fff" stroke-width="2" opacity=".5"/><circle cx="24" cy="20" r="4.2" stroke="#fff" stroke-width="2" opacity=".85"/><path d="M24 20 L24 6 A14 14 0 0 1 36.5 25.5 Z" fill="#fff" opacity=".22"/><circle cx="24" cy="20" r="2.2" fill="#fff"/><path d="M24 42c-4.6-5.6-7.6-9.6-7.6-13.2a7.6 7.6 0 1 1 15.2 0c0 3.6-3 7.6-7.6 13.2z" fill="#fff"/><circle cx="24" cy="28.6" r="2.4" fill="#008f6f"/></svg>
+        </div>
+        <div>
+          <strong>SafeLink <span class="spy">Spy</span></strong>
+          <small>Case access</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="session">
+      <span id="who">—</span>
+      <button type="button" id="logout">Switch email</button>
+    </div>
+
+    <div class="card" id="loadingCard">
+      <h1>Checking access…</h1>
+      <p class="lead">Verifying whether this connection already has an active scan.</p>
+    </div>
+
+    <div class="card" id="newCard" hidden>
+      <h1>Start your deep scan</h1>
+      <p class="lead">
+        Enter the target number and name. Your access allows
+        <strong>one deep scan only</strong> (per purchase email and per connection).
+      </p>
+
+      <div class="once-warn" role="note">
+        <strong>Fill carefully — you only get one access</strong>
+        Double-check the country code, phone number, and name before continuing.
+        After you confirm, this purchase is locked to that target and you
+        <strong>cannot start another scan</strong> with the same email.
+      </div>
+
+      <form id="form">
+        <label for="phone">Target WhatsApp number</label>
+        <div class="phone-row">
+          <select id="targetCountryCode" name="country" aria-label="Country code"></select>
+          <input id="phone" name="phone" type="tel" required inputmode="tel" placeholder="Phone number" autocomplete="tel-national">
+        </div>
+        <p class="field-error" id="phoneError" hidden></p>
+
+        <label for="name">Target full name</label>
+        <input id="name" name="name" type="text" required placeholder="Full name" autocomplete="name">
+
+        <button type="submit" id="submitBtn">Continue →</button>
+      </form>
+      <p class="note" id="formNote">
+        Make sure every digit is correct. You will be asked to confirm before the scan starts.
+      </p>
+    </div>
+
+    <!-- Confirm number before locking the one-scan access -->
+    <div class="confirm-overlay" id="confirmOverlay" hidden aria-hidden="true">
+      <div class="confirm-modal" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+        <div class="confirm-icon">⚠️</div>
+        <h2 id="confirmTitle">Is this number correct?</h2>
+        <p class="confirm-lead">
+          You can only run <strong>one scan</strong> with this purchase.
+          Confirm the target details carefully — you won’t be able to change them after this.
+        </p>
+        <div class="confirm-details">
+          <div><span>WhatsApp</span><strong id="confirmPhone">—</strong></div>
+          <div><span>Name</span><strong id="confirmName">—</strong></div>
+        </div>
+        <button type="button" class="btn" id="confirmYes">Yes, number is correct →</button>
+        <button type="button" class="btn secondary" id="confirmNo">No, I need to change it</button>
+      </div>
+    </div>
+
+    <div class="card" id="lockedCard" hidden>
+      <h1 id="lockedTitle">Scan already started</h1>
+      <p class="lead" id="lockedLead">
+        This purchase email or this connection already used its one deep scan.
+      </p>
+      <div class="case-item" id="lockedCase" style="margin-top:4px"></div>
+      <a class="btn" id="goWait" href="#" style="margin-top:14px">Open waiting room →</a>
+      <p class="note" style="margin-top:14px">
+        Another target requires a <strong>new purchase</strong>. This portal stays locked to the scan already in progress.
+      </p>
+    </div>
+  </div>
+
+  <script src="./js/ddi.js"></script>
+  <script src="./js/report-engine.js"></script>
+  <script src="./js/case-store.js"></script>
+  <script>
+    (function () {
+      var email = CaseStore.getSessionEmail();
+      document.getElementById('who').textContent = email || 'Checking connection…';
+      var pendingPhone = '';
+      var pendingName = '';
+
+      document.getElementById('logout').onclick = function () {
+        CaseStore.clearSession();
+        location.href = 'index.html';
+      };
+
+      function pill(status) {
+        if (status === 'ready') return '<span class="pill ready">Ready</span>';
+        if (status === 'scanning') return '<span class="pill scan">Scanning</span>';
+        return '<span class="pill proc">Processing</span>';
+      }
+
+      function fullPhone() {
+        var ddi = (document.getElementById('targetCountryCode').value || '+1').trim();
+        var local = (document.getElementById('phone').value || '').replace(/\D/g, '');
+        // Avoid double country code if user pasted full international
+        if (local.indexOf(ddi.replace('+', '')) === 0 && local.length > 10) {
+          return '+' + local;
+        }
+        return ddi + local;
+      }
+
+      function showLocked(c, reason) {
+        // Never "block" the user: always resume existing case
+        // ready → full report | still waiting → waiting room
+        if (c && c.email) {
+          CaseStore.setSessionEmail(c.email);
+          document.getElementById('who').textContent = c.email;
+        }
+        CaseStore.persistCaseCookies(c);
+        location.replace(CaseStore.resumeUrl(c));
+      }
+
+      function showNew() {
+        document.getElementById('loadingCard').hidden = true;
+        document.getElementById('lockedCard').hidden = true;
+        document.getElementById('newCard').hidden = false;
+        if (!email) location.replace('index.html');
+        // Always put visitor country (from IP) first in the DDI list
+        if (window.ZapDDI && typeof ZapDDI.preselectFromIp === 'function') {
+          ZapDDI.preselectFromIp(document.getElementById('targetCountryCode'));
+        }
+      }
+
+      function runPreScanAnimation(phone, name, thenGo) {
+        var overlay = document.getElementById('preScan');
+        var rows = overlay.querySelectorAll('.pre-bar-row');
+        document.getElementById('preTarget').innerHTML =
+          'Target: <strong>' +
+          (name || 'Subject') +
+          '</strong> · <strong>' +
+          phone +
+          '</strong>';
+        overlay.classList.add('show');
+        overlay.setAttribute('aria-hidden', 'false');
+
+        // Slower load so the transition into waiting room doesn't feel instant
+        var widths = [100, 100, 100, 100];
+        var i = 0;
+        function step() {
+          if (i >= rows.length) {
+            setTimeout(thenGo, 1400);
+            return;
+          }
+          rows[i].classList.add('on');
+          var bar = rows[i].querySelector('i');
+          var target = widths[i];
+          var w = 0;
+          var tick = setInterval(function () {
+            w += 2.2 + Math.random() * 3.5;
+            if (w >= target) {
+              w = target;
+              clearInterval(tick);
+              rows[i].classList.remove('on');
+              rows[i].classList.add('done');
+              i++;
+              setTimeout(step, 550);
+            }
+            bar.style.width = w + '%';
+          }, 90);
+        }
+        setTimeout(step, 700);
+      }
+
+      CaseStore.resolveIp()
+        .then(function (ip) {
+          return CaseStore.findExistingForVisitor({ email: email, ip: ip }).then(function (existing) {
+            // TEMP testing: never lock the form — always allow a new scan
+            if (existing && !CaseStore.INSTANT_UNLOCK) {
+              var reason =
+                existing.email && email && existing.email !== email
+                  ? 'ip'
+                  : existing.ip === ip
+                    ? 'ip'
+                    : 'email';
+              showLocked(existing, reason);
+              return;
+            }
+            if (!email) {
+              location.replace('index.html');
+              return;
+            }
+            document.getElementById('who').textContent = email;
+            showNew();
+          });
+        })
+        .catch(function () {
+          if (!email) location.replace('index.html');
+          else showNew();
+        });
+
+      function showPhoneError(msg) {
+        var el = document.getElementById('phoneError');
+        var input = document.getElementById('phone');
+        if (el) {
+          el.hidden = !msg;
+          el.textContent = msg || '';
+        }
+        if (input) input.classList.toggle('invalid', !!msg);
+      }
+
+      function openConfirm(phone, name) {
+        pendingPhone = phone;
+        pendingName = name;
+        document.getElementById('confirmPhone').textContent = phone;
+        document.getElementById('confirmName').textContent = name;
+        var ov = document.getElementById('confirmOverlay');
+        ov.hidden = false;
+        ov.setAttribute('aria-hidden', 'false');
+        ov.classList.add('show');
+      }
+
+      function closeConfirm() {
+        var ov = document.getElementById('confirmOverlay');
+        ov.classList.remove('show');
+        ov.hidden = true;
+        ov.setAttribute('aria-hidden', 'true');
+        pendingPhone = '';
+        pendingName = '';
+        var btn = document.getElementById('submitBtn');
+        btn.disabled = false;
+        btn.textContent = 'Continue →';
+        // Keep form visible so user can edit
+        document.getElementById('phone').focus();
+      }
+
+      function startScan(phone, name) {
+        var btn = document.getElementById('submitBtn');
+        btn.disabled = true;
+        btn.textContent = 'Starting scan…';
+
+        try {
+          localStorage.setItem(
+            'targetCountryCode',
+            document.getElementById('targetCountryCode').value
+          );
+        } catch (err) {}
+
+        CaseStore.resolveIp()
+          .then(function (ip) {
+            return CaseStore.serverLookup(ip).then(function (serverCase) {
+              if (serverCase && !CaseStore.INSTANT_UNLOCK) {
+                showLocked(serverCase, 'ip');
+                return null;
+              }
+              var c;
+              try {
+                c = CaseStore.createCase({
+                  email: email,
+                  phone: phone,
+                  name: name,
+                  ip: ip
+                });
+              } catch (err) {
+                if (err && err.existing) {
+                  showLocked(err.existing, err.reason || 'email');
+                  return null;
+                }
+                showPhoneError((err && err.message) || 'Could not start scan');
+                btn.disabled = false;
+                btn.textContent = 'Continue →';
+                return null;
+              }
+              if (CaseStore.isDemoNow() || CaseStore.INSTANT_UNLOCK) {
+                CaseStore.forceReadyNow(c.id);
+                c = CaseStore.getCase(c.id) || c;
+              } else if (CaseStore.isDemoFast()) {
+                CaseStore.forceReadySoon(c.id, 20);
+              }
+              runPreScanAnimation(phone, name, function () {
+                var dest = CaseStore.INSTANT_UNLOCK
+                  ? CaseStore.reportUrl(c)
+                  : CaseStore.statusUrl(c);
+                location.href = dest;
+              });
+              return null;
+            });
+          })
+          .catch(function () {
+            showPhoneError('Could not start scan. Try again.');
+            btn.disabled = false;
+            btn.textContent = 'Continue →';
+          });
+      }
+
+      document.getElementById('phone').addEventListener('input', function () {
+        showPhoneError('');
+      });
+      document.getElementById('targetCountryCode').addEventListener('change', function () {
+        showPhoneError('');
+      });
+
+      document.getElementById('confirmNo').onclick = function () {
+        closeConfirm();
+      };
+
+      document.getElementById('confirmYes').onclick = function () {
+        var phone = pendingPhone;
+        var name = pendingName;
+        var ov = document.getElementById('confirmOverlay');
+        ov.classList.remove('show');
+        ov.hidden = true;
+        ov.setAttribute('aria-hidden', 'true');
+        if (!phone || !name) {
+          closeConfirm();
+          return;
+        }
+        startScan(phone, name);
+      };
+
+      // Click outside modal = go back to edit
+      document.getElementById('confirmOverlay').addEventListener('click', function (ev) {
+        if (ev.target === document.getElementById('confirmOverlay')) closeConfirm();
+      });
+
+      document.getElementById('form').addEventListener('submit', function (e) {
+        e.preventDefault();
+        var local = document.getElementById('phone').value.trim();
+        var name = document.getElementById('name').value.trim();
+        if (!local || !name) return;
+        var phone = fullPhone();
+        if (phone.replace(/\D/g, '').length < 8) {
+          showPhoneError('Enter a valid phone number with country code.');
+          return;
+        }
+
+        showPhoneError('');
+        var btn = document.getElementById('submitBtn');
+        btn.disabled = true;
+        // Ask for explicit confirmation before locking the one-scan access
+        openConfirm(phone, name);
+      });
+    })();
+  </script>
+</body>
+</html>

@@ -1,90 +1,99 @@
-# SafelinkSpy (App Spy Funnel)
+# SafelinkSpy (monorepo)
 
-Funil multi-step (HTML estático em `/public`) com analytics e dashboard Next.js. **Link direto** — sem cloaker.
+Dois produtos no **mesmo repositório**, com **deploys e domínios separados**:
+
+| Produto | Pasta | Domínio |
+|---------|--------|---------|
+| Funil multi-step + dashboard + APIs | raiz (`app/`, `public/`) | funil (mysafelinkspy.com, etc.) |
+| Member report (entregável pós-compra) | `apps/member-report/` | **en.safelinkspy.com** |
+
+Guia completo: **[docs/MONOREPO.md](docs/MONOREPO.md)**.  
+**Nada de domínio/URL pública muda** só por unificar o Git.
+
+---
 
 ## Estrutura
 
 ```
 SafelinkSpy/
-├── middleware.ts           # Redirect / → /index.html (+ headers UTM)
-├── utils/                  # botDetect (analytics), detectSource
-├── app/                    # shell Next (fallback / e dashboard)
-├── public/
-│   ├── index.html          # Step 1 — escolha de gênero
-│   ├── step2.html … step6.html
-│   ├── backredirect.html
-│   ├── assets/
-│   └── js/
-├── vercel.json
+├── middleware.ts              # / → /index.html, cookie geo, etc.
+├── app/                       # Next.js: dashboard, APIs, /go/[code]
+├── public/                    # Funil estático (index → step6 + upsell)
+├── lib/                       # analytics, store Neon
+├── apps/
+│   └── member-report/         # Entregável (en.safelinkspy.com)
+├── docs/                      # monorepo, n8n, recovery emails
+├── scripts/                   # utilitários (+ archive/ de one-offs)
+├── vercel.json                # projeto funil (Next.js)
 └── package.json
 ```
 
-## Fluxo do funil
+---
 
-1. `index.html` → usuário escolhe alvo (male/female)
-2. `step2.html` → digita telefone
-3. `step3.html` → loading / acesso
-4. `step4.html` → cloud recovery
-5. `step5.html` → preview de conversas
-6. `step6.html` → oferta + checkout (CenterPag)
+## Funil (raiz)
 
-Query params (`gender`, `phone`, UTMs) são repassados entre as páginas via `navigateWithQuery`.
+Funil multi-step (HTML em `/public`) com analytics e dashboard Next.js. **Link direto** — sem cloaker.
 
-## Links de uso
+### Fluxo
 
-```
-https://SEU_DOMINIO/
-https://SEU_DOMINIO/index.html
-```
+1. `index.html` → gênero do alvo  
+2. `step2.html` → telefone  
+3. `step3.html` → loading / perfil  
+4. `step4.html` → cloud recovery  
+5. `step5.html` → preview de conversas  
+6. `step6.html` → oferta + checkout  
+7. `upsell/*` → upsells (Clarity só aqui)
 
-UTMs e click IDs (`fbclid`, `gclid`, etc.) funcionam normalmente na query string.
+Query params (`gender`, `phone`, UTMs) via `navigateWithQuery`.
 
-## Dashboard
-
-```
-https://SEU_DOMINIO/dashboard
-```
-
-Senha: `DASHBOARD_SECRET` (default `1234`).
-
-Requer `DATABASE_URL` (Neon) na Vercel para histórico permanente. Sem isso, dados ficam só em memória e somem em cold start.
-
-## Rodar local
+### Rodar local
 
 ```bash
 npm install
 npm run dev
 ```
 
-Abra: [http://localhost:3000](http://localhost:3000) — redireciona para o funil (`/index.html`).
+[http://localhost:3000](http://localhost:3000) → funil (`/index.html`).
 
-## Deploy na Vercel
+### Deploy funil (Vercel)
 
-1. Importe o repositório
-2. Framework Preset: **Next.js**
-3. Env vars (Project → Settings):
-   - `DASHBOARD_SECRET`
-   - `DATABASE_URL` (Neon)
-4. Deploy
+1. Repo `SafelinkSpy`, Framework **Next.js**, Root Directory **vazio** (raiz)
+2. Env: `DASHBOARD_SECRET`, `DATABASE_URL` (Neon), demais secrets já usados
+3. Dashboard: `/dashboard`
 
-Link de anúncio (direto):
+---
 
-```
-https://SEU_DOMINIO/
-```
+## Member report
 
-ou com UTMs:
-
-```
-https://SEU_DOMINIO/?utm_source=meta&utm_campaign=...
+```bash
+cd apps/member-report
+npx --yes serve -p 5180 .
 ```
 
-## Pontos de personalização
+Detalhes: [apps/member-report/README.md](apps/member-report/README.md).
+
+Cutover opcional do projeto Vercel `member-report` para Root Directory `apps/member-report`: ver [docs/MONOREPO.md](docs/MONOREPO.md). **Não é automático.**
+
+---
+
+## Docs úteis
+
+| Doc | Conteúdo |
+|-----|----------|
+| [docs/MONOREPO.md](docs/MONOREPO.md) | Unificação, cutover, rollback |
+| [docs/n8n/](docs/n8n/) | Recovery e-mails 24h (n8n Cloud) |
+| [docs/recovery-emails/](docs/recovery-emails/) | HTML e copy dos e-mails |
+| [scripts/README.md](scripts/README.md) | Scripts ativos vs archive |
+
+---
+
+## Pontos de personalização (funil)
 
 | O quê | Onde |
 |--------|------|
-| Pixel Meta / Facebook | IDs nos `<script>` de cada step |
-| Google Analytics | `G-46T459G961` no gtag |
-| UTMify / Skalame | scripts no `<head>` |
-| Link de checkout | `public/step6.html` → CenterPag |
-| Copy / CSS | cada HTML em `public/` |
+| Pixel Meta / Facebook | scripts nos steps |
+| Google Analytics | gtag nos HTMLs |
+| UTMify | head do funil |
+| Checkout | `public/step6.html` + `/go/[code]` |
+| Copy / CSS | `public/*.html` |
+| Clarity | só `public/upsell/*` |

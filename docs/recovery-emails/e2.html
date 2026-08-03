@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<body style="margin:0;padding:0;background:#f0f2f5;font-family:Arial,Helvetica,sans-serif;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f0f2f5;padding:20px 10px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:420px;">
+          <!-- Header -->
+          <tr>
+            <td style="background:#128C7E;padding:14px 16px;border-radius:12px 12px 0 0;">
+              <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.85);text-transform:uppercase;letter-spacing:.06em;">App Spy Recovery</div>
+              <div style="font-size:18px;font-weight:800;color:#ffffff;margin-top:4px;">Those deleted messages won't wait forever</div>
+            </td>
+          </tr>
+          <!-- Alert strip -->
+          <tr>
+            <td style="background:#fef2f2;border-left:3px solid #ef4444;padding:10px 14px;border-right:1px solid #e9edef;">
+              <div style="font-size:13px;font-weight:700;color:#ef4444;">⚠️ Conversations still locked</div>
+              <div style="font-size:12px;color:#667781;margin-top:2px;">Hi {{ $json.name || 'there' }} — report for <strong style="color:#111b21;">{{ $json.phone || 'your number' }}</strong> is waiting.</div>
+            </td>
+          </tr>
+          <!-- Deleted message teaser -->
+          <tr>
+            <td style="background:#ffffff;padding:14px 16px;border-left:1px solid #e9edef;border-right:1px solid #e9edef;">
+              <div style="font-size:13px;font-weight:700;color:#111b21;margin-bottom:8px;">🗑 Last deleted message recovered</div>
+              <div style="background:#f8f8f8;border-left:3px solid #ef4444;border-radius:12px;padding:12px 14px;font-size:13px;color:#111b21;line-height:1.5;">"Babe, don't tell <span style="background:#111b21;color:#111b21;border-radius:3px;">████████</span> that we <span style="background:#111b21;color:#111b21;border-radius:3px;">██████</span>"</div>
+              <div style="margin-top:8px;font-size:12px;color:#667781;">Deleted · <span style="color:#25D366;font-weight:600;">🔓 Unlock to reveal full message</span></div>
+            </td>
+          </tr>
+          <!-- Blurred chat -->
+          <tr>
+            <td style="background:#ffffff;padding:0 16px 14px;border-left:1px solid #e9edef;border-right:1px solid #e9edef;">
+              <div style="background:#f8f8f8;border-radius:10px;padding:12px;">
+                <div style="text-align:right;margin-bottom:8px;"><span style="display:inline-block;background:#dcf8c6;border-radius:12px 12px 2px 12px;padding:8px 12px;font-size:12px;color:#111b21;filter:blur(4px);">Hey are you free tonight?</span></div>
+                <div style="text-align:left;"><span style="display:inline-block;background:#ffffff;border:1px solid #e9edef;border-radius:12px 12px 12px 2px;padding:8px 12px;font-size:12px;color:#111b21;filter:blur(4px);">Don't tell anyone about this...</span></div>
+                <div style="text-align:center;margin-top:10px;font-size:11px;font-weight:700;color:#ef4444;">🔒 Full chat locked — unlock to read</div>
+              </div>
+            </td>
+          </tr>
+          <!-- CTA / pricing -->
+          <tr>
+            <td style="background:#ffffff;padding:0 16px 16px;border:1px solid #e9edef;border-top:none;border-radius:0 0 12px 12px;">
+              <div style="border:2px solid #25D366;border-radius:16px;padding:16px;text-align:center;">
+                <div style="display:inline-block;background:#fee2e2;border-radius:20px;padding:5px 12px;font-size:11px;font-weight:700;color:#ef4444;margin-bottom:8px;">75% OFF - LIMITED TIME</div>
+                <div style="font-size:13px;color:#667781;text-decoration:line-through;">$197</div>
+                <div style="font-size:40px;font-weight:900;color:#111b21;">$39</div>
+                <div style="font-size:13px;font-weight:700;color:#25D366;margin-bottom:12px;">You save $158 today!</div>
+                <a href="https://go.centerpag.com/PPU38CQEHD1?name={{ $json.name }}&email={{ $json.email }}&phone={{ $json.phone }}&plan=full&utm_source=email&utm_medium=recovery&utm_campaign=e2" style="display:block;background:#25D366;color:#ffffff;text-decoration:none;font-weight:900;font-size:15px;padding:15px 12px;border-radius:13px;box-shadow:0 4px 24px rgba(37,211,102,.35);">
+                  🔓 REVEAL FULL REPORT<br>
+                  <span style="font-size:11px;font-weight:600;opacity:.9;">{{ $json.phone || 'Checkout · $39' }}</span>
+                </a>
+              </div>
+            </td>
+          </tr>
+          <!-- Footer -->
+          <tr>
+            <td style="padding:14px 8px;text-align:center;font-size:11px;color:#667781;">Already purchased? You can ignore this email.</td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

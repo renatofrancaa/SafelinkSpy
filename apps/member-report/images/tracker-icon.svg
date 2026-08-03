@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+  <!-- tracker: radar + location pin -->
+  <circle cx="24" cy="20" r="14" stroke="#fff" stroke-width="2" opacity="0.28"/>
+  <circle cx="24" cy="20" r="9" stroke="#fff" stroke-width="2" opacity="0.5"/>
+  <circle cx="24" cy="20" r="4.2" stroke="#fff" stroke-width="2" opacity="0.85"/>
+  <path d="M24 20 L24 6 A14 14 0 0 1 36.5 25.5 Z" fill="#fff" opacity="0.22"/>
+  <circle cx="24" cy="20" r="2.2" fill="#fff"/>
+  <path d="M24 42c-4.6-5.6-7.6-9.6-7.6-13.2a7.6 7.6 0 1 1 15.2 0c0 3.6-3 7.6-7.6 13.2z" fill="#fff"/>
+  <circle cx="24" cy="28.6" r="2.4" fill="#00a884"/>
+</svg>

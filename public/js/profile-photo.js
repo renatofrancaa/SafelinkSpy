@@ -1,19 +1,21 @@
 /**
- * WhatsApp profile photo — same API as funnel-love-vision (Auralink webhook)
- * Webhook: GET ?tel={digits} → image/* OR JSON { link | url | picture }
+ * WhatsApp profile photo — ZapSpy API via same-origin proxy
+ * GET /api/wa-photo?tel={digits} → { url, face, registered, avatarProxy, ... }
+ * (upstream: zapspy-funnel-production.up.railway.app — same as funnel_light)
  */
 (function (global) {
   'use strict';
 
-  var AURALINK_WEBHOOK =
-    'https://thigato.auralink.com.br/webhook/03255d22-821e-4441-ad4e-bc93f6fe906d';
+  var PHOTO_PROXY = '/api/wa-photo';
 
   var STORAGE_URL = 'sl_avatar';
   var STORAGE_BLUR = 'sl_avatar_blurred';
   var STORAGE_PHONE = 'sl_avatar_phone';
+  var STORAGE_META = 'sl_wa_meta';
 
   var _cache = {};
   var _inflight = {};
+  var _lastMeta = null;
 
   function digitsOnly(v) {
     return String(v || '').replace(/\D/g, '');
@@ -133,7 +135,8 @@
 
     if (_inflight[dig]) return _inflight[dig];
 
-    var webhookUrl = AURALINK_WEBHOOK + '?tel=' + encodeURIComponent(dig);
+    // Same-origin proxy → ZapSpy whatsapp-check (CORS-safe)
+    var proxyUrl = PHOTO_PROXY + '?tel=' + encodeURIComponent(dig);
 
     function doFetch(attempt) {
       var controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
@@ -143,9 +146,10 @@
         if (controller) controller.abort();
       }, 35000);
 
-      return fetch(webhookUrl, {
+      return fetch(proxyUrl, {
         signal: controller ? controller.signal : undefined,
         cache: 'no-store',
+        credentials: 'same-origin',
       })
         .then(function (r) {
           clearTimeout(timer);
@@ -154,14 +158,26 @@
             err.status = r.status;
             throw err;
           }
-          var ct = (r.headers.get('content-type') || '').toLowerCase();
-          if (ct.indexOf('image') !== -1) {
-            // Direct image from webhook — treat as real photo URL
-            return webhookUrl;
-          }
           return r.json().then(function (j) {
-            var link = j && (j.link || j.url || j.picture || j.urlImage);
-            return sanitizePhotoUrl(link);
+            if (!j) return null;
+            _lastMeta = j;
+            try {
+              sessionStorage.setItem(STORAGE_META, JSON.stringify({
+                tel: dig,
+                face: j.face || null,
+                registered: j.registered !== false,
+                name: j.name || null,
+                isBusiness: !!j.isBusiness,
+                checkHint: j.checkHint || null,
+              }));
+            } catch (eM) {}
+            // Prefer direct picture URL; else try avatar proxy if provided
+            var url = sanitizePhotoUrl(j.url || j.picture || j.link || j.urlImage);
+            if (!url && j.avatarProxy) {
+              // Client will try loading; only accept if img onload succeeds in apply()
+              return sanitizePhotoUrl(j.avatarProxy) || j.avatarProxy;
+            }
+            return url;
           });
         })
         .catch(function (e) {
@@ -182,10 +198,18 @@
     }
 
     var p = doFetch(0).then(function (url) {
+      // Don't treat avatarProxy as real until image loads — setStored only for clean http pics
+      // that pass sanitize. apply() will setStored on successful paint.
       var clean = sanitizePhotoUrl(url);
-      setStored(dig, clean);
+      if (clean) setStored(dig, clean);
+      else if (url && String(url).indexOf('/api/avatar/') !== -1) {
+        // provisional — apply() validates
+        _cache[dig] = undefined;
+      } else {
+        setStored(dig, null);
+      }
       delete _inflight[dig];
-      return clean;
+      return clean || url || null;
     });
 
     _inflight[dig] = p;
@@ -217,6 +241,7 @@
         var img = document.createElement('img');
         img.alt = '';
         img.decoding = 'async';
+        try { img.referrerPolicy = 'no-referrer'; } catch (eR) {}
         if (size) {
           img.width = size;
           img.height = size;
@@ -235,6 +260,10 @@
           containerEl.classList.add('has-photo');
           containerEl.style.filter = 'none';
           containerEl.style.webkitFilter = 'none';
+          // Persist only after real image loads (covers avatarProxy paths)
+          try {
+            setStored(dig, clean);
+          } catch (eS) {}
           if (typeof options.onResult === 'function') options.onResult(clean);
         };
         if (options.blurredFallback !== false) {
@@ -293,7 +322,7 @@
   }
 
   global.ProfilePhoto = {
-    webhook: AURALINK_WEBHOOK,
+    proxy: PHOTO_PROXY,
     normalizePhone: normalizePhone,
     isRealPhotoUrl: isRealPhotoUrl,
     fetch: fetchProfilePicture,
@@ -302,6 +331,15 @@
     applyAll: applyAvatarAll,
     getStored: getStored,
     isBlurred: isBlurredStored,
+    getLastMeta: function () {
+      if (_lastMeta) return _lastMeta;
+      try {
+        var raw = sessionStorage.getItem(STORAGE_META);
+        return raw ? JSON.parse(raw) : null;
+      } catch (e) {
+        return null;
+      }
+    },
     /** Clear cached avatar (useful after fixing fake-placeholder cache) */
     clearCache: function (phone) {
       var dig = normalizePhone(phone);
@@ -310,6 +348,7 @@
         sessionStorage.removeItem(STORAGE_URL);
         sessionStorage.removeItem(STORAGE_BLUR);
         sessionStorage.removeItem(STORAGE_PHONE);
+        sessionStorage.removeItem(STORAGE_META);
         localStorage.removeItem('targetAvatar');
         localStorage.setItem('targetAvatarBlurred', 'true');
       } catch (e) {}

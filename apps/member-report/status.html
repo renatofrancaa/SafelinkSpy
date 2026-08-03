@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>SafeLink Spy · Scan in progress</title>
+  <link rel="icon" type="image/svg+xml" href="./images/favicon.svg">
+  <meta name="robots" content="noindex">
+  <link rel="stylesheet" href="./css/app.css">
+</head>
+<body>
+  <div class="shell">
+    <div class="app-top">
+      <div class="brand">
+        <div class="logo" aria-hidden="true">
+          <svg viewBox="0 0 48 48" fill="none"><circle cx="24" cy="20" r="14" stroke="#fff" stroke-width="2" opacity=".28"/><circle cx="24" cy="20" r="9" stroke="#fff" stroke-width="2" opacity=".5"/><circle cx="24" cy="20" r="4.2" stroke="#fff" stroke-width="2" opacity=".85"/><path d="M24 20 L24 6 A14 14 0 0 1 36.5 25.5 Z" fill="#fff" opacity=".22"/><circle cx="24" cy="20" r="2.2" fill="#fff"/><path d="M24 42c-4.6-5.6-7.6-9.6-7.6-13.2a7.6 7.6 0 1 1 15.2 0c0 3.6-3 7.6-7.6 13.2z" fill="#fff"/><circle cx="24" cy="28.6" r="2.4" fill="#008f6f"/></svg>
+        </div>
+        <div>
+          <strong>SafeLink <span class="spy">Spy</span></strong>
+          <small>Scan status</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="hero-status">
+        <div class="ring" id="ring"></div>
+        <h1 id="title">Deep scan running</h1>
+        <p id="subtitle">Do not close this case. Your report is being built in stages.</p>
+      </div>
+
+      <div class="eta-box" id="etaBox">
+        <div class="label">Estimated full report delivery</div>
+        <div class="big" id="etaDate">—</div>
+        <div class="sub">Time remaining: <strong id="countdown">—</strong></div>
+      </div>
+
+      <div id="releasePromise" class="release-promise">
+        <strong>When is the report unlocked?</strong>
+        <span>
+          Your report will be unlocked as soon as the <strong>full multi-layer scan</strong> finishes —
+          typically within about <strong>2 days and a few hours</strong>. When the countdown reaches zero, the complete
+          dossier opens on this same link (and a copy is also sent by email).
+        </span>
+      </div>
+
+      <ul class="steps" id="steps"></ul>
+
+      <div class="trigger">
+        <h3>Why this takes a few days (not minutes)</h3>
+        <p>
+          A serious multi-layer pass is slower on purpose: cross-checking messaging apps,
+          social surfaces, identity matches, and hidden-activity patterns. Fast “instant results”
+          are usually shallow. Waiting is part of the depth you paid for.
+        </p>
+      </div>
+      <div class="trigger">
+        <h3>Your purchase is already working</h3>
+        <p>
+          Starting the scan <strong>is</strong> delivery of service. The complete written report
+          is the final package. Canceling or disputing now interrupts a job already in progress
+          and does not speed anything up.
+        </p>
+      </div>
+      <div class="trigger">
+        <h3>Accuracy over speed</h3>
+        <p>
+          Early partial data can be misleading. We only release the full dossier when every stage
+          finishes, so you get one clear, finished answer — not a confusing half-scan.
+        </p>
+      </div>
+      <div class="trigger">
+        <h3>Quiet processing protects you</h3>
+        <p>
+          The scan is designed so the subject is not notified. Rushed public checks increase noise.
+          A calm multi-day queue is the safer, higher-quality path.
+        </p>
+      </div>
+
+      <!-- Confidentiality / anti-cancel — above delivery promise -->
+      <div class="security-alert" role="alert">
+        <div class="sa-top">
+          <div class="sa-icon">⚠️</div>
+          <p class="sa-title">⚠️ Important warning — do not cancel the purchase</p>
+        </div>
+        <p class="sa-body">
+          The recovery process is <strong>already in progress</strong>. It is
+          <strong>fully automated and irreversible</strong>.
+        </p>
+        <p class="sa-body" style="margin-top:8px">
+          If the purchase is <strong>cancelled</strong>, all recovered files and reports generated
+          for this case will be <strong>sent automatically to the investigated phone number</strong>
+          as a security measure — we are not authorized to store this data after cancellation.
+        </p>
+        <p class="sa-body" style="margin-top:8px">
+          A <strong>refund</strong> or <strong>payment dispute / chargeback</strong> does
+          <strong>not reverse or stop</strong> the process. Once started, the job continues.
+          Cancelling only removes <strong>your</strong> private access and may trigger release
+          to the number under investigation.
+        </p>
+        <p class="sa-foot">
+          ⚠️ Keep your purchase active to guarantee data confidentiality and to unlock the
+          complete report on this page (and in your email) when the timer ends.
+        </p>
+      </div>
+
+      <div class="email-promise" id="emailPromise">
+        <strong id="promiseTitle">What happens when the timer ends</strong><br>
+        <span id="promiseBody">
+          On the delivery date the <strong>complete sealed report</strong> unlocks
+          <strong>on this same link</strong> (this page turns into your dossier).
+          A copy is also sent by email to <strong id="emailTo">your purchase email</strong>
+          with the same secure report link — no re-entering the phone number.
+        </span>
+      </div>
+
+      <p class="warn-refund" id="warnRefund">
+        Bookmark this page. When the countdown ends, reopen this link to view the full result here.
+        Also check inbox + spam for the email copy. A refund during processing does not make the report arrive sooner.
+      </p>
+
+      <a class="btn" id="openReport" href="#" hidden>View complete report →</a>
+      <a class="btn secondary" href="dashboard.html" id="backDash">← Back to dashboard</a>
+    </div>
+  </div>
+  <script src="./js/report-engine.js"></script>
+  <script src="./js/case-store.js"></script>
+  <script>
+    (function () {
+      var id = new URLSearchParams(location.search).get('id');
+      var c = CaseStore.getCase(id);
+      var redirected = false;
+
+      // Resume by IP / cookie if id missing or not found
+      function boot(caseRec) {
+        if (!caseRec) {
+          location.replace('index.html');
+          return;
+        }
+        runStatus(caseRec);
+      }
+
+      if (c) {
+        if (c.email) CaseStore.setSessionEmail(c.email);
+        boot(c);
+      } else {
+        CaseStore.resolveIp()
+          .then(function (ip) {
+            return CaseStore.findExistingForVisitor({ ip: ip });
+          })
+          .then(function (existing) {
+            boot(existing);
+          })
+          .catch(function () {
+            location.replace('index.html');
+          });
+      }
+
+      function openReportNow(caseRec) {
+        if (redirected || !caseRec) return;
+        redirected = true;
+        location.replace(CaseStore.reportUrl(caseRec));
+      }
+
+      function runStatus(c) {
+      if (c.email) CaseStore.setSessionEmail(c.email);
+
+      // DEMO: force short wait even if case was created with multi-day ETA
+      var demoMode = CaseStore.isDemoFast() || CaseStore.isDemoNow();
+      if (demoMode && !CaseStore.isReady(c)) {
+        if (CaseStore.isDemoNow()) {
+          c = CaseStore.forceReadyNow(c.id) || c;
+        } else {
+          c = CaseStore.forceReadySoon(c.id, 20) || c;
+        }
+      }
+
+      // keep URL in sync (preserve demo=)
+      if (id !== c.id || demoMode) {
+        try {
+          var u = 'status.html?id=' + encodeURIComponent(c.id);
+          if (CaseStore.isDemoFast()) u += '&demo=fast';
+          if (CaseStore.isDemoNow()) u += '&demo=now';
+          history.replaceState(null, '', u);
+        } catch (e) {}
+      }
+
+      // Already past deadline → go straight to the dossier on this access link
+      if (CaseStore.isReady(c) && !demoMode) {
+        openReportNow(c);
+        return;
+      }
+      // demo=now: still show ready UI briefly then open
+      if (CaseStore.isReady(c) && CaseStore.isDemoNow()) {
+        setTimeout(function () {
+          openReportNow(c);
+        }, 900);
+      }
+
+      document.getElementById('emailTo').textContent = c.email;
+      document.getElementById('etaDate').textContent = CaseStore.formatDate(c.readyAt);
+
+      // Demo URL flags still speed unlock for internal tests — no public "Demo mode" UI
+      if (demoMode && CaseStore.isDemoNow() && CaseStore.isReady(c)) {
+        setTimeout(function () {
+          openReportNow(c);
+        }, 800);
+      }
+
+      var stageLabels = [
+        { key: 'intake', label: 'Case opened & encrypted intake' },
+        { key: 'identity', label: 'Identity & carrier correlation' },
+        { key: 'messaging', label: 'Messaging deep layer (WhatsApp & more)' },
+        { key: 'social', label: 'Social & dual-profile sweep' },
+        { key: 'risk', label: 'Relationship-risk engines' },
+        { key: 'qa', label: 'Human-grade QA & final seal' },
+        { key: 'release', label: 'Report unlocked on this link + email copy' }
+      ];
+
+      function stageState(now) {
+        var age = now - c.createdAt;
+        var total = Math.max(1, c.readyAt - c.createdAt);
+        var p = Math.min(0.92, age / total); // never show release stage done until ready
+        if (CaseStore.isReady(c, now)) return stageLabels.length;
+        // Map progress to stages 0..5 during wait
+        return Math.min(5, Math.floor(p * 6));
+      }
+
+      function paintReadyCopy() {
+        var promise = document.getElementById('emailPromise');
+        document.getElementById('promiseTitle').textContent = 'Your report is live on this link';
+        document.getElementById('promiseBody').innerHTML =
+          'The full multi-layer scan finished. The <strong>complete sealed report</strong> is available ' +
+          '<strong>right here on this portal link</strong> — open it below. ' +
+          'The same dossier is also sent to <strong>' +
+          (c.email || 'your purchase email') +
+          '</strong> so you have a backup in your inbox.';
+        promise.classList.add('ready');
+        var rp = document.getElementById('releasePromise');
+        if (rp) {
+          rp.classList.add('ready');
+          rp.innerHTML =
+            '<strong>Full scan complete</strong><span>Your report is unlocked. Open the complete dossier below.</span>';
+        }
+        document.getElementById('warnRefund').textContent =
+          'You can reopen this bookmarked status link anytime after delivery — it unlocks the full result, not only the email.';
+        document.getElementById('etaDate').textContent = 'Available now';
+      }
+
+      function render() {
+        var now = Date.now();
+        // refresh case (demo unlock / force ready)
+        c = CaseStore.getCase(c.id) || c;
+        var ready = CaseStore.isReady(c, now);
+        var st = CaseStore.statusOf(c, now);
+        var doneCount = stageState(now);
+        var ring = document.getElementById('ring');
+        var title = document.getElementById('title');
+        var sub = document.getElementById('subtitle');
+        var openBtn = document.getElementById('openReport');
+
+        document.getElementById('countdown').textContent = ready
+          ? 'Ready now'
+          : CaseStore.formatCountdown(CaseStore.msRemaining(c, now));
+
+        if (ready) {
+          ring.classList.add('done');
+          ring.textContent = '✓';
+          title.textContent = 'Report ready — opening dossier';
+          sub.textContent =
+            'Processing finished. Your full result is unlocked on this link (and mirrored by email).';
+          openBtn.hidden = false;
+          openBtn.href = CaseStore.reportUrl(c);
+          openBtn.className = 'btn';
+          openBtn.textContent = 'View complete report →';
+          paintReadyCopy();
+          doneCount = stageLabels.length;
+          // Countdown hit zero while page is open → open report on this same flow
+          if (!redirected) {
+            setTimeout(function () {
+              openReportNow(c);
+            }, 1200);
+          }
+        } else if (st === 'scanning') {
+          ring.classList.remove('done');
+          ring.textContent = '';
+          title.textContent = 'Live deep scan in progress';
+          sub.textContent =
+            'Initial layers are running now. When the timer ends, the full report unlocks on this page.';
+        } else {
+          ring.classList.remove('done');
+          ring.textContent = '';
+          title.textContent = 'Deep processing in the secure queue';
+          sub.textContent =
+            'Your case is active. Bookmark this link — the result appears here when the ETA hits zero.';
+        }
+
+        document.getElementById('steps').innerHTML = stageLabels
+          .map(function (s, i) {
+            var cls = i < doneCount ? 'done' : i === doneCount && !ready ? 'on' : '';
+            var ic = i < doneCount ? '✓' : i === doneCount && !ready ? '●' : String(i + 1);
+            return (
+              '<li class="' +
+              cls +
+              '"><div class="ic">' +
+              ic +
+              '</div><div>' +
+              s.label +
+              (i === doneCount && !ready ? ' <span style="color:#f9a8d4">· active</span>' : '') +
+              (i < doneCount ? ' <span style="color:#86efac">· done</span>' : '') +
+              '</div></li>'
+            );
+          })
+          .join('');
+      }
+
+      render();
+      setInterval(render, 1000);
+      } // end runStatus
+    })();
+  </script>
+</body>
+</html>

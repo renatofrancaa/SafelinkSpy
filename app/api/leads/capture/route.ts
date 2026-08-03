@@ -27,7 +27,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const phone = String(body.phone || "").trim().slice(0, 40);
+    // Google Sheets USER_ENTERED treats cells starting with +, =, - as formulas → #ERROR!
+    // Normalize to digits/spaces only (no leading +), e.g. "55 11 99999-9999".
+    const phone = String(body.phone || "")
+      .trim()
+      .replace(/^\+/, "")
+      .replace(/^=+/, "")
+      .slice(0, 40);
     const visitorId = String(body.visitorId || body.visitor_id || "")
       .trim()
       .slice(0, 80);

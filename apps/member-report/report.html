@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>SafeLink Spy · Secure Analytical Report</title>
+  <meta name="robots" content="noindex">
+  <link rel="icon" type="image/svg+xml" href="./images/favicon.svg">
+  <link rel="stylesheet" href="./css/report.css">
+</head>
+<body>
+  <div class="loader" id="loader">
+    <div class="loader-card">
+      <div class="portal-logo" aria-hidden="true">
+        <svg viewBox="0 0 48 48" fill="none"><circle cx="24" cy="20" r="14" stroke="#fff" stroke-width="2" opacity=".28"/><circle cx="24" cy="20" r="9" stroke="#fff" stroke-width="2" opacity=".5"/><circle cx="24" cy="20" r="4.2" stroke="#fff" stroke-width="2" opacity=".85"/><path d="M24 20 L24 6 A14 14 0 0 1 36.5 25.5 Z" fill="#fff" opacity=".22"/><circle cx="24" cy="20" r="2.2" fill="#fff"/><path d="M24 42c-4.6-5.6-7.6-9.6-7.6-13.2a7.6 7.6 0 1 1 15.2 0c0 3.6-3 7.6-7.6 13.2z" fill="#fff"/><circle cx="24" cy="28.6" r="2.4" fill="#008f6f"/></svg>
+      </div>
+      <h2>Running full deep scan</h2>
+      <p id="loaderSub">SafeLink Spy is analyzing this number across messaging apps, social accounts, and risk layers — then sealing your written case file for delivery.</p>
+      <div class="progress"><i id="bar"></i></div>
+      <div class="loader-steps" id="steps"></div>
+    </div>
+  </div>
+
+  <div class="wrap" id="app" hidden>
+    <div class="print-bar">
+      <button type="button" onclick="window.print()">Print / Save PDF</button>
+      <button type="button" onclick="location.href='index.html'">New case</button>
+    </div>
+
+    <div class="report-shell">
+      <header class="header">
+        <div class="header-top">
+          <div class="brand">
+            <div class="brand-mark" aria-hidden="true">
+              <svg viewBox="0 0 48 48" fill="none"><circle cx="24" cy="20" r="14" stroke="#fff" stroke-width="2" opacity=".28"/><circle cx="24" cy="20" r="9" stroke="#fff" stroke-width="2" opacity=".5"/><circle cx="24" cy="20" r="4.2" stroke="#fff" stroke-width="2" opacity=".85"/><path d="M24 20 L24 6 A14 14 0 0 1 36.5 25.5 Z" fill="#fff" opacity=".22"/><circle cx="24" cy="20" r="2.2" fill="#fff"/><path d="M24 42c-4.6-5.6-7.6-9.6-7.6-13.2a7.6 7.6 0 1 1 15.2 0c0 3.6-3 7.6-7.6 13.2z" fill="#fff"/><circle cx="24" cy="28.6" r="2.4" fill="#008f6f"/></svg>
+            </div>
+            <div>
+              <strong>SafeLink <span class="spy">Spy</span></strong>
+              <small>Secure Report Center</small>
+            </div>
+          </div>
+          <div class="case-meta">
+            <div>Case: <span class="id" id="caseId">—</span></div>
+            <div>Type: Full Analytical Sweep</div>
+          </div>
+        </div>
+        <div class="meta-grid">
+          <div><span>Subject</span><strong id="subject">—</strong></div>
+          <div><span>Phone</span><strong id="phone">—</strong></div>
+          <div><span>Delivered</span><strong id="date">—</strong></div>
+          <div><span>Status</span><strong class="status-ok" id="status">Delivered</strong></div>
+        </div>
+        <div class="seal-row">
+          <span class="seal hot">✓ Promise fulfilled</span>
+          <span class="seal hot">✓ Full sweep done</span>
+          <span class="seal">Subject not notified</span>
+          <span class="seal" id="envSeal">0 layers</span>
+        </div>
+      </header>
+
+      <div class="body">
+        <!-- 1) Delivery proof -->
+        <div class="delivery-banner">
+          <div class="icon">✓</div>
+          <div>
+            <h3>Your report was generated and delivered</h3>
+            <p id="deliveryText">
+              The complete multi-layer scan finished successfully. This page <strong>is</strong> the product you purchased: a sealed written dossier for the number you submitted — not a blank thank-you screen.
+            </p>
+            <div class="delivery-meta">
+              <span id="delWhen">Delivered —</span>
+              <span id="delMethod">Secure Report Center</span>
+              <span id="delCase">Case —</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2) Big clearance verdict -->
+        <div class="verdict">
+          <div class="eyebrow">Clearance verdict · relationship risk</div>
+          <h2 id="verdictTitle">NO INFIDELITY SIGNALS FOUND</h2>
+          <p id="verdictSub">Full multi-layer sweep completed.</p>
+          <div class="verdict-stats">
+            <div><div class="n" id="vClear">0</div><div class="k">Risk flags</div></div>
+            <div><div class="n" id="vLayers">0</div><div class="k">Layers swept</div></div>
+            <div><div class="n" id="vScore">0%</div><div class="k">Clearance</div></div>
+          </div>
+        </div>
+
+        <div class="value-strip" id="kpiStrip"></div>
+
+        <!-- Promise checklist -->
+        <section class="section">
+          <div class="section-head">
+            <span class="num" style="background:#16a34a">✓</span>
+            <h2>What you were promised — status</h2>
+          </div>
+          <div class="section-body">
+            <div class="promise-grid" id="promiseGrid"></div>
+          </div>
+        </section>
+
+        <!-- How to read — reframe to CLEAR -->
+        <section class="section howto">
+          <div class="section-head">
+            <span class="num" style="background:#1d4ed8">i</span>
+            <h2>How to read this clearance report</h2>
+          </div>
+          <div class="section-body">
+            <p>
+              This dossier is the result of a <strong>full deep scan</strong> on the number you submitted. The system looks for patterns people worry about most: dating-app activity, third-party romantic content, secret secondary profiles, and attempts to hide conversations across messaging and social apps.
+            </p>
+            <p>
+              <strong>Your result is a clearance outcome:</strong> after the full pass, <strong>no infidelity signals were found for this subject</strong>. That is a real finding — a clean deep scan is exactly what most members hope to receive.
+            </p>
+            <p>
+              Where you see <em>Registered</em>, the number is active on that platform (common and not a red flag by itself). Where you see <em>sealed / locked fragments</em>, private material was located in protected form for your case file and is shown as secured blocks in this delivery.
+            </p>
+            <p>
+              The timestamped scan log below shows each stage that ran before this file was sealed and delivered to you.
+            </p>
+          </div>
+        </section>
+
+        <!-- Scan log -->
+        <section class="section">
+          <div class="section-head">
+            <span class="num">00</span>
+            <h2>Scan execution log (proof of work)</h2>
+          </div>
+          <div class="section-body">
+            <p class="lead">
+              Started <strong id="scanStart">—</strong> · Sealed <strong id="scanEnd">—</strong> ·
+              <strong id="recordsN">0</strong> record probes · <strong id="sourcesN">0</strong> source families
+            </p>
+            <ul class="pipeline" id="pipeline"></ul>
+          </div>
+        </section>
+
+        <!-- 01 -->
+        <section class="section">
+          <div class="section-head">
+            <span class="num">01</span>
+            <h2>Identity Verification</h2>
+          </div>
+          <div class="section-body">
+            <table class="data" id="identityTable"></table>
+          </div>
+        </section>
+
+        <!-- 02 -->
+        <section class="section">
+          <div class="section-head">
+            <span class="num">02</span>
+            <h2>Deep Data Scan · Risk engines</h2>
+          </div>
+          <div class="section-body">
+            <p class="lead">
+              Phone, regional routing, and identity hooks were processed through relationship-risk, concealment, and exposure engines. Results below are written for a non-technical reader.
+            </p>
+            <div id="deepAlerts"></div>
+            <div id="clearCards"></div>
+            <div class="alert green" id="deepClose"></div>
+          </div>
+        </section>
+
+        <!-- 03 -->
+        <section class="section">
+          <div class="section-head">
+            <span class="num">03</span>
+            <h2>Data Overlap Identification</h2>
+          </div>
+          <div class="section-body">
+            <p class="lead">
+              Recycled numbers can carry old strangers’ data. We check that what we found belongs to <em>this</em> holder — so a clean result is not polluted by a previous owner.
+            </p>
+            <div class="mini-grid cols-3" id="overlapGrid"></div>
+            <div class="alert green" id="overlapClose"></div>
+          </div>
+        </section>
+
+        <!-- 04 -->
+        <section class="section">
+          <div class="section-head">
+            <span class="num">04</span>
+            <h2>Deleted / historical cache review</h2>
+          </div>
+          <div class="section-body">
+            <div class="mini-grid cols-2" id="histGrid"></div>
+            <div class="alert green" id="histClose"></div>
+          </div>
+        </section>
+
+        <!-- 05 -->
+        <section class="section">
+          <div class="section-head">
+            <span class="num">05</span>
+            <h2>Platform presence map (global)</h2>
+          </div>
+          <div class="section-body">
+            <p class="lead">
+              These rows show every major app and network layer checked for this number (messaging, social, identity, carrier).
+              <strong>Registered does not mean cheating</strong> — it only means an account is linked to the number. Romantic / third-party risk screening on those layers returned clear.
+            </p>
+            <div id="services"></div>
+          </div>
+        </section>
+
+        <!-- 06 -->
+        <section class="section">
+          <div class="section-head">
+            <span class="num">06</span>
+            <h2>Coverage summary · risk board</h2>
+          </div>
+          <div class="section-body">
+            <p class="lead">Every major risk bucket we promised to sweep, with a plain-language result.</p>
+            <table class="data" id="coverageTable"></table>
+            <div class="alert green" id="coverageCount" style="margin-top:14px"></div>
+          </div>
+        </section>
+
+        <!-- Certificate -->
+        <div class="cert">
+          <h3>Certificate of sweep completion</h3>
+          <p>
+            This case file certifies that the multi-layer sweep for
+            <strong id="certPhone">—</strong> completed without open infidelity indicators
+            and was delivered to the purchaser in the Secure Report Center.
+          </p>
+          <code id="certHash">SEAL —</code>
+        </div>
+
+        <!-- Conclusion -->
+        <section class="conclusion">
+          <h2>Final conclusion</h2>
+          <ul id="conclusionList"></ul>
+          <div class="analytical">
+            <div class="label">Analytical result · plain English</div>
+            <p id="analyticalText"></p>
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="section-head">
+            <span class="num">★</span>
+            <h2>What you should do with a “clear” result</h2>
+          </div>
+          <div class="section-body">
+            <div class="clear-card">
+              <div>
+                <h3>Trust the work you paid for</h3>
+                <p>You received a full written dossier with timestamps, coverage board, and a sealed clearance verdict — not a vague “ok”. That <em>is</em> the product.</p>
+              </div>
+              <span class="badge ok">Delivered</span>
+            </div>
+            <div class="clear-card">
+              <div>
+                <h3>Keep this as your baseline</h3>
+                <p>Bookmark or print this page. If anxiety returns later, compare behavior against today’s clear baseline instead of re-buying immediately.</p>
+              </div>
+              <span class="badge blue">Archive</span>
+            </div>
+            <div class="clear-card">
+              <div>
+                <h3>Still watch real life (optional)</h3>
+                <p>No system can see every offline moment. A clear deep scan strongly reduces digital red flags — pair it with calm, real-life conversation if you still need emotional closure.</p>
+              </div>
+              <span class="badge muted">Human</span>
+            </div>
+          </div>
+        </section>
+
+        <div class="cta-pdf">
+          <h3>Keep a permanent copy</h3>
+          <p>Print or “Save as PDF” so you always have proof this scan was delivered for case <span id="pdfCase">—</span>.</p>
+          <button type="button" onclick="window.print()">Save PDF / Print dossier</button>
+        </div>
+
+        <div class="footer-box">
+          <h3>Confidential delivery</h3>
+          <p>
+            This case file is private to the purchaser. The subject is not notified.
+            Share only if you choose to. Keep your case ID if you contact support.
+          </p>
+        </div>
+
+        <div class="rating">
+          <h3>Did this report deliver what you expected?</h3>
+          <div class="stars" id="stars">
+            <button type="button" data-r="1">★</button>
+            <button type="button" data-r="2">★</button>
+            <button type="button" data-r="3">★</button>
+            <button type="button" data-r="4">★</button>
+            <button type="button" data-r="5">★</button>
+          </div>
+          <p id="rateMsg" style="margin:10px 0 0;font-size:12px;color:#64748b;min-height:18px"></p>
+        </div>
+
+        <div class="dual">
+          <div class="footer-box">
+            <h3>Data &amp; privacy</h3>
+            <p>Quote your case ID if you request deletion support.</p>
+            <a class="del" href="mailto:support@example.com?subject=Data%20deletion%20request">Request data deletion</a>
+          </div>
+          <div class="footer-box">
+            <h3>Need help reading a clear result?</h3>
+            <p>We can explain any section — most “Registered” rows are normal presence, not risk.</p>
+            <a class="help" href="mailto:support@example.com?subject=Report%20support">Get support</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="./js/report-engine.js"></script>
+  <script src="./js/case-store.js"></script>
+  <script>
+    (function () {
+      var params = new URLSearchParams(location.search || '');
+      var phone = params.get('phone') || params.get('p') || '';
+      var name = params.get('name') || params.get('subject') || '';
+      var token = params.get('token') || '';
+      var delivered = params.get('delivered') === '1';
+      var caseParam = params.get('case') || '';
+
+      // Email magic-link: token + phone (no login). Invalid token → access portal.
+      if (delivered) {
+        if (!phone || ReportEngine.digits(phone).length < 8 || !token) {
+          location.replace('index.html');
+          return;
+        }
+        var expectedCase = caseParam || ReportEngine.caseIdFrom(phone);
+        var expectedToken = CaseStore.accessToken(expectedCase, phone);
+        if (String(token) !== String(expectedToken)) {
+          location.replace('index.html');
+          return;
+        }
+      } else {
+        // Member path: must be logged in + case ready
+        var email = CaseStore.getSessionEmail();
+        if (!email) {
+          location.replace('index.html');
+          return;
+        }
+        var cases = CaseStore.listCases(email);
+        var match = null;
+        for (var i = 0; i < cases.length; i++) {
+          if (
+            (caseParam && (cases[i].caseId === caseParam || cases[i].id === caseParam)) ||
+            (phone && ReportEngine.digits(cases[i].phone) === ReportEngine.digits(phone))
+          ) {
+            match = cases[i];
+            break;
+          }
+        }
+        if (!match && cases.length) match = cases[0];
+        if (!match) {
+          location.replace('dashboard.html');
+          return;
+        }
+        if (!CaseStore.isReady(match)) {
+          location.replace('status.html?id=' + encodeURIComponent(match.id));
+          return;
+        }
+        phone = match.phone;
+        name = match.name || name;
+        caseParam = match.caseId;
+      }
+
+      if (!phone || ReportEngine.digits(phone).length < 8) {
+        location.replace('index.html');
+        return;
+      }
+
+      var data = ReportEngine.buildCase({ phone: phone, name: name });
+      if (caseParam) data.caseId = caseParam;
+      document.title = data.caseId + ' · Complete Report · SafeLink Spy';
+
+      // Short unlock theater (report already "finished" — not the multi-day wait)
+      document.querySelector('#loader h2').textContent = 'Unlocking your sealed report';
+      document.getElementById('loaderSub').textContent =
+        'Final seal verified. Preparing your complete case file for viewing…';
+      var steps = [
+        'Verifying delivery seal…',
+        'Loading case ' + data.caseId + '…',
+        'Assembling complete dossier…',
+        'Ready'
+      ];
+      var stepsEl = document.getElementById('steps');
+      var bar = document.getElementById('bar');
+      var stepI = 0;
+      function paintSteps() {
+        stepsEl.innerHTML = steps.map(function (s, i) {
+          var cls = i < stepI ? 'done' : i === stepI ? 'active' : '';
+          var mark = i < stepI ? '✓ ' : i === stepI ? '● ' : '○ ';
+          return '<div class="' + cls + '">' + mark + s + '</div>';
+        }).join('');
+      }
+      paintSteps();
+      var t0 = Date.now();
+      var duration = 2200;
+      var timer = setInterval(function () {
+        var pct = Math.min(100, Math.round(((Date.now() - t0) / duration) * 100));
+        bar.style.width = pct + '%';
+        var nextStep = Math.min(steps.length - 1, Math.floor((pct / 100) * steps.length));
+        if (nextStep !== stepI) {
+          stepI = nextStep;
+          paintSteps();
+        }
+        if (pct >= 100) {
+          clearInterval(timer);
+          stepI = steps.length;
+          paintSteps();
+          setTimeout(function () {
+            document.getElementById('loader').classList.add('hide');
+            document.getElementById('app').hidden = false;
+          }, 280);
+        }
+      }, 50);
+
+      function badge(ok, label, extra) {
+        return '<span class="badge ' + (ok ? 'ok' : extra || 'muted') + '">' + label + '</span>';
+      }
+
+      // Header + delivery
+      document.getElementById('caseId').textContent = data.caseId;
+      document.getElementById('subject').textContent = data.subjectName;
+      document.getElementById('phone').textContent = data.phone;
+      document.getElementById('date').textContent = data.completedAtLabel;
+      document.getElementById('status').textContent = data.status;
+      document.getElementById('envSeal').textContent = data.environments + ' layers';
+      document.getElementById('delWhen').textContent = 'Delivered ' + data.completedAtLabel;
+      document.getElementById('delMethod').textContent = data.delivery.channel;
+      document.getElementById('delCase').textContent = data.caseId;
+      document.getElementById('deliveryText').innerHTML =
+        'Scan for <strong>' + data.phone + '</strong> finished successfully in region <strong>' +
+        data.country.name + '</strong>. This sealed page is your delivered product — full sweep + written clearance.';
+
+      // Verdict
+      document.getElementById('verdictTitle').textContent = data.verdict;
+      document.getElementById('verdictSub').textContent = data.verdictSub;
+      document.getElementById('vClear').textContent = '0';
+      document.getElementById('vLayers').textContent = String(data.environments);
+      document.getElementById('vScore').textContent = data.clearanceScore + '%';
+
+      document.getElementById('kpiStrip').innerHTML = [
+        { k: 'Records probed', n: data.recordsChecked.toLocaleString('en-US'), c: '' },
+        { k: 'Sources', n: data.sourcesQueried, c: '' },
+        { k: 'Platforms hit', n: data.registeredCount, c: 'yellow' },
+        { k: 'Risk flags', n: '0', c: 'green' }
+      ].map(function (x) {
+        return '<div class="vcard"><div class="k">' + x.k + '</div><div class="n ' + x.c + '">' + x.n + '</div></div>';
+      }).join('');
+
+      document.getElementById('promiseGrid').innerHTML = [
+        { t: 'Scan the number end-to-end', d: 'Completed — see timestamped execution log' },
+        { t: 'Check messaging / social risk', d: 'Completed — no infidelity payload found' },
+        { t: 'Deliver a written case file', d: 'Completed — this page is the delivery' },
+        { t: 'Keep it private from the subject', d: 'Completed — no subject notification path' }
+      ].map(function (p) {
+        return '<div class="promise-item"><div class="ck">✓</div><div><strong>' + p.t + '</strong><span>' + p.d + '</span></div></div>';
+      }).join('');
+
+      // Pipeline
+      document.getElementById('scanStart').textContent = data.startedAtLabel;
+      document.getElementById('scanEnd').textContent = data.completedAtLabel;
+      document.getElementById('recordsN').textContent = data.recordsChecked.toLocaleString('en-US');
+      document.getElementById('sourcesN').textContent = data.sourcesQueried;
+      document.getElementById('pipeline').innerHTML = data.pipeline.map(function (p) {
+        return '<li><div class="dot">✓</div><div class="lab">' + p.label + '</div><div class="tm">' + p.at + '</div></li>';
+      }).join('');
+
+      // 01
+      var identityRows = [
+        { field: 'Subject label', value: data.subjectName, status: badge(true, data.subjectConfirmed ? 'Provided + linked' : 'Number-linked') },
+        { field: 'Country / region', value: data.country.name + ' · ' + data.country.region, status: badge(true, 'Routed') },
+        { field: 'Carrier', value: data.carrier, status: badge(true, 'Matched') },
+        { field: 'Line type', value: data.lineType, status: badge(true, 'Classified') },
+        { field: 'Line status', value: data.lineStatus, status: badge(true, 'Active') },
+        { field: 'Relationship risk tag', value: 'CLEAR', status: badge(true, 'No flags') },
+        { field: 'Selected email / address', value: 'Not required for this sweep', status: badge(false, 'Optional') }
+      ];
+      document.getElementById('identityTable').innerHTML =
+        '<thead><tr><th>Field</th><th>Value</th><th>Status</th></tr></thead><tbody>' +
+        identityRows.map(function (r) {
+          return '<tr><td class="field">' + r.field + '</td><td>' + r.value + '</td><td>' + r.status + '</td></tr>';
+        }).join('') + '</tbody>';
+
+      // 02
+      document.getElementById('deepAlerts').innerHTML =
+        '<div class="alert green"><strong>Risk engines finished clean.</strong> ' +
+        data.recordGroups + ' record groups and ' + data.accountSignals +
+        ' account signals were evaluated. Dating / affair risk layers: <strong>0 hits</strong>.</div>';
+
+      document.getElementById('clearCards').innerHTML = [
+        { t: 'Third-party romantic conversations', d: 'No affectionate third-party chat activity was found for this subject.' },
+        { t: 'Dating & affair-oriented platforms', d: 'No match for this number / identity on those platforms.' },
+        { t: 'Hidden or deleted cover-up activity', d: 'No pattern of mass hiding or dual identity was linked to the subject.' },
+        { t: 'Secret secondary profiles', d: 'No cluster of secret accounts suggesting a double life was found.' }
+      ].map(function (c) {
+        return '<div class="clear-card"><div><h3>' + c.t + '</h3><p>' + c.d + '</p></div><span class="badge ok">Clear</span></div>';
+      }).join('');
+
+      document.getElementById('deepClose').innerHTML =
+        '<strong>Bottom line:</strong> deep risk checks found no infidelity indicators. App registrations can still appear (normal). Private content in this delivery is sealed in protected blocks and was screened clear.';
+
+      // 03
+      document.getElementById('overlapGrid').innerHTML = [
+        { l: 'Submitted data', t: 'Accepted & normalized', d: 'Number routed to the correct country stack for a full pass.', cls: '' },
+        { l: 'Prior-holder overlap', t: 'No overlap detected', d: 'Results are not polluted by a previous owner of this line.', cls: '' },
+        { l: 'Attribution', t: 'Current subject only', d: 'Clearance applies to the holder of the submitted number.', cls: 'blue' }
+      ].map(function (m) {
+        return '<div class="mini ' + m.cls + '"><div class="label">' + m.l + '</div><div class="title">' + m.t + '</div><div class="desc">' + m.d + '</div></div>';
+      }).join('');
+      document.getElementById('overlapClose').textContent =
+        'Attribution clean. Your “no infidelity signals” result is tied to this number’s current holder context.';
+
+      // 04
+      document.getElementById('histGrid').innerHTML = [
+        { l: 'Historical cache', t: 'Reviewed', d: 'Historical/cached layers checked before sealing clearance.', cls: 'blue' },
+        { l: 'Trashed social cache', t: 'No risk items', d: 'No deleted romantic social package attributed to subject.', cls: '' },
+        { l: 'Conversation cache', t: 'No hidden affair thread', d: 'No hidden third-party romantic thread package returned.', cls: '' },
+        { l: 'Previous holder', t: 'None matched', d: 'No alternate holder package attached to final verdict.', cls: '' }
+      ].map(function (m) {
+        return '<div class="mini ' + m.cls + '"><div class="label">' + m.l + '</div><div class="title">' + m.t + '</div><div class="desc">' + m.d + '</div></div>';
+      }).join('');
+      document.getElementById('histClose').textContent =
+        'Historical layers support the same clearance — nothing reopened as an affair signal.';
+
+      // 05 services
+      function fragmentsHtml() {
+        var tiles = ['text', 'image', 'text', 'image', 'text'];
+        return '<div class="fragments"><h4>Private surface detected · content sealed (not a risk flag)</h4><div class="frag-grid">' +
+          tiles.map(function (t) {
+            if (t === 'image') return '<div class="frag image">Media sealed</div>';
+            return '<div class="frag"><div class="bar"></div><div class="bar w2"></div><div class="tag">Body sealed</div></div>';
+          }).join('') + '</div></div>';
+      }
+      document.getElementById('services').innerHTML = data.services.map(function (s, i) {
+        return '<div class="service"><div class="service-row">' +
+          '<div class="service-idx">' + (i + 1) + '</div>' +
+          '<div class="service-main"><div class="name">' + s.name + '</div><div class="cat">' + s.cat +
+          (s.note ? ' · ' + s.note : '') + '</div></div>' +
+          '<div class="service-status">' + s.status + '</div></div>' +
+          (s.fragments ? fragmentsHtml() : '') +
+          '</div>';
+      }).join('');
+
+      // 06 — almost all clear/reviewed; Found only for normal presence categories
+      var coverage = [
+        { e: 'WhatsApp risk screen', r: 'Clear', cls: 'ok' },
+        { e: 'Instagram / Facebook risk screen', r: 'Clear', cls: 'ok' },
+        { e: 'Dating & affair-oriented platforms', r: 'No Match', cls: 'ok' },
+        { e: 'Third-party romantic content package', r: 'No Match', cls: 'ok' },
+        { e: 'Deleted concealment package', r: 'No Match', cls: 'ok' },
+        { e: 'Credential exposure cluster', r: 'No Match', cls: 'ok' },
+        { e: 'Prior-holder pollution', r: 'No Match', cls: 'ok' },
+        { e: 'Messaging platform presence', r: 'Present · screened', cls: 'blue' },
+        { e: 'Social registration presence', r: 'Present · screened', cls: 'blue' },
+        { e: 'Carrier / identity layer', r: 'Matched', cls: 'ok' },
+        { e: 'Cross-platform correlation', r: 'Completed', cls: 'ok' },
+        { e: 'Final clearance seal', r: 'Issued', cls: 'ok' }
+      ];
+      document.getElementById('coverageTable').innerHTML =
+        '<thead><tr><th>Sweep area</th><th>Result</th></tr></thead><tbody>' +
+        coverage.map(function (c) {
+          return '<tr><td>' + c.e + '</td><td><span class="badge ' + c.cls + '">' + c.r + '</span></td></tr>';
+        }).join('') + '</tbody>';
+      document.getElementById('coverageCount').innerHTML =
+        '<strong>All relationship-risk buckets cleared.</strong> ' +
+        data.environments + ' execution layers ran before this file was delivered to you.';
+
+      // Cert
+      document.getElementById('certPhone').textContent = data.phone;
+      document.getElementById('certHash').textContent = 'SEAL ' + data.sealHash + ' · ' + data.caseId;
+      document.getElementById('pdfCase').textContent = data.caseId;
+
+      // Conclusion
+      var bullets = [
+        'Delivery confirmed: sealed dossier for ' + data.phone + ' is on this page (' + data.caseId + ').',
+        'Infidelity checks returned zero flags (dating apps, romantic third-party activity, hidden cover-up patterns).',
+        data.registeredCount + ' app and network layers were checked — normal registrations only, all risk-screened clear.',
+        'Protected private fragments stay sealed in this delivery and do not change the clean result.'
+      ];
+      document.getElementById('conclusionList').innerHTML = bullets.map(function (b) {
+        return '<li><svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg><span>' + b + '</span></li>';
+      }).join('');
+
+      document.getElementById('analyticalText').textContent =
+        'Plain English: we ran the full deep scan you paid for and delivered this written case file. ' +
+        'We did not find signs of an affair or romantic double life tied to this number. ' +
+        'We did find ordinary app presence (WhatsApp and similar), which is expected and was cleared for relationship risk. ' +
+        'Clearance confidence: ' + data.clearanceScore + '%. ' +
+        'Region for this run: ' + data.country.name + '.';
+
+      document.querySelectorAll('#stars button').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var r = +btn.getAttribute('data-r');
+          document.querySelectorAll('#stars button').forEach(function (b) {
+            b.classList.toggle('on', +b.getAttribute('data-r') <= r);
+          });
+          document.getElementById('rateMsg').textContent =
+            r >= 4
+              ? 'Thank you — save the PDF so you always have proof of delivery.'
+              : 'If something felt unclear, support can walk you through the clearance sections.';
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

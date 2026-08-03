@@ -31,3 +31,7 @@ tmp/
 
 .vercel
 .env*
+
+# Local n8n install (huge node_modules)
+tools/n8n-local/
+

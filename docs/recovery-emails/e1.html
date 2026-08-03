@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<body style="margin:0;padding:0;background:#f0f2f5;font-family:Arial,Helvetica,sans-serif;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f0f2f5;padding:20px 10px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:420px;background:#f0f2f5;">
+          <!-- Header -->
+          <tr>
+            <td style="background:#128C7E;padding:14px 16px;border-radius:12px 12px 0 0;">
+              <div style="font-size:11px;font-weight:700;letter-spacing:.08em;color:rgba(255,255,255,.85);text-transform:uppercase;">App Spy</div>
+              <div style="font-size:18px;font-weight:800;color:#ffffff;margin-top:4px;line-height:1.25;">See everything they're hiding from you</div>
+            </td>
+          </tr>
+          <!-- Profile card -->
+          <tr>
+            <td style="background:#ffffff;padding:14px 16px;border-left:1px solid #e9edef;border-right:1px solid #e9edef;">
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#ffffff;border:1px solid #e9edef;border-radius:14px;">
+                <tr>
+                  <td style="padding:12px 14px;">
+                    <table role="presentation" cellspacing="0" cellpadding="0">
+                      <tr>
+                        <td style="width:48px;height:48px;border-radius:50%;background:#e9edef;border:2px solid #25D366;text-align:center;vertical-align:middle;font-size:20px;">👤</td>
+                        <td style="padding-left:12px;">
+                          <div style="font-size:15px;font-weight:700;color:#111b21;">{{ $json.phone || 'Your scanned number' }}</div>
+                          <div style="font-size:12px;color:#667781;margin-top:2px;">Recovery complete · Conversations locked</div>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <!-- Found banner -->
+          <tr>
+            <td style="background:#ffffff;padding:0 16px 12px;border-left:1px solid #e9edef;border-right:1px solid #e9edef;">
+              <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:12px 14px;text-align:center;">
+                <div style="font-size:15px;font-weight:800;color:#128C7E;">✅ We found everything.</div>
+                <div style="font-size:12px;color:#667781;margin-top:4px;">Hi {{ $json.name || 'there' }} — finish unlock to open the full report.</div>
+              </div>
+            </td>
+          </tr>
+          <!-- Activity monitor -->
+          <tr>
+            <td style="background:#ffffff;padding:0 16px 12px;border-left:1px solid #e9edef;border-right:1px solid #e9edef;">
+              <div style="background:#ffffff;border:1px solid #e9edef;border-radius:14px;padding:12px 14px;">
+                <div style="font-size:13px;font-weight:800;color:#111b21;margin-bottom:10px;">📡 Activity Monitor <span style="font-size:11px;font-weight:700;color:#25D366;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:20px;padding:2px 8px;margin-left:6px;">● locked</span></div>
+                <div style="padding:8px 0;border-bottom:1px solid #e9edef;font-size:13px;color:#111b21;line-height:1.4;">💬 Deleted messages recovered <span style="font-size:10px;font-weight:700;background:#fee2e2;color:#ef4444;border:1px solid #fecaca;border-radius:3px;padding:1px 6px;margin-left:4px;">DELETED</span></div>
+                <div style="padding:8px 0;border-bottom:1px solid #e9edef;font-size:13px;color:#111b21;line-height:1.4;">📸 Photos &amp; videos still blurred <span style="font-size:10px;font-weight:700;background:#fff0f0;color:#ef4444;border:1px solid #fecaca;border-radius:3px;padding:1px 6px;margin-left:4px;">LOCKED</span></div>
+                <div style="padding:8px 0;font-size:13px;color:#111b21;line-height:1.4;">📍 Location history ready to view <span style="font-size:10px;font-weight:700;background:#fef2f2;color:#ef4444;border-radius:3px;padding:1px 6px;margin-left:4px;">ALERT</span></div>
+              </div>
+            </td>
+          </tr>
+          <!-- CTA / pricing -->
+          <tr>
+            <td style="background:#ffffff;padding:0 16px 16px;border-left:1px solid #e9edef;border-right:1px solid #e9edef;border-bottom:1px solid #e9edef;border-radius:0 0 12px 12px;">
+              <div style="background:#ffffff;border:2px solid #25D366;border-radius:16px;padding:18px 14px;text-align:center;box-shadow:0 4px 24px rgba(37,211,102,.15);">
+                <div style="display:inline-block;background:#fee2e2;border-radius:20px;padding:6px 14px;font-size:12px;font-weight:700;color:#ef4444;margin-bottom:10px;">75% OFF - LIMITED TIME</div>
+                <div style="font-size:14px;color:#667781;text-decoration:line-through;">$197</div>
+                <div style="font-size:42px;font-weight:900;color:#111b21;line-height:1;letter-spacing:-1px;">$39</div>
+                <div style="font-size:13px;font-weight:700;color:#25D366;margin:6px 0 8px;">You save $158 today!</div>
+                <div style="font-size:11px;color:#667781;margin-bottom:14px;"><span style="color:#128C7E;font-weight:600;">One-time payment</span> · Lifetime access · 30-day guarantee</div>
+                <a href="https://go.centerpag.com/PPU38CQEHD1?name={{ $json.name }}&email={{ $json.email }}&phone={{ $json.phone }}&plan=full&utm_source=email&utm_medium=recovery&utm_campaign=e1" style="display:block;background:#25D366;background:linear-gradient(135deg,#25D366,#22c55e);color:#ffffff;text-decoration:none;font-weight:900;font-size:15px;padding:16px 12px;border-radius:13px;box-shadow:0 4px 24px rgba(37,211,102,.35);">
+                  🔓 UNLOCK FULL ACCESS NOW<br>
+                  <span style="font-size:11px;font-weight:600;opacity:.9;">{{ $json.phone || 'Secure checkout · $39' }}</span>
+                </a>
+                <div style="margin-top:12px;font-size:11px;color:#667781;">🔒 Secure payment · Access in up to 2 minutes</div>
+              </div>
+            </td>
+          </tr>
+          <!-- Footer -->
+          <tr>
+            <td style="padding:14px 8px;text-align:center;font-size:11px;color:#667781;">App Spy · If you already purchased, ignore this email.</td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

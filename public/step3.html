@@ -1,8 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<!-- Clarity (funnel only) -->
-<script src="/js/clarity-id.js"></script>
 <!-- UTMify UTMs -->
 <script
   src="https://cdn.utmify.com.br/scripts/utms/latest.js"
@@ -237,8 +235,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);min-height:100vh;paddin
       <div class="reg-badge"><div class="reg-dot"></div>Registered on WhatsApp</div>
       <div class="stats-grid">
         <div class="stat-box">
-          <span class="stat-val">Online</span>
-          <span class="stat-lbl">Current Status</span>
+          <span class="stat-val" id="est-profile">Online</span>
+          <span class="stat-lbl" id="est-profile-lbl">Current Status</span>
         </div>
         <div class="stat-box">
           <span class="stat-val scanning" id="del-count">Scanning...</span>
@@ -271,6 +269,36 @@ document.getElementById('prof-num').textContent = decoded || '+1 (555) 000-0000'
 if (window.ProfilePhoto && decoded) {
   try { ProfilePhoto.prefetch(decoded); } catch (e) {}
 }
+
+// Gender only (Male/Female). No city. No invented age.
+// Prefer WA face.gender, else step1 target gender. Else Online.
+function fillGenderProfile(meta) {
+  var el = document.getElementById('est-profile');
+  var lbl = document.getElementById('est-profile-lbl');
+  if (!el) return;
+  var gender = '';
+  var face = meta && meta.face ? meta.face : null;
+  if (face && face.gender) {
+    if (face.gender === 'male' || face.gender === 'Male') gender = 'Male';
+    else if (face.gender === 'female' || face.gender === 'Female') gender = 'Female';
+  }
+  if (!gender) {
+    var g = '';
+    try {
+      g = (new URLSearchParams(location.search).get('gender') || sessionStorage.getItem('sl_gender') || '').toLowerCase();
+    } catch (e) {}
+    if (g === 'male' || g === 'm') gender = 'Male';
+    else if (g === 'female' || g === 'f') gender = 'Female';
+  }
+  if (gender) {
+    el.textContent = gender;
+    if (lbl) lbl.textContent = 'Estimated Profile';
+  } else {
+    el.textContent = 'Online';
+    if (lbl) lbl.textContent = 'Current Status';
+  }
+}
+
 
 var statusMsgs = [
   'Preparing access...',
@@ -346,7 +374,9 @@ async function runLoad(){
   document.getElementById('del-count').textContent = 'Scanning...';
   document.getElementById('del-count').classList.add('scanning');
 
-  // Load WhatsApp profile photo (Auralink API — same as funnel-love-vision)
+  fillGenderProfile(window.ProfilePhoto && ProfilePhoto.getLastMeta ? ProfilePhoto.getLastMeta() : null);
+
+  // Load WhatsApp profile photo (ZapSpy API — same as funnel-love-vision)
   loadProfileAvatar();
 }
 
@@ -398,6 +428,7 @@ function loadProfileAvatar() {
     blurredFallback: true,
     onResult: function (url) {
       var real = url && (!ProfilePhoto.isRealPhotoUrl || ProfilePhoto.isRealPhotoUrl(url));
+      try { fillGenderProfile(ProfilePhoto.getLastMeta ? ProfilePhoto.getLastMeta() : null); } catch (eF) {}
       if (real) {
         // Real WhatsApp photo → sharp, hide badge
         container.classList.remove('blurred', 'av-blurred');
