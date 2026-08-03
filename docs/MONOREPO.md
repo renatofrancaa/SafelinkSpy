@@ -60,47 +60,27 @@ API serverless `api/case.js` só roda de verdade no deploy Vercel (ou com `verce
 
 ---
 
-## Deploy (estado atual — sem cutover)
+## Deploy (cutover **concluído**)
 
-| Projeto Vercel | Root Directory | Repo Git |
-|----------------|----------------|----------|
-| safelinkspy | `.` (raiz) | SafelinkSpy |
-| member-report | `.` (raiz do **repo antigo** member-report) | member-report |
+| Projeto Vercel | Root Directory | Repo Git | Domínio |
+|----------------|----------------|----------|---------|
+| safelinkspy | `.` (raiz) | `renatofrancaa/SafelinkSpy` | funil |
+| member-report | **`apps/member-report`** | `renatofrancaa/SafelinkSpy` | **en.safelinkspy.com** |
 
-Enquanto o projeto `member-report` na Vercel ainda apontar para o repo antigo, **nada muda em produção**. O monorepo só guarda a cópia unificada.
+Fonte da verdade do entregável: **`apps/member-report/`** neste monorepo.  
+Pasta local antiga `Projetos/member-report` foi **removida**. Repo GitHub legado `renatofrancaa/member-report` fica só como histórico (arquivado se disponível).
 
----
+### Como o member faz deploy
 
-## Cutover opcional (en.safelinkspy.com)
+- Push em `main` no SafelinkSpy com mudanças em `apps/member-report/` → Vercel projeto **member-report**
+- Ou CLI a partir da **raiz** do monorepo:  
+  `vercel deploy --prod --yes --project member-report`  
+  (não use `--cwd apps/member-report` — o Root Directory já é `apps/member-report` e dobraria o path)
 
-Só faça quando quiser um único Git e um único fluxo de deploy. Domínio e paths **permanecem iguais**.
+### Rollback (se precisar)
 
-### Pré-requisitos
-
-1. Código em `apps/member-report/` revisado e igual (ou melhor) ao que está no ar.
-2. Env vars do projeto `member-report` já configuradas na Vercel (se houver).
-3. Janela com tempo para testar preview e reverter.
-
-### Passos (Vercel → projeto **member-report**)
-
-1. **Settings → Git**: conectar/apontar para `renatofrancaa/SafelinkSpy` (em vez de `member-report`).
-2. **Settings → General → Root Directory**: `apps/member-report`
-3. Framework Preset: **Other** (estático + `api/`)
-4. Build/Install: deixar vazio (igual ao atual)
-5. Deploy de **Preview** primeiro — abrir a URL de preview e validar:
-   - `/` → index (e-mail)
-   - `/dashboard.html`, `/status.html`, `/report.html`
-   - `POST/GET /api/case`
-   - header `X-Robots-Tag: noindex` (via `vercel.json`)
-6. Se OK: promover Production. Domínio **en.safelinkspy.com** continua no mesmo projeto.
-7. Se falhar: Root Directory de volta ao setup anterior **ou** reapontar o Git para o repo antigo; rollback de deployment na Vercel.
-
-### Rollback rápido
-
-- Vercel → Deployments → redeploy do último deployment bom **antes** do cutover, **ou**
-- Git Settings → repo `member-report` + Root Directory vazio (como era).
-
-**Não** é necessário alterar DNS de `en.safelinkspy.com` se o domínio continuar no mesmo projeto Vercel.
+1. Vercel → Deployments do projeto `member-report` → redeploy de um deployment anterior estável  
+2. Ou temporariamente: Root Directory vazio + reapontar Git para o repo legado (se ainda existir no GitHub)
 
 ---
 

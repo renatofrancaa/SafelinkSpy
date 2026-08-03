@@ -16,15 +16,15 @@ Vive no monorepo em `apps/member-report/`. Deploy e domínio **separados** do fu
 
 Quando `readyAt` chega, o status redireciona para o dossiê. O e-mail é backup.
 
-## Live (referência)
+## Live
 
 | Item | Valor |
 |------|--------|
 | Production | https://en.safelinkspy.com |
 | Vercel project | `member-report` |
+| Root Directory | `apps/member-report` |
+| Git | https://github.com/renatofrancaa/SafelinkSpy |
 | Alias | https://member-report-two.vercel.app |
-| Repo monorepo | https://github.com/renatofrancaa/SafelinkSpy (`apps/member-report`) |
-| Repo legado | https://github.com/renatofrancaa/member-report (backup até cutover) |
 
 ## Demo local
 
@@ -48,12 +48,7 @@ CaseStore.forceReadySoon(new URLSearchParams(location.search).get('id'), 15)
 
 Quando o case estiver pronto, enviar e-mail com `CaseStore.reportUrl(case)` (sem login). Backend: webhook Centerpag + fila + Resend/SendGrid.
 
-## Cutover Vercel (opcional)
+## Deploy
 
-Não muda domínio. No projeto **member-report**:
-
-1. Git → repositório `SafelinkSpy`
-2. Root Directory → `apps/member-report`
-3. Preview → validar → Production
-
+Cutover **já feito** (Git SafelinkSpy + Root Directory `apps/member-report`). Domínio inalterado.  
 Detalhes e rollback: [docs/MONOREPO.md](../../docs/MONOREPO.md).

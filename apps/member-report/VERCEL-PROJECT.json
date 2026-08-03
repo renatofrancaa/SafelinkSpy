@@ -3,7 +3,9 @@
   "orgId": "team_8TvClLvzqCr4WZ7ezMgyOk8A",
   "projectName": "member-report",
   "productionDomain": "en.safelinkspy.com",
+  "gitRepo": "renatofrancaa/SafelinkSpy",
+  "rootDirectory": "apps/member-report",
   "legacyRepo": "renatofrancaa/member-report",
-  "monorepoPath": "apps/member-report",
-  "note": "After cutover, Vercel Root Directory must be apps/member-report on SafelinkSpy repo. This file is documentation only; do not commit real tokens."
+  "cutoverStatus": "done",
+  "note": "Source of truth is apps/member-report in SafelinkSpy. Local Projetos/member-report folder removed. Documentation only — no secrets."
 }
