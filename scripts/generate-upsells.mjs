@@ -646,7 +646,7 @@ function renderOffer(u) {
   </div>
 
   <a href="https://go.centerpag.com/${esc(u.centerpagCode)}?upsell=true" class="cta-yes JS-initiate-checkout" id="cta-yes" rel="noopener noreferrer">${esc(u.ctaYes)}</a>
-  <a href="${esc(String(u.nextOnDecline || "/upsell/thankyou.html").replace(/\.html$/i, ""))}" class="cta-no" id="cta-no" rel="noopener">${esc(u.ctaNo)}</a>
+  <a href="${esc(u.nextOnDecline || "/upsell/thankyou.html")}" class="cta-no" id="cta-no" rel="noopener">${esc(u.ctaNo)}</a>
 </div>`;
 }
 
@@ -881,7 +881,8 @@ function renderScript(u) {
         var target = String(NEXT || '');
         if (target.indexOf('http') !== 0) {
           var file = target.split('/').pop() || target;
-          file = String(file).replace(/\\.html$/i, '');
+          // Keep .html — Vercel static only serves public/upsell/*.html
+          if (!/\\.html$/i.test(file)) file = file + '.html';
           target = '/upsell/' + file;
         }
         var utmFwd = resolveUtmSourceForForward();
@@ -989,7 +990,8 @@ function renderScript(u) {
     var target = String(NEXT || '');
     if (target.indexOf('http') !== 0) {
       var file = target.split('/').pop() || target;
-      file = String(file).replace(/\\.html$/i, '');
+      // Keep .html — Vercel static only serves public/upsell/*.html
+      if (!/\\.html$/i.test(file)) file = file + '.html';
       target = '/upsell/' + file;
     }
     var params = attributionParams({ upsell_step: ${JSON.stringify(u.id)}, declined: '1' });

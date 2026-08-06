@@ -513,7 +513,7 @@ a.cta-no:hover{color:var(--t)!important;}
   </div>
 
   <a href="https://go.centerpag.com/PPU38CQ95OE?upsell=true" class="cta-yes JS-initiate-checkout" id="cta-yes" rel="noopener noreferrer">Yes, Add VIP Priority to My Account</a>
-  <a href="/upsell/thankyou" class="cta-no" id="cta-no" rel="noopener">No thanks, I don't need VIP priority</a>
+  <a href="/upsell/thankyou.html" class="cta-no" id="cta-no" rel="noopener">No thanks, I don't need VIP priority</a>
 </div>
 
 <script>
@@ -739,7 +739,7 @@ a.cta-no:hover{color:var(--t)!important;}
         var target = String(NEXT || '');
         if (target.indexOf('http') !== 0) {
           var file = target.split('/').pop() || target;
-          file = String(file).replace(/\.html$/i, '');
+          if (!/\.html$/i.test(file)) file = file + '.html';
           target = '/upsell/' + file;
         }
         var utmFwd = resolveUtmSourceForForward();
@@ -869,7 +869,7 @@ a.cta-no:hover{color:var(--t)!important;}
     var target = String(NEXT || '');
     if (target.indexOf('http') !== 0) {
       var file = target.split('/').pop() || target;
-      file = String(file).replace(/\.html$/i, '');
+      if (!/\.html$/i.test(file)) file = file + '.html';
       target = '/upsell/' + file;
     }
     var params = attributionParams({ upsell_step: "up4", declined: '1' });
