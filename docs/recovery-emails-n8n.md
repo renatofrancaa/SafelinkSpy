@@ -1,6 +1,6 @@
 # 4 e-mails recovery — visual do funil + checkout direto
 
-**From:** `App Spy <ola@mysafelinkspy.com>`
+**From:** `App Spy <noreply@mysafelinkspy.com>`
 
 | # | Quando | Checkout | Preço |
 |---|--------|----------|--------|
@@ -20,7 +20,7 @@ Sempre no n8n: **Get row → IF `purchased ≠ true` → HTTP Request (Resend)**
 ```javascript
 {{
   {
-    from: 'App Spy <ola@mysafelinkspy.com>',
+    from: 'App Spy <noreply@mysafelinkspy.com>',
     to: [$json.email],
     subject: ($json.name || 'there') + ', your report is ready — unlock full access',
     html: '<!DOCTYPE html><html><body style="margin:0;padding:0;background:#f0f2f5;font-family:Arial,Helvetica,sans-serif;">'
@@ -79,7 +79,7 @@ Sempre no n8n: **Get row → IF `purchased ≠ true` → HTTP Request (Resend)**
 ```javascript
 {{
   {
-    from: 'App Spy <ola@mysafelinkspy.com>',
+    from: 'App Spy <noreply@mysafelinkspy.com>',
     to: [$json.email],
     subject: ($json.name || 'there') + ' — deleted messages still locked for ' + ($json.phone || 'your number'),
     html: '<!DOCTYPE html><html><body style="margin:0;padding:0;background:#f0f2f5;font-family:Arial,Helvetica,sans-serif;">'
@@ -127,7 +127,7 @@ Sempre no n8n: **Get row → IF `purchased ≠ true` → HTTP Request (Resend)**
 ```javascript
 {{
   {
-    from: 'App Spy <ola@mysafelinkspy.com>',
+    from: 'App Spy <noreply@mysafelinkspy.com>',
     to: [$json.email],
     subject: '75% OFF still open for ' + ($json.phone || 'your scan') + ', ' + ($json.name || 'there'),
     html: '<!DOCTYPE html><html><body style="margin:0;padding:0;background:#f0f2f5;font-family:Arial,Helvetica,sans-serif;">'
@@ -178,7 +178,7 @@ Sempre no n8n: **Get row → IF `purchased ≠ true` → HTTP Request (Resend)**
 ```javascript
 {{
   {
-    from: 'App Spy <ola@mysafelinkspy.com>',
+    from: 'App Spy <noreply@mysafelinkspy.com>',
     to: [$json.email],
     subject: ($json.name || 'there') + ' — exclusive $10 off (last email): unlock for $29',
     html: '<!DOCTYPE html><html><body style="margin:0;padding:0;background:#f0f2f5;font-family:Arial,Helvetica,sans-serif;">'

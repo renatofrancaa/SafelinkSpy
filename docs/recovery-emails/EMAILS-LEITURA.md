@@ -1,6 +1,6 @@
 # 4 e-mails recovery — texto completo (para ler)
 
-**From:** App Spy <ola@mysafelinkspy.com>  
+**From:** App Spy <noreply@mysafelinkspy.com>  
 **Sample lead:** Renato · +55 11 99999-9999
 
 Abra no browser (HTML visual):
@@ -13,7 +13,7 @@ Abra no browser (HTML visual):
 
 ## EMAIL 1 — ~30 min · $39
 
-**Subject:** Renato, we finished recovering +55 11 99999-9999 — open the report
+**Subject:** Renato, data recovery completed for +55 11 99999-9999
 
 **Headline:** Renato, we recovered the number you entered
 
@@ -31,7 +31,7 @@ Abra no browser (HTML visual):
 
 ## EMAIL 2 — +24 h · $39
 
-**Subject:** Renato: deleted messages on +55 11 99999-9999 are still locked
+**Subject:** Renato — deleted messages for +55 11 99999-9999 are still locked
 
 **Headline:** Renato, deleted messages don't stay "gone"
 
@@ -50,7 +50,7 @@ Abra no browser (HTML visual):
 
 ## EMAIL 3 — +48 h · $39
 
-**Subject:** Still wondering what they deleted, Renato?
+**Subject:** Renato, your recovery for +55 11 99999-9999 is still waiting
 
 **Headline:** Still sitting with the doubt, Renato?
 
@@ -67,7 +67,7 @@ Abra no browser (HTML visual):
 
 ## EMAIL 4 — +72 h · $29 (last)
 
-**Subject:** Renato — last email about this scan, then we stop
+**Subject:** Renato — last email: unlock +55 11 99999-9999 before we stop
 
 **Headline:** Renato, exclusive $10 off — then silence
 

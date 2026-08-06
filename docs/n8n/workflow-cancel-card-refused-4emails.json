@@ -1,0 +1,1952 @@
+{
+  "name": "Cancel / Card Refused — 7 Emails Recovery (alias of 7-email)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "order-cancelled",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "wh-cancel",
+      "name": "Webhook Cancel",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        200,
+        400
+      ],
+      "webhookId": "order-cancelled",
+      "notes": "PerfectPay card refused / cancelled. Body: email, name, phone. 7-email sequence."
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a1",
+              "name": "email",
+              "value": "={{ String($json.body?.email || $json.body?.customer?.email || $json.email || '').trim().toLowerCase() }}",
+              "type": "string"
+            },
+            {
+              "id": "a2",
+              "name": "name",
+              "value": "={{ String($json.body?.name || $json.body?.customer?.name || $json.body?.customer?.full_name || $json.name || '').trim() }}",
+              "type": "string"
+            },
+            {
+              "id": "a3",
+              "name": "phone",
+              "value": "={{ String($json.body?.phone || $json.body?.customer?.phone_number || $json.body?.customer?.phone || $json.phone || '').trim() }}",
+              "type": "string"
+            },
+            {
+              "id": "a4",
+              "name": "purchased",
+              "value": "false",
+              "type": "string"
+            },
+            {
+              "id": "a5",
+              "name": "order_code",
+              "value": "={{ String($json.body?.code || $json.body?.order_code || $json.code || '') }}",
+              "type": "string"
+            },
+            {
+              "id": "a6",
+              "name": "sale_status",
+              "value": "={{ String($json.body?.sale_status_enum || $json.body?.sale_status || $json.sale_status || 'cancelled') }}",
+              "type": "string"
+            },
+            {
+              "id": "a7",
+              "name": "created_at",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            },
+            {
+              "id": "a8",
+              "name": "status",
+              "value": "card_refused",
+              "type": "string"
+            },
+            {
+              "id": "a9",
+              "name": "utm_source",
+              "value": "email",
+              "type": "string"
+            },
+            {
+              "id": "a10",
+              "name": "utm_medium",
+              "value": "cancel_recovery",
+              "type": "string"
+            },
+            {
+              "id": "a11",
+              "name": "utm_campaign",
+              "value": "card_refused_7",
+              "type": "string"
+            },
+            {
+              "id": "a12",
+              "name": "visitor_id",
+              "value": "={{ String($json.body?.visitor_id || $json.body?.metadata?.zs_vid || '') }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "normalize-cancel",
+      "name": "Normalize Cancel",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        420,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "has-email",
+              "leftValue": "={{ $json.email }}",
+              "rightValue": "@",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-has-email",
+      "name": "If has email",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        640,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "18jZnwB4KbIV3EdwmYi77Q_HkK-yO0fqkYvI9cxxbBOU",
+          "mode": "list",
+          "cachedResultName": "App Spy - Leads Recovery ",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/18jZnwB4KbIV3EdwmYi77Q_HkK-yO0fqkYvI9cxxbBOU/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Cancel Leads",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "email": "={{ $json.email }}",
+            "name": "={{ $json.name }}",
+            "phone ": "={{ \"'\" + String($json.phone || '').replace(/^\\+/, '').replace(/^[\\'=]+/, '').trim() }}",
+            "purchased ": "={{ $json.purchased }}",
+            "visitor_id ": "={{ $json.visitor_id }}",
+            "utm_source ": "={{ $json.utm_source }}",
+            "utm_medium": "={{ $json.utm_medium }}",
+            "utm_campaign": "={{ $json.utm_campaign }}",
+            "created_at": "={{ $json.created_at }}",
+            "status": "={{ $json.status }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "name",
+              "displayName": "name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "phone ",
+              "displayName": "phone ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "purchased ",
+              "displayName": "purchased ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "visitor_id ",
+              "displayName": "visitor_id ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "utm_source ",
+              "displayName": "utm_source ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "utm_medium",
+              "displayName": "utm_medium",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "utm_campaign",
+              "displayName": "utm_campaign",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "cellFormat": "USER_ENTERED"
+        },
+        "authentication": "oAuth2",
+        "resource": "sheet"
+      },
+      "id": "append-cancel",
+      "name": "Append cancel lead",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        880,
+        320
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": null,
+          "name": "Google Sheets account"
+        }
+      },
+      "notes": "Tab Cancel Leads (separate from funnel Leads). purchased=true on this tab stops cancel sequence."
+    },
+    {
+      "parameters": {
+        "amount": 15,
+        "unit": "minutes"
+      },
+      "id": "wait-c1",
+      "name": "Wait before C1",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1100,
+        320
+      ],
+      "webhookId": "wait-cancel-c1"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "18jZnwB4KbIV3EdwmYi77Q_HkK-yO0fqkYvI9cxxbBOU",
+          "mode": "list",
+          "cachedResultName": "App Spy - Leads Recovery ",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/18jZnwB4KbIV3EdwmYi77Q_HkK-yO0fqkYvI9cxxbBOU/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Cancel Leads",
+          "mode": "name"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "email",
+              "lookupValue": "={{ $('Normalize Cancel').item.json.email }}"
+            }
+          ]
+        },
+        "options": {
+          "returnFirstMatch": true
+        },
+        "authentication": "oAuth2",
+        "resource": "sheet",
+        "operation": "read"
+      },
+      "id": "get-c1",
+      "name": "Get row (C1)",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1320,
+        320
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": null,
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "if-c1-c1",
+              "leftValue": "={{ String($json.purchased ?? '').toLowerCase() }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            },
+            {
+              "id": "if-c1-c2",
+              "leftValue": "={{ String($json.purchased ?? '').toLowerCase() }}",
+              "rightValue": "yes",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            },
+            {
+              "id": "if-c1-c3",
+              "leftValue": "={{ String($json.purchased ?? '').toLowerCase() }}",
+              "rightValue": "1",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-c1",
+      "name": "If not purchased (C1)",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1540,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.resend.com/emails",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ ({ from: 'App Spy <noreply@mysafelinkspy.com>', to: [$json.email], subject: 'We noticed an issue with your order', html: \"<!DOCTYPE html>\\n<html>\\n<body style=\\\"margin:0;padding:0;background:#f0f2f5;font-family:Arial,Helvetica,sans-serif;\\\">\\n  <table role=\\\"presentation\\\" width=\\\"100%\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" style=\\\"background:#f0f2f5;padding:20px 10px;\\\">\\n    <tr>\\n      <td align=\\\"center\\\">\\n        <table role=\\\"presentation\\\" width=\\\"100%\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" style=\\\"max-width:420px;background:#f0f2f5;\\\">\\n          <tr>\\n            <td style=\\\"background:#128C7E;padding:14px 16px;border-radius:12px 12px 0 0;\\\">\\n              <div style=\\\"font-size:11px;font-weight:700;letter-spacing:.08em;color:rgba(255,255,255,.85);text-transform:uppercase;\\\">App Spy</div>\\n              <div style=\\\"font-size:18px;font-weight:800;color:#ffffff;margin-top:4px;line-height:1.25;\\\">We noticed an issue with your order</div>\\n            </td>\\n          </tr>          <tr>\\n            <td style=\\\"background:#ffffff;padding:14px 16px;border-left:1px solid #e9edef;border-right:1px solid #e9edef;\\\">\\n              <table role=\\\"presentation\\\" width=\\\"100%\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" style=\\\"background:#ffffff;border:1px solid #e9edef;border-radius:14px;\\\">\\n                <tr>\\n                  <td style=\\\"padding:12px 14px;\\\">\\n                    <table role=\\\"presentation\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\">\\n                      <tr>\\n                        <td style=\\\"width:48px;height:48px;border-radius:50%;background:#e9edef;border:2px solid #25D366;text-align:center;vertical-align:middle;font-size:20px;\\\">👤</td>\\n                        <td style=\\\"padding-left:12px;\\\">\\n                          <div style=\\\"font-size:15px;font-weight:700;color:#111b21;\\\">\" + ($json.phone || \"Number you searched\") + \"</div>\\n                          <div style=\\\"font-size:12px;color:#667781;margin-top:2px;\\\">Order incomplete · Results still saved</div>\\n                        </td>\\n                      </tr>\\n                    </table>\\n                  </td>\\n                </tr>\\n              </table>\\n            </td>\\n          </tr>          <tr>\\n            <td style=\\\"background:#ffffff;padding:0 16px 12px;border-left:1px solid #e9edef;border-right:1px solid #e9edef;\\\">\\n              <div style=\\\"background:#fef2f2;border:1px solid #fecaca;border-radius:12px;padding:12px 14px;text-align:center;\\\">\\n                <div style=\\\"font-size:15px;font-weight:800;color:#ef4444;\\\">⚠️ Payment not completed</div>\\n                <div style=\\\"font-size:12px;color:#667781;margin-top:4px;\\\">Hi \" + ($json.name || \"there\") + \" — your search results are still saved and ready.</div>\\n              </div>\\n            </td>\\n          </tr>          <tr>\\n            <td style=\\\"background:#ffffff;padding:0 16px 12px;border-left:1px solid #e9edef;border-right:1px solid #e9edef;\\\">\\n              <div style=\\\"background:#ffffff;border:1px solid #e9edef;border-radius:14px;padding:14px;\\\">\\n                <div style=\\\"font-size:13px;color:#111b21;line-height:1.55;margin-bottom:10px;\\\">We noticed there was an issue processing your recent order. Don't worry — your search results are still saved and ready for you.</div>\\n                <div style=\\\"font-size:13px;color:#111b21;line-height:1.55;margin-bottom:10px;\\\">If there was a problem with your payment method, you can try again using a different card or payment option.</div>\\n                <div style=\\\"font-size:13px;font-weight:700;color:#111b21;margin-bottom:8px;\\\">What is still locked for you:</div>\\n                <div style=\\\"padding:8px 0;border-bottom:1px solid #e9edef;font-size:13px;color:#111b21;\\\">💬 Deleted messages recovered <span style=\\\"font-size:10px;font-weight:700;background:#fee2e2;color:#ef4444;border-radius:3px;padding:1px 6px;margin-left:4px;\\\">LOCKED</span></div>\\n                <div style=\\\"padding:8px 0;border-bottom:1px solid #e9edef;font-size:13px;color:#111b21;\\\">📸 Photos &amp; videos <span style=\\\"font-size:10px;font-weight:700;background:#fee2e2;color:#ef4444;border-radius:3px;padding:1px 6px;margin-left:4px;\\\">LOCKED</span></div>\\n                <div style=\\\"padding:8px 0;font-size:13px;color:#111b21;\\\">📍 Location history <span style=\\\"font-size:10px;font-weight:700;background:#fee2e2;color:#ef4444;border-radius:3px;padding:1px 6px;margin-left:4px;\\\">READY</span></div>\\n              </div>\\n            </td>\\n          </tr>          <tr>\\n            <td style=\\\"background:#ffffff;padding:0 16px 16px;border-left:1px solid #e9edef;border-right:1px solid #e9edef;border-bottom:1px solid #e9edef;border-radius:0 0 12px 12px;\\\">\\n              <div style=\\\"background:#ffffff;border:2px solid #25D366;border-radius:16px;padding:18px 14px;text-align:center;box-shadow:0 4px 24px rgba(37,211,102,.15);\\\">\\n                <div style=\\\"display:inline-block;background:#fee2e2;border-radius:20px;padding:6px 14px;font-size:12px;font-weight:700;color:#ef4444;margin-bottom:12px;\\\">COMPLETE YOUR ORDER</div>\\n                <div style=\\\"font-size:11px;color:#667781;margin-bottom:14px;\\\"><span style=\\\"color:#128C7E;font-weight:600;\\\">One-time payment</span> · Lifetime access · 30-day guarantee</div>\\n                <a href=\\\"https://go.centerpag.com/PPU38CQEHD1?name=\" + ($json.name || '') + \"&email=\" + ($json.email || '') + \"&phone=\" + ($json.phone || '') + \"&plan=full&utm_source=email_cancel&utm_medium=email&utm_campaign=cancel_e1&src=email_cancel&sck=cancel_e1\\\" style=\\\"display:block;background:#25D366;background:linear-gradient(135deg,#25D366,#22c55e);color:#ffffff;text-decoration:none;font-weight:900;font-size:15px;padding:16px 12px;border-radius:13px;box-shadow:0 4px 24px rgba(37,211,102,.35);\\\">\\n                  ✅ COMPLETE MY ORDER — $39<br>\\n                  <span style=\\\"font-size:11px;font-weight:600;opacity:.9;\\\">Secure checkout</span>\\n                </a>\\n                <div style=\\\"margin-top:12px;font-size:11px;color:#667781;\\\">🔒 Secure payment · Access in up to 2 minutes</div>\\n              </div>\\n            </td>\\n          </tr>\\n          <tr>\\n            <td style=\\\"padding:14px 8px;text-align:center;font-size:11px;color:#667781;\\\">App Spy · If you already purchased, ignore this email.</td>\\n          </tr>\\n        </table>\\n      </td>\\n    </tr>\\n  </table>\\n</body>\\n</html>\" }) }}",
+        "options": {}
+      },
+      "id": "email-c1",
+      "name": "Email C1 — issue with order ($39)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1760,
+        200
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": null,
+          "name": "Resend API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "k1",
+              "name": "email",
+              "value": "={{ $('Normalize Cancel').item.json.email }}",
+              "type": "string"
+            },
+            {
+              "id": "k2",
+              "name": "name",
+              "value": "={{ $('Normalize Cancel').item.json.name }}",
+              "type": "string"
+            },
+            {
+              "id": "k3",
+              "name": "phone",
+              "value": "={{ $('Normalize Cancel').item.json.phone }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "keep-c1",
+      "name": "Keep after C1",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1980,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "amount": 24,
+        "unit": "hours"
+      },
+      "id": "wait-c2",
+      "name": "Wait before C2",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        2200,
+        320
+      ],
+      "webhookId": "wait-cancel-c2"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "18jZnwB4KbIV3EdwmYi77Q_HkK-yO0fqkYvI9cxxbBOU",
+          "mode": "list",
+          "cachedResultName": "App Spy - Leads Recovery ",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/18jZnwB4KbIV3EdwmYi77Q_HkK-yO0fqkYvI9cxxbBOU/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Cancel Leads",
+          "mode": "name"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "email",
+              "lookupValue": "={{ $('Normalize Cancel').item.json.email }}"
+            }
+          ]
+        },
+        "options": {
+          "returnFirstMatch": true
+        },
+        "authentication": "oAuth2",
+        "resource": "sheet",
+        "operation": "read"
+      },
+      "id": "get-c2",
+      "name": "Get row (C2)",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        2420,
+        320
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": null,
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "if-c2-c1",
+              "leftValue": "={{ String($json.purchased ?? '').toLowerCase() }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            },
+            {
+              "id": "if-c2-c2",
+              "leftValue": "={{ String($json.purchased ?? '').toLowerCase() }}",
+              "rightValue": "yes",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            },
+            {
+              "id": "if-c2-c3",
+              "leftValue": "={{ String($json.purchased ?? '').toLowerCase() }}",
+              "rightValue": "1",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-c2",
+      "name": "If not purchased (C2)",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2640,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.resend.com/emails",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ ({ from: 'App Spy <noreply@mysafelinkspy.com>', to: [$json.email], subject: 'Your results are still waiting for you', html: \"<!DOCTYPE html>\\n<html>\\n<body style=\\\"margin:0;padding:0;background:#f0f2f5;font-family:Arial,Helvetica,sans-serif;\\\">\\n  <table role=\\\"presentation\\\" width=\\\"100%\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" style=\\\"background:#f0f2f5;padding:20px 10px;\\\">\\n    <tr>\\n      <td align=\\\"center\\\">\\n        <table role=\\\"presentation\\\" width=\\\"100%\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" style=\\\"max-width:420px;background:#f0f2f5;\\\">\\n          <tr>\\n            <td style=\\\"background:#128C7E;padding:14px 16px;border-radius:12px 12px 0 0;\\\">\\n              <div style=\\\"font-size:11px;font-weight:700;letter-spacing:.08em;color:rgba(255,255,255,.85);text-transform:uppercase;\\\">App Spy</div>\\n              <div style=\\\"font-size:18px;font-weight:800;color:#ffffff;margin-top:4px;line-height:1.25;\\\">Your results are still waiting for you</div>\\n            </td>\\n          </tr>          <tr>\\n            <td style=\\\"background:#ffffff;padding:14px 16px;border-left:1px solid #e9edef;border-right:1px solid #e9edef;\\\">\\n              <table role=\\\"presentation\\\" width=\\\"100%\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" style=\\\"background:#ffffff;border:1px solid #e9edef;border-radius:14px;\\\">\\n                <tr>\\n                  <td style=\\\"padding:12px 14px;\\\">\\n                    <table role=\\\"presentation\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\">\\n                      <tr>\\n                        <td style=\\\"width:48px;height:48px;border-radius:50%;background:#e9edef;border:2px solid #25D366;text-align:center;vertical-align:middle;font-size:20px;\\\">👤</td>\\n                        <td style=\\\"padding-left:12px;\\\">\\n                          <div style=\\\"font-size:15px;font-weight:700;color:#111b21;\\\">\" + ($json.phone || \"Number you searched\") + \"</div>\\n                          <div style=\\\"font-size:12px;color:#667781;margin-top:2px;\\\">Scan ready · Waiting for unlock</div>\\n                        </td>\\n                      </tr>\\n                    </table>\\n                  </td>\\n                </tr>\\n              </table>\\n            </td>\\n          </tr>          <tr>\\n            <td style=\\\"background:#ffffff;padding:0 16px 12px;border-left:1px solid #e9edef;border-right:1px solid #e9edef;\\\">\\n              <div style=\\\"background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:12px 14px;text-align:center;\\\">\\n                <div style=\\\"font-size:15px;font-weight:800;color:#128C7E;\\\">✅ Your report is still available</div>\\n                <div style=\\\"font-size:12px;color:#667781;margin-top:4px;\\\">Hi \" + ($json.name || \"there\") + \" — quick follow-up for <strong style=\\\"color:#111b21;\\\">\" + ($json.phone || \"the number you searched\") + \"</strong>.</div>\\n              </div>\\n            </td>\\n          </tr>          <tr>\\n            <td style=\\\"background:#ffffff;padding:0 16px 12px;border-left:1px solid #e9edef;border-right:1px solid #e9edef;\\\">\\n              <div style=\\\"background:#ffffff;border:1px solid #e9edef;border-radius:14px;padding:14px;\\\">\\n                <div style=\\\"font-size:13px;color:#111b21;line-height:1.55;margin-bottom:10px;\\\">Just a quick follow-up — your search results are still available and waiting for you to access them.</div>\\n                <div style=\\\"font-size:13px;color:#111b21;line-height:1.55;margin-bottom:10px;\\\">We understand that sometimes things don't go as planned. If you'd like to try again, we've made it easy for you.</div>\\n                <div style=\\\"background:#f8f8f8;border-radius:10px;padding:12px;margin-top:4px;\\\">\\n                  <div style=\\\"font-size:12px;font-weight:700;color:#111b21;margin-bottom:8px;\\\">Still locked inside your report:</div>\\n                  <div style=\\\"font-size:12px;color:#667781;line-height:1.6;\\\">• Deleted chats recovered<br>• Profile photos &amp; media<br>• Social signals &amp; activity history</div>\\n                </div>\\n              </div>\\n            </td>\\n          </tr>          <tr>\\n            <td style=\\\"background:#ffffff;padding:0 16px 16px;border-left:1px solid #e9edef;border-right:1px solid #e9edef;border-bottom:1px solid #e9edef;border-radius:0 0 12px 12px;\\\">\\n              <div style=\\\"background:#ffffff;border:2px solid #25D366;border-radius:16px;padding:18px 14px;text-align:center;box-shadow:0 4px 24px rgba(37,211,102,.15);\\\">\\n                <div style=\\\"display:inline-block;background:#fee2e2;border-radius:20px;padding:6px 14px;font-size:12px;font-weight:700;color:#ef4444;margin-bottom:12px;\\\">RESULTS STILL SAVED</div>\\n                <div style=\\\"font-size:11px;color:#667781;margin-bottom:14px;\\\"><span style=\\\"color:#128C7E;font-weight:600;\\\">One-time payment</span> · Lifetime access · 30-day guarantee</div>\\n                <a href=\\\"https://go.centerpag.com/PPU38CQEHD1?name=\" + ($json.name || '') + \"&email=\" + ($json.email || '') + \"&phone=\" + ($json.phone || '') + \"&plan=full&utm_source=email_cancel&utm_medium=email&utm_campaign=cancel_e2&src=email_cancel&sck=cancel_e2\\\" style=\\\"display:block;background:#25D366;background:linear-gradient(135deg,#25D366,#22c55e);color:#ffffff;text-decoration:none;font-weight:900;font-size:15px;padding:16px 12px;border-radius:13px;box-shadow:0 4px 24px rgba(37,211,102,.35);\\\">\\n                  🔓 ACCESS MY REPORT — $39<br>\\n                  <span style=\\\"font-size:11px;font-weight:600;opacity:.9;\\\">Secure checkout</span>\\n                </a>\\n                <div style=\\\"margin-top:12px;font-size:11px;color:#667781;\\\">🔒 Secure payment · Access in up to 2 minutes</div>\\n              </div>\\n            </td>\\n          </tr>\\n          <tr>\\n            <td style=\\\"padding:14px 8px;text-align:center;font-size:11px;color:#667781;\\\">App Spy · If you already purchased, ignore this email.</td>\\n          </tr>\\n        </table>\\n      </td>\\n    </tr>\\n  </table>\\n</body>\\n</html>\" }) }}",
+        "options": {}
+      },
+      "id": "email-c2",
+      "name": "Email C2 — results waiting ($39)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2860,
+        200
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": null,
+          "name": "Resend API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "k1",
+              "name": "email",
+              "value": "={{ $('Normalize Cancel').item.json.email }}",
+              "type": "string"
+            },
+            {
+              "id": "k2",
+              "name": "name",
+              "value": "={{ $('Normalize Cancel').item.json.name }}",
+              "type": "string"
+            },
+            {
+              "id": "k3",
+              "name": "phone",
+              "value": "={{ $('Normalize Cancel').item.json.phone }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "keep-c2",
+      "name": "Keep after C2",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3080,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "amount": 24,
+        "unit": "hours"
+      },
+      "id": "wait-c3",
+      "name": "Wait before C3",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        3300,
+        320
+      ],
+      "webhookId": "wait-cancel-c3"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "18jZnwB4KbIV3EdwmYi77Q_HkK-yO0fqkYvI9cxxbBOU",
+          "mode": "list",
+          "cachedResultName": "App Spy - Leads Recovery ",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/18jZnwB4KbIV3EdwmYi77Q_HkK-yO0fqkYvI9cxxbBOU/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Cancel Leads",
+          "mode": "name"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "email",
+              "lookupValue": "={{ $('Normalize Cancel').item.json.email }}"
+            }
+          ]
+        },
+        "options": {
+          "returnFirstMatch": true
+        },
+        "authentication": "oAuth2",
+        "resource": "sheet",
+        "operation": "read"
+      },
+      "id": "get-c3",
+      "name": "Get row (C3)",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        3520,
+        320
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": null,
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "if-c3-c1",
+              "leftValue": "={{ String($json.purchased ?? '').toLowerCase() }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            },
+            {
+              "id": "if-c3-c2",
+              "leftValue": "={{ String($json.purchased ?? '').toLowerCase() }}",
+              "rightValue": "yes",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            },
+            {
+              "id": "if-c3-c3",
+              "leftValue": "={{ String($json.purchased ?? '').toLowerCase() }}",
+              "rightValue": "1",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-c3",
+      "name": "If not purchased (C3)",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        3740,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.resend.com/emails",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ ({ from: 'App Spy <noreply@mysafelinkspy.com>', to: [$json.email], subject: 'Your report is still locked', html: \"<!DOCTYPE html>\\n<html>\\n<body style=\\\"margin:0;padding:0;background:#f0f2f5;font-family:Arial,Helvetica,sans-serif;\\\">\\n  <table role=\\\"presentation\\\" width=\\\"100%\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" style=\\\"background:#f0f2f5;padding:20px 10px;\\\">\\n    <tr>\\n      <td align=\\\"center\\\">\\n        <table role=\\\"presentation\\\" width=\\\"100%\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" style=\\\"max-width:420px;background:#f0f2f5;\\\">\\n          <tr>\\n            <td style=\\\"background:#128C7E;padding:14px 16px;border-radius:12px 12px 0 0;\\\">\\n              <div style=\\\"font-size:11px;font-weight:700;letter-spacing:.08em;color:rgba(255,255,255,.85);text-transform:uppercase;\\\">App Spy</div>\\n              <div style=\\\"font-size:18px;font-weight:800;color:#ffffff;margin-top:4px;line-height:1.25;\\\">Your report is still locked</div>\\n            </td>\\n          </tr>          <tr>\\n            <td style=\\\"background:#ffffff;padding:14px 16px;border-left:1px solid #e9edef;border-right:1px solid #e9edef;\\\">\\n              <table role=\\\"presentation\\\" width=\\\"100%\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" style=\\\"background:#ffffff;border:1px solid #e9edef;border-radius:14px;\\\">\\n                <tr>\\n                  <td style=\\\"padding:12px 14px;\\\">\\n                    <table role=\\\"presentation\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\">\\n                      <tr>\\n                        <td style=\\\"width:48px;height:48px;border-radius:50%;background:#e9edef;border:2px solid #25D366;text-align:center;vertical-align:middle;font-size:20px;\\\">👤</td>\\n                        <td style=\\\"padding-left:12px;\\\">\\n                          <div style=\\\"font-size:15px;font-weight:700;color:#111b21;\\\">\" + ($json.phone || \"Number you searched\") + \"</div>\\n                          <div style=\\\"font-size:12px;color:#667781;margin-top:2px;\\\">Incomplete order · Data on hold</div>\\n                        </td>\\n                      </tr>\\n                    </table>\\n                  </td>\\n                </tr>\\n              </table>\\n            </td>\\n          </tr>          <tr>\\n            <td style=\\\"background:#ffffff;padding:0 16px 12px;border-left:1px solid #e9edef;border-right:1px solid #e9edef;\\\">\\n              <div style=\\\"background:#fff7ed;border:1px solid #fed7aa;border-radius:12px;padding:12px 14px;text-align:center;\\\">\\n                <div style=\\\"font-size:15px;font-weight:800;color:#c2410c;\\\">🔒 Still locked for you</div>\\n                <div style=\\\"font-size:12px;color:#667781;margin-top:4px;\\\">Hi \" + ($json.name || \"there\") + \" — one more chance to open results for <strong style=\\\"color:#111b21;\\\">\" + ($json.phone || \"the number you searched\") + \"</strong>.</div>\\n              </div>\\n            </td>\\n          </tr>          <tr>\\n            <td style=\\\"background:#ffffff;padding:0 16px 12px;border-left:1px solid #e9edef;border-right:1px solid #e9edef;\\\">\\n              <div style=\\\"background:#ffffff;border:1px solid #e9edef;border-radius:14px;padding:14px;\\\">\\n                <div style=\\\"font-size:13px;color:#111b21;line-height:1.55;margin-bottom:10px;\\\">Your order never fully went through, but everything we found is still saved on our side.</div>\\n                <div style=\\\"font-size:13px;color:#111b21;line-height:1.55;margin-bottom:10px;\\\">You don't need to start over — just complete checkout with a working card or payment method and unlock the full report.</div>\\n                <div style=\\\"font-size:13px;color:#111b21;line-height:1.55;\\\">Deleted messages, photos, social profiles and activity history are ready when you are.</div>\\n              </div>\\n            </td>\\n          </tr>          <tr>\\n            <td style=\\\"background:#ffffff;padding:0 16px 16px;border-left:1px solid #e9edef;border-right:1px solid #e9edef;border-bottom:1px solid #e9edef;border-radius:0 0 12px 12px;\\\">\\n              <div style=\\\"background:#ffffff;border:2px solid #25D366;border-radius:16px;padding:18px 14px;text-align:center;box-shadow:0 4px 24px rgba(37,211,102,.15);\\\">\\n                <div style=\\\"display:inline-block;background:#fee2e2;border-radius:20px;padding:6px 14px;font-size:12px;font-weight:700;color:#ef4444;margin-bottom:12px;\\\">FINISH UNLOCK</div>\\n                <div style=\\\"font-size:11px;color:#667781;margin-bottom:14px;\\\"><span style=\\\"color:#128C7E;font-weight:600;\\\">One-time payment</span> · Lifetime access · 30-day guarantee</div>\\n                <a href=\\\"https://go.centerpag.com/PPU38CQEHD1?name=\" + ($json.name || '') + \"&email=\" + ($json.email || '') + \"&phone=\" + ($json.phone || '') + \"&plan=full&utm_source=email_cancel&utm_medium=email&utm_campaign=cancel_e3&src=email_cancel&sck=cancel_e3\\\" style=\\\"display:block;background:#25D366;background:linear-gradient(135deg,#25D366,#22c55e);color:#ffffff;text-decoration:none;font-weight:900;font-size:15px;padding:16px 12px;border-radius:13px;box-shadow:0 4px 24px rgba(37,211,102,.35);\\\">\\n                  🔓 UNLOCK MY REPORT — $39<br>\\n                  <span style=\\\"font-size:11px;font-weight:600;opacity:.9;\\\">Secure checkout</span>\\n                </a>\\n                <div style=\\\"margin-top:12px;font-size:11px;color:#667781;\\\">🔒 Secure payment · Access in up to 2 minutes</div>\\n              </div>\\n            </td>\\n          </tr>\\n          <tr>\\n            <td style=\\\"padding:14px 8px;text-align:center;font-size:11px;color:#667781;\\\">App Spy · If you already purchased, ignore this email.</td>\\n          </tr>\\n        </table>\\n      </td>\\n    </tr>\\n  </table>\\n</body>\\n</html>\" }) }}",
+        "options": {}
+      },
+      "id": "email-c3",
+      "name": "Email C3 — still locked ($39)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3960,
+        200
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": null,
+          "name": "Resend API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "k1",
+              "name": "email",
+              "value": "={{ $('Normalize Cancel').item.json.email }}",
+              "type": "string"
+            },
+            {
+              "id": "k2",
+              "name": "name",
+              "value": "={{ $('Normalize Cancel').item.json.name }}",
+              "type": "string"
+            },
+            {
+              "id": "k3",
+              "name": "phone",
+              "value": "={{ $('Normalize Cancel').item.json.phone }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "keep-c3",
+      "name": "Keep after C3",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        4180,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "amount": 24,
+        "unit": "hours"
+      },
+      "id": "wait-c4",
+      "name": "Wait before C4",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        4400,
+        320
+      ],
+      "webhookId": "wait-cancel-c4"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "18jZnwB4KbIV3EdwmYi77Q_HkK-yO0fqkYvI9cxxbBOU",
+          "mode": "list",
+          "cachedResultName": "App Spy - Leads Recovery ",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/18jZnwB4KbIV3EdwmYi77Q_HkK-yO0fqkYvI9cxxbBOU/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Cancel Leads",
+          "mode": "name"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "email",
+              "lookupValue": "={{ $('Normalize Cancel').item.json.email }}"
+            }
+          ]
+        },
+        "options": {
+          "returnFirstMatch": true
+        },
+        "authentication": "oAuth2",
+        "resource": "sheet",
+        "operation": "read"
+      },
+      "id": "get-c4",
+      "name": "Get row (C4)",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        4620,
+        320
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": null,
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "if-c4-c1",
+              "leftValue": "={{ String($json.purchased ?? '').toLowerCase() }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            },
+            {
+              "id": "if-c4-c2",
+              "leftValue": "={{ String($json.purchased ?? '').toLowerCase() }}",
+              "rightValue": "yes",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            },
+            {
+              "id": "if-c4-c3",
+              "leftValue": "={{ String($json.purchased ?? '').toLowerCase() }}",
+              "rightValue": "1",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-c4",
+      "name": "If not purchased (C4)",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        4840,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.resend.com/emails",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ ({ from: 'App Spy <noreply@mysafelinkspy.com>', to: [$json.email], subject: 'A special offer just for you', html: \"<!DOCTYPE html>\\n<html>\\n<body style=\\\"margin:0;padding:0;background:#f0f2f5;font-family:Arial,Helvetica,sans-serif;\\\">\\n  <table role=\\\"presentation\\\" width=\\\"100%\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" style=\\\"background:#f0f2f5;padding:20px 10px;\\\">\\n    <tr>\\n      <td align=\\\"center\\\">\\n        <table role=\\\"presentation\\\" width=\\\"100%\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" style=\\\"max-width:420px;background:#f0f2f5;\\\">\\n          <tr>\\n            <td style=\\\"background:#128C7E;padding:14px 16px;border-radius:12px 12px 0 0;\\\">\\n              <div style=\\\"font-size:11px;font-weight:700;letter-spacing:.08em;color:rgba(255,255,255,.85);text-transform:uppercase;\\\">App Spy</div>\\n              <div style=\\\"font-size:18px;font-weight:800;color:#ffffff;margin-top:4px;line-height:1.25;\\\">A special offer just for you</div>\\n            </td>\\n          </tr>          <tr>\\n            <td style=\\\"background:#ffffff;padding:14px 16px;border-left:1px solid #e9edef;border-right:1px solid #e9edef;\\\">\\n              <table role=\\\"presentation\\\" width=\\\"100%\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" style=\\\"background:#ffffff;border:1px solid #e9edef;border-radius:14px;\\\">\\n                <tr>\\n                  <td style=\\\"padding:12px 14px;\\\">\\n                    <table role=\\\"presentation\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\">\\n                      <tr>\\n                        <td style=\\\"width:48px;height:48px;border-radius:50%;background:#e9edef;border:2px solid #25D366;text-align:center;vertical-align:middle;font-size:20px;\\\">👤</td>\\n                        <td style=\\\"padding-left:12px;\\\">\\n                          <div style=\\\"font-size:15px;font-weight:700;color:#111b21;\\\">\" + ($json.phone || \"Number you searched\") + \"</div>\\n                          <div style=\\\"font-size:12px;color:#667781;margin-top:2px;\\\">Exclusive discount · Full report</div>\\n                        </td>\\n                      </tr>\\n                    </table>\\n                  </td>\\n                </tr>\\n              </table>\\n            </td>\\n          </tr>          <tr>\\n            <td style=\\\"background:#ffffff;padding:0 16px 12px;border-left:1px solid #e9edef;border-right:1px solid #e9edef;\\\">\\n              <div style=\\\"background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:12px 14px;text-align:center;\\\">\\n                <div style=\\\"font-size:15px;font-weight:800;color:#128C7E;\\\">🎁 25% OFF — thank you for trying us</div>\\n                <div style=\\\"font-size:12px;color:#667781;margin-top:4px;\\\">Hi \" + ($json.name || \"there\") + \" — keep everything we found for just $29.</div>\\n              </div>\\n            </td>\\n          </tr>          <tr>\\n            <td style=\\\"background:#ffffff;padding:0 16px 12px;border-left:1px solid #e9edef;border-right:1px solid #e9edef;\\\">\\n              <div style=\\\"background:#ffffff;border:1px solid #e9edef;border-radius:14px;padding:14px;\\\">\\n                <div style=\\\"font-size:13px;color:#111b21;line-height:1.55;margin-bottom:10px;\\\">As a thank you for trying our service, we'd like to offer you a special <strong>25% discount</strong> on your full report.</div>\\n                <div style=\\\"font-size:13px;color:#111b21;line-height:1.55;margin-bottom:10px;\\\">Your original price was <strong>$39</strong>. With this offer, you can access everything for just <strong style=\\\"color:#128C7E;\\\">$29</strong>.</div>\\n                <div style=\\\"font-size:13px;color:#111b21;line-height:1.55;\\\">This includes all the data we found: profile photos, social media profiles, deleted messages, and more.</div>\\n              </div>\\n            </td>\\n          </tr>          <tr>\\n            <td style=\\\"background:#ffffff;padding:0 16px 16px;border-left:1px solid #e9edef;border-right:1px solid #e9edef;border-bottom:1px solid #e9edef;border-radius:0 0 12px 12px;\\\">\\n              <div style=\\\"background:#ffffff;border:2px solid #25D366;border-radius:16px;padding:18px 14px;text-align:center;box-shadow:0 4px 24px rgba(37,211,102,.15);\\\">\\n                <div style=\\\"display:inline-block;background:#fee2e2;border-radius:20px;padding:6px 14px;font-size:12px;font-weight:700;color:#ef4444;margin-bottom:12px;\\\">25% OFF · EXCLUSIVE</div>\\n                <div style=\\\"font-size:11px;color:#667781;margin-bottom:14px;\\\"><span style=\\\"color:#128C7E;font-weight:600;\\\">One-time payment</span> · Lifetime access · 30-day guarantee</div>\\n                <a href=\\\"https://go.centerpag.com/PPU38CQEKTG?name=\" + ($json.name || '') + \"&email=\" + ($json.email || '') + \"&phone=\" + ($json.phone || '') + \"&plan=backredirect&utm_source=email_cancel&utm_medium=email&utm_campaign=cancel_e4&src=email_cancel&sck=cancel_e4\\\" style=\\\"display:block;background:#25D366;background:linear-gradient(135deg,#25D366,#22c55e);color:#ffffff;text-decoration:none;font-weight:900;font-size:15px;padding:16px 12px;border-radius:13px;box-shadow:0 4px 24px rgba(37,211,102,.35);\\\">\\n                  🔓 GET MY REPORT — $29<br>\\n                  <span style=\\\"font-size:11px;font-weight:600;opacity:.9;\\\">Redeem discount · limited offer</span>\\n                </a>\\n                <div style=\\\"margin-top:12px;font-size:11px;color:#667781;\\\">🔒 Secure payment · Access in up to 2 minutes</div>\\n              </div>\\n            </td>\\n          </tr>\\n          <tr>\\n            <td style=\\\"padding:14px 8px;text-align:center;font-size:11px;color:#667781;\\\">App Spy · If you already purchased, ignore this email.</td>\\n          </tr>\\n        </table>\\n      </td>\\n    </tr>\\n  </table>\\n</body>\\n</html>\" }) }}",
+        "options": {}
+      },
+      "id": "email-c4",
+      "name": "Email C4 — special offer ($29)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        5060,
+        200
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": null,
+          "name": "Resend API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "k1",
+              "name": "email",
+              "value": "={{ $('Normalize Cancel').item.json.email }}",
+              "type": "string"
+            },
+            {
+              "id": "k2",
+              "name": "name",
+              "value": "={{ $('Normalize Cancel').item.json.name }}",
+              "type": "string"
+            },
+            {
+              "id": "k3",
+              "name": "phone",
+              "value": "={{ $('Normalize Cancel').item.json.phone }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "keep-c4",
+      "name": "Keep after C4",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        5280,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "amount": 24,
+        "unit": "hours"
+      },
+      "id": "wait-c5",
+      "name": "Wait before C5",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        5500,
+        320
+      ],
+      "webhookId": "wait-cancel-c5"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "18jZnwB4KbIV3EdwmYi77Q_HkK-yO0fqkYvI9cxxbBOU",
+          "mode": "list",
+          "cachedResultName": "App Spy - Leads Recovery ",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/18jZnwB4KbIV3EdwmYi77Q_HkK-yO0fqkYvI9cxxbBOU/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Cancel Leads",
+          "mode": "name"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "email",
+              "lookupValue": "={{ $('Normalize Cancel').item.json.email }}"
+            }
+          ]
+        },
+        "options": {
+          "returnFirstMatch": true
+        },
+        "authentication": "oAuth2",
+        "resource": "sheet",
+        "operation": "read"
+      },
+      "id": "get-c5",
+      "name": "Get row (C5)",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        5720,
+        320
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": null,
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "if-c5-c1",
+              "leftValue": "={{ String($json.purchased ?? '').toLowerCase() }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            },
+            {
+              "id": "if-c5-c2",
+              "leftValue": "={{ String($json.purchased ?? '').toLowerCase() }}",
+              "rightValue": "yes",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            },
+            {
+              "id": "if-c5-c3",
+              "leftValue": "={{ String($json.purchased ?? '').toLowerCase() }}",
+              "rightValue": "1",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-c5",
+      "name": "If not purchased (C5)",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        5940,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.resend.com/emails",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ ({ from: 'App Spy <noreply@mysafelinkspy.com>', to: [$json.email], subject: 'Your 25% discount is still available', html: \"<!DOCTYPE html>\\n<html>\\n<body style=\\\"margin:0;padding:0;background:#f0f2f5;font-family:Arial,Helvetica,sans-serif;\\\">\\n  <table role=\\\"presentation\\\" width=\\\"100%\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" style=\\\"background:#f0f2f5;padding:20px 10px;\\\">\\n    <tr>\\n      <td align=\\\"center\\\">\\n        <table role=\\\"presentation\\\" width=\\\"100%\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" style=\\\"max-width:420px;background:#f0f2f5;\\\">\\n          <tr>\\n            <td style=\\\"background:#128C7E;padding:14px 16px;border-radius:12px 12px 0 0;\\\">\\n              <div style=\\\"font-size:11px;font-weight:700;letter-spacing:.08em;color:rgba(255,255,255,.85);text-transform:uppercase;\\\">App Spy</div>\\n              <div style=\\\"font-size:18px;font-weight:800;color:#ffffff;margin-top:4px;line-height:1.25;\\\">Your 25% discount is still available</div>\\n            </td>\\n          </tr>          <tr>\\n            <td style=\\\"background:#ffffff;padding:14px 16px;border-left:1px solid #e9edef;border-right:1px solid #e9edef;\\\">\\n              <table role=\\\"presentation\\\" width=\\\"100%\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" style=\\\"background:#ffffff;border:1px solid #e9edef;border-radius:14px;\\\">\\n                <tr>\\n                  <td style=\\\"padding:12px 14px;\\\">\\n                    <table role=\\\"presentation\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\">\\n                      <tr>\\n                        <td style=\\\"width:48px;height:48px;border-radius:50%;background:#e9edef;border:2px solid #25D366;text-align:center;vertical-align:middle;font-size:20px;\\\">👤</td>\\n                        <td style=\\\"padding-left:12px;\\\">\\n                          <div style=\\\"font-size:15px;font-weight:700;color:#111b21;\\\">\" + ($json.phone || \"Number you searched\") + \"</div>\\n                          <div style=\\\"font-size:12px;color:#667781;margin-top:2px;\\\">Discount open · Full report</div>\\n                        </td>\\n                      </tr>\\n                    </table>\\n                  </td>\\n                </tr>\\n              </table>\\n            </td>\\n          </tr>          <tr>\\n            <td style=\\\"background:#ffffff;padding:0 16px 12px;border-left:1px solid #e9edef;border-right:1px solid #e9edef;\\\">\\n              <div style=\\\"background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:12px 14px;text-align:center;\\\">\\n                <div style=\\\"font-size:15px;font-weight:800;color:#128C7E;\\\">💚 $29 offer still active</div>\\n                <div style=\\\"font-size:12px;color:#667781;margin-top:4px;\\\">Hi \" + ($json.name || \"there\") + \" — we held your exclusive price a little longer.</div>\\n              </div>\\n            </td>\\n          </tr>          <tr>\\n            <td style=\\\"background:#ffffff;padding:0 16px 12px;border-left:1px solid #e9edef;border-right:1px solid #e9edef;\\\">\\n              <div style=\\\"background:#ffffff;border:1px solid #e9edef;border-radius:14px;padding:14px;\\\">\\n                <div style=\\\"font-size:13px;color:#111b21;line-height:1.55;margin-bottom:10px;\\\">Just checking in — your special 25% discount is still available if you want to finish your order.</div>\\n                <div style=\\\"font-size:13px;color:#111b21;line-height:1.55;margin-bottom:10px;\\\">Full report for <strong style=\\\"color:#128C7E;\\\">$29</strong> (was $39): deleted chats, photos, social profiles and activity history.</div>\\n                <div style=\\\"font-size:13px;color:#111b21;line-height:1.55;\\\">Click below whenever you're ready — no need to re-enter your search.</div>\\n              </div>\\n            </td>\\n          </tr>          <tr>\\n            <td style=\\\"background:#ffffff;padding:0 16px 16px;border-left:1px solid #e9edef;border-right:1px solid #e9edef;border-bottom:1px solid #e9edef;border-radius:0 0 12px 12px;\\\">\\n              <div style=\\\"background:#ffffff;border:2px solid #25D366;border-radius:16px;padding:18px 14px;text-align:center;box-shadow:0 4px 24px rgba(37,211,102,.15);\\\">\\n                <div style=\\\"display:inline-block;background:#fee2e2;border-radius:20px;padding:6px 14px;font-size:12px;font-weight:700;color:#ef4444;margin-bottom:12px;\\\">25% OFF STILL OPEN</div>\\n                <div style=\\\"font-size:11px;color:#667781;margin-bottom:14px;\\\"><span style=\\\"color:#128C7E;font-weight:600;\\\">One-time payment</span> · Lifetime access · 30-day guarantee</div>\\n                <a href=\\\"https://go.centerpag.com/PPU38CQEKTG?name=\" + ($json.name || '') + \"&email=\" + ($json.email || '') + \"&phone=\" + ($json.phone || '') + \"&plan=backredirect&utm_source=email_cancel&utm_medium=email&utm_campaign=cancel_e5&src=email_cancel&sck=cancel_e5\\\" style=\\\"display:block;background:#25D366;background:linear-gradient(135deg,#25D366,#22c55e);color:#ffffff;text-decoration:none;font-weight:900;font-size:15px;padding:16px 12px;border-radius:13px;box-shadow:0 4px 24px rgba(37,211,102,.35);\\\">\\n                  🔓 CLAIM $29 ACCESS<br>\\n                  <span style=\\\"font-size:11px;font-weight:600;opacity:.9;\\\">Same discount · secure checkout</span>\\n                </a>\\n                <div style=\\\"margin-top:12px;font-size:11px;color:#667781;\\\">🔒 Secure payment · Access in up to 2 minutes</div>\\n              </div>\\n            </td>\\n          </tr>\\n          <tr>\\n            <td style=\\\"padding:14px 8px;text-align:center;font-size:11px;color:#667781;\\\">App Spy · If you already purchased, ignore this email.</td>\\n          </tr>\\n        </table>\\n      </td>\\n    </tr>\\n  </table>\\n</body>\\n</html>\" }) }}",
+        "options": {}
+      },
+      "id": "email-c5",
+      "name": "Email C5 — discount still open ($29)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        6160,
+        200
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": null,
+          "name": "Resend API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "k1",
+              "name": "email",
+              "value": "={{ $('Normalize Cancel').item.json.email }}",
+              "type": "string"
+            },
+            {
+              "id": "k2",
+              "name": "name",
+              "value": "={{ $('Normalize Cancel').item.json.name }}",
+              "type": "string"
+            },
+            {
+              "id": "k3",
+              "name": "phone",
+              "value": "={{ $('Normalize Cancel').item.json.phone }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "keep-c5",
+      "name": "Keep after C5",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        6380,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "amount": 48,
+        "unit": "hours"
+      },
+      "id": "wait-c6",
+      "name": "Wait before C6",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        6600,
+        320
+      ],
+      "webhookId": "wait-cancel-c6"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "18jZnwB4KbIV3EdwmYi77Q_HkK-yO0fqkYvI9cxxbBOU",
+          "mode": "list",
+          "cachedResultName": "App Spy - Leads Recovery ",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/18jZnwB4KbIV3EdwmYi77Q_HkK-yO0fqkYvI9cxxbBOU/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Cancel Leads",
+          "mode": "name"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "email",
+              "lookupValue": "={{ $('Normalize Cancel').item.json.email }}"
+            }
+          ]
+        },
+        "options": {
+          "returnFirstMatch": true
+        },
+        "authentication": "oAuth2",
+        "resource": "sheet",
+        "operation": "read"
+      },
+      "id": "get-c6",
+      "name": "Get row (C6)",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        6820,
+        320
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": null,
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "if-c6-c1",
+              "leftValue": "={{ String($json.purchased ?? '').toLowerCase() }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            },
+            {
+              "id": "if-c6-c2",
+              "leftValue": "={{ String($json.purchased ?? '').toLowerCase() }}",
+              "rightValue": "yes",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            },
+            {
+              "id": "if-c6-c3",
+              "leftValue": "={{ String($json.purchased ?? '').toLowerCase() }}",
+              "rightValue": "1",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-c6",
+      "name": "If not purchased (C6)",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        7040,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.resend.com/emails",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ ({ from: 'App Spy <noreply@mysafelinkspy.com>', to: [$json.email], subject: 'Don\\'t lose access to what we found', html: \"<!DOCTYPE html>\\n<html>\\n<body style=\\\"margin:0;padding:0;background:#f0f2f5;font-family:Arial,Helvetica,sans-serif;\\\">\\n  <table role=\\\"presentation\\\" width=\\\"100%\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" style=\\\"background:#f0f2f5;padding:20px 10px;\\\">\\n    <tr>\\n      <td align=\\\"center\\\">\\n        <table role=\\\"presentation\\\" width=\\\"100%\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" style=\\\"max-width:420px;background:#f0f2f5;\\\">\\n          <tr>\\n            <td style=\\\"background:#128C7E;padding:14px 16px;border-radius:12px 12px 0 0;\\\">\\n              <div style=\\\"font-size:11px;font-weight:700;letter-spacing:.08em;color:rgba(255,255,255,.85);text-transform:uppercase;\\\">App Spy</div>\\n              <div style=\\\"font-size:18px;font-weight:800;color:#ffffff;margin-top:4px;line-height:1.25;\\\">Don't lose access to what we found</div>\\n            </td>\\n          </tr>          <tr>\\n            <td style=\\\"background:#ffffff;padding:14px 16px;border-left:1px solid #e9edef;border-right:1px solid #e9edef;\\\">\\n              <table role=\\\"presentation\\\" width=\\\"100%\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" style=\\\"background:#ffffff;border:1px solid #e9edef;border-radius:14px;\\\">\\n                <tr>\\n                  <td style=\\\"padding:12px 14px;\\\">\\n                    <table role=\\\"presentation\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\">\\n                      <tr>\\n                        <td style=\\\"width:48px;height:48px;border-radius:50%;background:#e9edef;border:2px solid #25D366;text-align:center;vertical-align:middle;font-size:20px;\\\">👤</td>\\n                        <td style=\\\"padding-left:12px;\\\">\\n                          <div style=\\\"font-size:15px;font-weight:700;color:#111b21;\\\">\" + ($json.phone || \"Number you searched\") + \"</div>\\n                          <div style=\\\"font-size:12px;color:#667781;margin-top:2px;\\\">Offer ending soon · Full report</div>\\n                        </td>\\n                      </tr>\\n                    </table>\\n                  </td>\\n                </tr>\\n              </table>\\n            </td>\\n          </tr>          <tr>\\n            <td style=\\\"background:#ffffff;padding:0 16px 12px;border-left:1px solid #e9edef;border-right:1px solid #e9edef;\\\">\\n              <div style=\\\"background:#fef2f2;border:1px solid #fecaca;border-radius:12px;padding:12px 14px;text-align:center;\\\">\\n                <div style=\\\"font-size:15px;font-weight:800;color:#ef4444;\\\">⏳ Discount ending soon</div>\\n                <div style=\\\"font-size:12px;color:#667781;margin-top:4px;\\\">Hi \" + ($json.name || \"there\") + \" — only a short window left at $29.</div>\\n              </div>\\n            </td>\\n          </tr>          <tr>\\n            <td style=\\\"background:#ffffff;padding:0 16px 12px;border-left:1px solid #e9edef;border-right:1px solid #e9edef;\\\">\\n              <div style=\\\"background:#ffffff;border:1px solid #e9edef;border-radius:14px;padding:14px;\\\">\\n                <div style=\\\"font-size:13px;color:#111b21;line-height:1.55;margin-bottom:10px;\\\">Your incomplete order is still on file, and the 25% discount is close to expiring.</div>\\n                <div style=\\\"font-size:13px;color:#111b21;line-height:1.55;margin-bottom:10px;\\\">If you still want the full report for <strong style=\\\"color:#128C7E;\\\">$29</strong>, this is a good time to complete it — before the offer closes.</div>\\n                <div style=\\\"font-size:13px;color:#111b21;line-height:1.55;\\\">Everything stays private, remote, and ready after checkout.</div>\\n              </div>\\n            </td>\\n          </tr>          <tr>\\n            <td style=\\\"background:#ffffff;padding:0 16px 16px;border-left:1px solid #e9edef;border-right:1px solid #e9edef;border-bottom:1px solid #e9edef;border-radius:0 0 12px 12px;\\\">\\n              <div style=\\\"background:#ffffff;border:2px solid #25D366;border-radius:16px;padding:18px 14px;text-align:center;box-shadow:0 4px 24px rgba(37,211,102,.15);\\\">\\n                <div style=\\\"display:inline-block;background:#fee2e2;border-radius:20px;padding:6px 14px;font-size:12px;font-weight:700;color:#ef4444;margin-bottom:12px;\\\">ENDING SOON · 25% OFF</div>\\n                <div style=\\\"font-size:11px;color:#667781;margin-bottom:14px;\\\"><span style=\\\"color:#128C7E;font-weight:600;\\\">One-time payment</span> · Lifetime access · 30-day guarantee</div>\\n                <a href=\\\"https://go.centerpag.com/PPU38CQEKTG?name=\" + ($json.name || '') + \"&email=\" + ($json.email || '') + \"&phone=\" + ($json.phone || '') + \"&plan=backredirect&utm_source=email_cancel&utm_medium=email&utm_campaign=cancel_e6&src=email_cancel&sck=cancel_e6\\\" style=\\\"display:block;background:#25D366;background:linear-gradient(135deg,#25D366,#22c55e);color:#ffffff;text-decoration:none;font-weight:900;font-size:15px;padding:16px 12px;border-radius:13px;box-shadow:0 4px 24px rgba(37,211,102,.35);\\\">\\n                  🔓 KEEP MY $29 OFFER<br>\\n                  <span style=\\\"font-size:11px;font-weight:600;opacity:.9;\\\">Secure checkout · limited time</span>\\n                </a>\\n                <div style=\\\"margin-top:12px;font-size:11px;color:#667781;\\\">🔒 Secure payment · Access in up to 2 minutes</div>\\n              </div>\\n            </td>\\n          </tr>\\n          <tr>\\n            <td style=\\\"padding:14px 8px;text-align:center;font-size:11px;color:#667781;\\\">App Spy · If you already purchased, ignore this email.</td>\\n          </tr>\\n        </table>\\n      </td>\\n    </tr>\\n  </table>\\n</body>\\n</html>\" }) }}",
+        "options": {}
+      },
+      "id": "email-c6",
+      "name": "Email C6 — ending soon ($29)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        7260,
+        200
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": null,
+          "name": "Resend API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "k1",
+              "name": "email",
+              "value": "={{ $('Normalize Cancel').item.json.email }}",
+              "type": "string"
+            },
+            {
+              "id": "k2",
+              "name": "name",
+              "value": "={{ $('Normalize Cancel').item.json.name }}",
+              "type": "string"
+            },
+            {
+              "id": "k3",
+              "name": "phone",
+              "value": "={{ $('Normalize Cancel').item.json.phone }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "keep-c6",
+      "name": "Keep after C6",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        7480,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "amount": 48,
+        "unit": "hours"
+      },
+      "id": "wait-c7",
+      "name": "Wait before C7",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        7700,
+        320
+      ],
+      "webhookId": "wait-cancel-c7"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "18jZnwB4KbIV3EdwmYi77Q_HkK-yO0fqkYvI9cxxbBOU",
+          "mode": "list",
+          "cachedResultName": "App Spy - Leads Recovery ",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/18jZnwB4KbIV3EdwmYi77Q_HkK-yO0fqkYvI9cxxbBOU/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Cancel Leads",
+          "mode": "name"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "email",
+              "lookupValue": "={{ $('Normalize Cancel').item.json.email }}"
+            }
+          ]
+        },
+        "options": {
+          "returnFirstMatch": true
+        },
+        "authentication": "oAuth2",
+        "resource": "sheet",
+        "operation": "read"
+      },
+      "id": "get-c7",
+      "name": "Get row (C7)",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        7920,
+        320
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": null,
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "if-c7-c1",
+              "leftValue": "={{ String($json.purchased ?? '').toLowerCase() }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            },
+            {
+              "id": "if-c7-c2",
+              "leftValue": "={{ String($json.purchased ?? '').toLowerCase() }}",
+              "rightValue": "yes",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            },
+            {
+              "id": "if-c7-c3",
+              "leftValue": "={{ String($json.purchased ?? '').toLowerCase() }}",
+              "rightValue": "1",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-c7",
+      "name": "If not purchased (C7)",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        8140,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.resend.com/emails",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ ({ from: 'App Spy <noreply@mysafelinkspy.com>', to: [$json.email], subject: 'Final notice: incomplete order', html: \"<!DOCTYPE html>\\n<html>\\n<body style=\\\"margin:0;padding:0;background:#f0f2f5;font-family:Arial,Helvetica,sans-serif;\\\">\\n  <table role=\\\"presentation\\\" width=\\\"100%\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" style=\\\"background:#f0f2f5;padding:20px 10px;\\\">\\n    <tr>\\n      <td align=\\\"center\\\">\\n        <table role=\\\"presentation\\\" width=\\\"100%\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" style=\\\"max-width:420px;background:#f0f2f5;\\\">\\n          <tr>\\n            <td style=\\\"background:#128C7E;padding:14px 16px;border-radius:12px 12px 0 0;\\\">\\n              <div style=\\\"font-size:11px;font-weight:700;letter-spacing:.08em;color:rgba(255,255,255,.85);text-transform:uppercase;\\\">App Spy</div>\\n              <div style=\\\"font-size:18px;font-weight:800;color:#ffffff;margin-top:4px;line-height:1.25;\\\">Final notice: incomplete order</div>\\n            </td>\\n          </tr>          <tr>\\n            <td style=\\\"background:#ffffff;padding:14px 16px;border-left:1px solid #e9edef;border-right:1px solid #e9edef;\\\">\\n              <table role=\\\"presentation\\\" width=\\\"100%\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" style=\\\"background:#ffffff;border:1px solid #e9edef;border-radius:14px;\\\">\\n                <tr>\\n                  <td style=\\\"padding:12px 14px;\\\">\\n                    <table role=\\\"presentation\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\">\\n                      <tr>\\n                        <td style=\\\"width:48px;height:48px;border-radius:50%;background:#e9edef;border:2px solid #25D366;text-align:center;vertical-align:middle;font-size:20px;\\\">👤</td>\\n                        <td style=\\\"padding-left:12px;\\\">\\n                          <div style=\\\"font-size:15px;font-weight:700;color:#111b21;\\\">\" + ($json.phone || \"Number you searched\") + \"</div>\\n                          <div style=\\\"font-size:12px;color:#667781;margin-top:2px;\\\">Last email · Discount closes</div>\\n                        </td>\\n                      </tr>\\n                    </table>\\n                  </td>\\n                </tr>\\n              </table>\\n            </td>\\n          </tr>          <tr>\\n            <td style=\\\"background:#ffffff;padding:0 16px 12px;border-left:1px solid #e9edef;border-right:1px solid #e9edef;\\\">\\n              <div style=\\\"background:#fef2f2;border:1px solid #fecaca;border-radius:12px;padding:12px 14px;text-align:center;\\\">\\n                <div style=\\\"font-size:15px;font-weight:800;color:#ef4444;\\\">📩 Final email from us</div>\\n                <div style=\\\"font-size:12px;color:#667781;margin-top:4px;\\\">Hi \" + ($json.name || \"there\") + \" — we won't keep following up after this.</div>\\n              </div>\\n            </td>\\n          </tr>          <tr>\\n            <td style=\\\"background:#ffffff;padding:0 16px 12px;border-left:1px solid #e9edef;border-right:1px solid #e9edef;\\\">\\n              <div style=\\\"background:#ffffff;border:1px solid #e9edef;border-radius:14px;padding:14px;\\\">\\n                <div style=\\\"font-size:13px;color:#111b21;line-height:1.55;margin-bottom:10px;\\\">This is the last reminder about your incomplete order and the special <strong style=\\\"color:#128C7E;\\\">$29</strong> price (25% off).</div>\\n                <div style=\\\"font-size:13px;color:#111b21;line-height:1.55;margin-bottom:10px;\\\">If you still want access to the data we found — profile photos, social profiles, deleted messages and more — redeem it now.</div>\\n                <div style=\\\"font-size:13px;color:#111b21;line-height:1.55;\\\">If not, you can ignore this email and we won't send more about this order.</div>\\n              </div>\\n            </td>\\n          </tr>          <tr>\\n            <td style=\\\"background:#ffffff;padding:0 16px 16px;border-left:1px solid #e9edef;border-right:1px solid #e9edef;border-bottom:1px solid #e9edef;border-radius:0 0 12px 12px;\\\">\\n              <div style=\\\"background:#ffffff;border:2px solid #25D366;border-radius:16px;padding:18px 14px;text-align:center;box-shadow:0 4px 24px rgba(37,211,102,.15);\\\">\\n                <div style=\\\"display:inline-block;background:#fee2e2;border-radius:20px;padding:6px 14px;font-size:12px;font-weight:700;color:#ef4444;margin-bottom:12px;\\\">FINAL NOTICE · 25% OFF</div>\\n                <div style=\\\"font-size:11px;color:#667781;margin-bottom:14px;\\\"><span style=\\\"color:#128C7E;font-weight:600;\\\">One-time payment</span> · Lifetime access · 30-day guarantee</div>\\n                <a href=\\\"https://go.centerpag.com/PPU38CQEKTG?name=\" + ($json.name || '') + \"&email=\" + ($json.email || '') + \"&phone=\" + ($json.phone || '') + \"&plan=backredirect&utm_source=email_cancel&utm_medium=email&utm_campaign=cancel_e7&src=email_cancel&sck=cancel_e7\\\" style=\\\"display:block;background:#25D366;background:linear-gradient(135deg,#25D366,#22c55e);color:#ffffff;text-decoration:none;font-weight:900;font-size:15px;padding:16px 12px;border-radius:13px;box-shadow:0 4px 24px rgba(37,211,102,.35);\\\">\\n                  🎁 REDEEM DISCOUNT — $29<br>\\n                  <span style=\\\"font-size:11px;font-weight:600;opacity:.9;\\\">Last email · secure checkout</span>\\n                </a>\\n                <div style=\\\"margin-top:12px;font-size:11px;color:#667781;\\\">🔒 Secure payment · Access in up to 2 minutes</div>\\n              </div>\\n            </td>\\n          </tr>\\n          <tr>\\n            <td style=\\\"padding:14px 8px;text-align:center;font-size:11px;color:#667781;\\\">App Spy · If you already purchased, ignore this email.</td>\\n          </tr>\\n        </table>\\n      </td>\\n    </tr>\\n  </table>\\n</body>\\n</html>\" }) }}",
+        "options": {}
+      },
+      "id": "email-c7",
+      "name": "Email C7 — final notice ($29)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        8360,
+        200
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": null,
+          "name": "Resend API"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook Cancel": {
+      "main": [
+        [
+          {
+            "node": "Normalize Cancel",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Cancel": {
+      "main": [
+        [
+          {
+            "node": "If has email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If has email": {
+      "main": [
+        [
+          {
+            "node": "Append cancel lead",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Append cancel lead": {
+      "main": [
+        [
+          {
+            "node": "Wait before C1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait before C1": {
+      "main": [
+        [
+          {
+            "node": "Get row (C1)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row (C1)": {
+      "main": [
+        [
+          {
+            "node": "If not purchased (C1)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If not purchased (C1)": {
+      "main": [
+        [
+          {
+            "node": "Email C1 — issue with order ($39)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Email C1 — issue with order ($39)": {
+      "main": [
+        [
+          {
+            "node": "Keep after C1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Keep after C1": {
+      "main": [
+        [
+          {
+            "node": "Wait before C2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait before C2": {
+      "main": [
+        [
+          {
+            "node": "Get row (C2)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row (C2)": {
+      "main": [
+        [
+          {
+            "node": "If not purchased (C2)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If not purchased (C2)": {
+      "main": [
+        [
+          {
+            "node": "Email C2 — results waiting ($39)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Email C2 — results waiting ($39)": {
+      "main": [
+        [
+          {
+            "node": "Keep after C2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Keep after C2": {
+      "main": [
+        [
+          {
+            "node": "Wait before C3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait before C3": {
+      "main": [
+        [
+          {
+            "node": "Get row (C3)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row (C3)": {
+      "main": [
+        [
+          {
+            "node": "If not purchased (C3)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If not purchased (C3)": {
+      "main": [
+        [
+          {
+            "node": "Email C3 — still locked ($39)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Email C3 — still locked ($39)": {
+      "main": [
+        [
+          {
+            "node": "Keep after C3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Keep after C3": {
+      "main": [
+        [
+          {
+            "node": "Wait before C4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait before C4": {
+      "main": [
+        [
+          {
+            "node": "Get row (C4)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row (C4)": {
+      "main": [
+        [
+          {
+            "node": "If not purchased (C4)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If not purchased (C4)": {
+      "main": [
+        [
+          {
+            "node": "Email C4 — special offer ($29)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Email C4 — special offer ($29)": {
+      "main": [
+        [
+          {
+            "node": "Keep after C4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Keep after C4": {
+      "main": [
+        [
+          {
+            "node": "Wait before C5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait before C5": {
+      "main": [
+        [
+          {
+            "node": "Get row (C5)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row (C5)": {
+      "main": [
+        [
+          {
+            "node": "If not purchased (C5)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If not purchased (C5)": {
+      "main": [
+        [
+          {
+            "node": "Email C5 — discount still open ($29)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Email C5 — discount still open ($29)": {
+      "main": [
+        [
+          {
+            "node": "Keep after C5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Keep after C5": {
+      "main": [
+        [
+          {
+            "node": "Wait before C6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait before C6": {
+      "main": [
+        [
+          {
+            "node": "Get row (C6)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row (C6)": {
+      "main": [
+        [
+          {
+            "node": "If not purchased (C6)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If not purchased (C6)": {
+      "main": [
+        [
+          {
+            "node": "Email C6 — ending soon ($29)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Email C6 — ending soon ($29)": {
+      "main": [
+        [
+          {
+            "node": "Keep after C6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Keep after C6": {
+      "main": [
+        [
+          {
+            "node": "Wait before C7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait before C7": {
+      "main": [
+        [
+          {
+            "node": "Get row (C7)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row (C7)": {
+      "main": [
+        [
+          {
+            "node": "If not purchased (C7)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If not purchased (C7)": {
+      "main": [
+        [
+          {
+            "node": "Email C7 — final notice ($29)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": false,
+    "description": "Card refused sequence: 5m C1 $39 → +24h C2 $39 → +24h C3 $39 → +24h C4 $29 → +24h C5 $29 → +48h C6 $29 → +48h C7 $29. Stops if purchased=true."
+  },
+  "pinData": {}
+}

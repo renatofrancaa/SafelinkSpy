@@ -40,7 +40,7 @@ function resendCred() {
 
 /** n8n expression: Resend JSON body with dynamic subject + html */
 function resendJsonBody(subjectExpr, htmlExpr) {
-  return `={{ ({ from: 'App Spy <ola@mysafelinkspy.com>', to: [$json.email], subject: ${subjectExpr}, html: ${htmlExpr} }) }}`;
+  return `={{ ({ from: 'App Spy <noreply@mysafelinkspy.com>', to: [$json.email], subject: ${subjectExpr}, html: ${htmlExpr} }) }}`;
 }
 
 // HTML builders: return n8n expression fragment (parenthesized concat)

@@ -31,7 +31,7 @@ function expressionBody(key) {
 
   // Strip outer (''+...) wrapping issues — keep as-is from templates
   return (
-    "({ from: 'App Spy <ola@mysafelinkspy.com>', to: [$json.email], subject: " +
+    "({ from: 'App Spy <noreply@mysafelinkspy.com>', to: [$json.email], subject: " +
     subjects[key] +
     ", html: " +
     html +

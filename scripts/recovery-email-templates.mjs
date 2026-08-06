@@ -8,11 +8,13 @@
  */
 
 export function resendJsonBody(subjectExpr, htmlExpr) {
-  return `={{ ({ from: 'App Spy <ola@mysafelinkspy.com>', to: [${leadEmailArr}], subject: ${subjectExpr}, html: ${htmlExpr} }) }}`;
+  // Resend requires `to` as a STRING (not array, not nested array).
+  // leadEmailArr was accidentally wrapped twice as to: [[email]] → 422 invalid.
+  return `={{ ({ from: 'App Spy <noreply@mysafelinkspy.com>', to: (${E}), subject: ${subjectExpr}, html: ${htmlExpr} }) }}`;
 }
 
-/** Branded redirect on Resend From domain → CenterPag (keeps all query params). */
-const CHECKOUT_LINK_HOST = "https://mysafelinkspy.com";
+/** Direct PerfectPay / CenterPag checkout (no mysafelinkspy /go/ redirect). */
+const CHECKOUT_BASE = "https://go.centerpag.com";
 
 /** n8n expression: clean display name */
 const N =
@@ -20,24 +22,24 @@ const N =
 
 /** n8n expression: phone the lead typed (strip sheet "=' " junk) */
 const P =
-  "String(($('Normalize Lead').item.json.phone || $json.phone || $json['phone '] || '')).replace(/^=+/, '').replace(/^'+/, '').trim() || 'your number'";
+  "String(($('Normalize Lead').item.json.phone || $json.phone || $json['phone '] || '')).replace(/^=+/, '').replace(/^'+/, '').trim() || 'the number you searched'";
 
 /** n8n expression: email (for to: and checkout) */
 const E =
-  "String(($('Normalize Lead').item.json.email || $json.email || '')).trim()";
+  "(() => { const raw = String(($('Normalize Lead').item.json.email || $json.email || '')).replace(/[\\u200B-\\u200D\\uFEFF]/g,'').trim().toLowerCase(); const m = raw.match(/[a-z0-9._%+\\-]+@[a-z0-9.\\-]+\\.[a-z]{2,}/i); return m ? m[0] : raw.replace(/\\s+/g,''); })()";
 
-const leadEmailArr = `[${E}]`;
+const leadEmailArr = E;
 
 function checkoutLink(code, plan, campaign) {
   // Raw fields for URL (no "there" / "your number" fallbacks)
   const nameQ =
     "String(($('Normalize Lead').item.json.name || $json.name || '')).trim()";
-  const emailQ =
-    "String(($('Normalize Lead').item.json.email || $json.email || '')).trim()";
+  // Use sanitized email in checkout links too
+  const emailQ = E;
   const phoneQ =
     "String(($('Normalize Lead').item.json.phone || $json.phone || $json['phone '] || '')).replace(/^=+/, '').replace(/^'+/, '').trim()";
   return (
-    `'${CHECKOUT_LINK_HOST}/go/${code}?name=' + encodeURIComponent(${nameQ}) + '&email=' + encodeURIComponent(${emailQ}) + '&phone=' + encodeURIComponent(${phoneQ}) + '&plan=${plan}&utm_source=email&utm_medium=recovery&utm_campaign=${campaign}'`
+    `'${CHECKOUT_BASE}/${code}?name=' + encodeURIComponent(${nameQ}) + '&email=' + encodeURIComponent(${emailQ}) + '&phone=' + encodeURIComponent(${phoneQ}) + '&plan=${plan}&utm_source=email_recovery&utm_medium=email&utm_campaign=${campaign}&src=email_recovery&sck=${campaign}'`
   );
 }
 
@@ -56,6 +58,14 @@ export const subjects = {
   e2: `(${N}) + ' — deleted messages for ' + (${P}) + ' are still locked'`,
   e3: `(${N}) + ', your recovery for ' + (${P}) + ' is still waiting'`,
   e4: `(${N}) + ' — last email: unlock ' + (${P}) + ' before we stop'`,
+};
+
+/** Static subject previews for docs (sample name/phone) */
+export const subjectPreviews = {
+  e1: (n, p) => `${n}, data recovery completed for ${p}`,
+  e2: (n, p) => `${n} — deleted messages for ${p} are still locked`,
+  e3: (n, p) => `${n}, your recovery for ${p} is still waiting`,
+  e4: (n, p) => `${n} — last email: unlock ${p} before we stop`,
 };
 
 // E1 — Name + phone first, strong hooks, CTA without “call this number” vibe
@@ -212,7 +222,7 @@ export function staticPreview(key, sample = { name: "Renato", phone: "+55 11 999
     },
   };
   const c = codes[key];
-  const href = `https://mysafelinkspy.com/go/${c.code}?name=${encodeURIComponent(name)}&email=${encodeURIComponent(email)}&phone=${encodeURIComponent(phone)}&plan=${c.plan}&utm_source=email&utm_medium=recovery&utm_campaign=${key}`;
+  const href = `https://go.centerpag.com/${c.code}?name=${encodeURIComponent(name)}&email=${encodeURIComponent(email)}&phone=${encodeURIComponent(phone)}&plan=${c.plan}&utm_source=email_recovery&utm_medium=email&utm_campaign=${key}&src=email_recovery&sck=${key}`;
 
   const bodies = {
     e1: `

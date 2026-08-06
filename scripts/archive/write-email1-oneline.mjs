@@ -9,7 +9,7 @@ const out = path.join(__dirname, "..", "docs", "n8n", "email1-jsonBody-expressio
 // One continuous expression — multi-line paste often breaks n8n JSON body
 const html = htmlE1.replace(/\r?\n/g, "").replace(/\s*\+\s*/g, "+");
 const body =
-  "={{ ({ from: 'App Spy <ola@mysafelinkspy.com>', to: [$json.email], subject: " +
+  "={{ ({ from: 'App Spy <noreply@mysafelinkspy.com>', to: [$json.email], subject: " +
   subjects.e1 +
   ", html: " +
   html +

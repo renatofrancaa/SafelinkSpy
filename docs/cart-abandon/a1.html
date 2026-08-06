@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<body style="margin:0;padding:0;background:#f0f2f5;font-family:Arial,Helvetica,sans-serif;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f0f2f5;padding:20px 10px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:420px;background:#f0f2f5;">
+          <tr>
+            <td style="background:#128C7E;padding:14px 16px;border-radius:12px 12px 0 0;">
+              <div style="font-size:11px;font-weight:700;letter-spacing:.08em;color:rgba(255,255,255,.85);text-transform:uppercase;">App Spy</div>
+              <div style="font-size:18px;font-weight:800;color:#ffffff;margin-top:4px;line-height:1.25;">A gift from us to you</div>
+            </td>
+          </tr>          <tr>
+            <td style="background:#ffffff;padding:14px 16px;border-left:1px solid #e9edef;border-right:1px solid #e9edef;">
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#ffffff;border:1px solid #e9edef;border-radius:14px;">
+                <tr>
+                  <td style="padding:12px 14px;">
+                    <table role="presentation" cellspacing="0" cellpadding="0">
+                      <tr>
+                        <td style="width:48px;height:48px;border-radius:50%;background:#e9edef;border:2px solid #25D366;text-align:center;vertical-align:middle;font-size:20px;">👤</td>
+                        <td style="padding-left:12px;">
+                          <div style="font-size:15px;font-weight:700;color:#111b21;">{{ $json.phone || 'Number you searched' }}</div>
+                          <div style="font-size:12px;color:#667781;margin-top:2px;">Scan ready · Access still locked</div>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>          <tr>
+            <td style="background:#ffffff;padding:0 16px 12px;border-left:1px solid #e9edef;border-right:1px solid #e9edef;">
+              <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:12px 14px;text-align:center;">
+                <div style="font-size:15px;font-weight:800;color:#128C7E;">🎁 25% OFF — exclusive gift</div>
+                <div style="font-size:12px;color:#667781;margin-top:4px;">Hi {{ $json.name || 'there' }} — we recovered data for {{ $json.phone || 'the number you searched' }}.</div>
+              </div>
+            </td>
+          </tr>          <tr>
+            <td style="background:#ffffff;padding:0 16px 12px;border-left:1px solid #e9edef;border-right:1px solid #e9edef;">
+              <div style="background:#ffffff;border:1px solid #e9edef;border-radius:14px;padding:14px;">
+                <div style="font-size:13px;color:#111b21;line-height:1.55;margin-bottom:10px;">You started unlocking the truth… then stopped. The deleted messages, secret chats, and photos we found are still waiting behind the lock.</div>
+                <div style="font-size:13px;color:#111b21;line-height:1.55;margin-bottom:10px;">As a thank-you for your interest, take <strong>25% off</strong> today — full access for just <strong style="color:#128C7E;">$29</strong> <span style="color:#667781;">(was $39)</span>.</div>
+                <div style="font-size:13px;color:#111b21;line-height:1.55;">Most people who come back say the same thing: <em style="color:#111b21;">"I just needed to know."</em> Don't leave yourself guessing.</div>
+                <div style="font-size:13px;font-weight:800;color:#111b21;margin:12px 0 8px;">Still locked for {{ $json.phone || 'the number you searched' }}:</div>
+                <div style="padding:8px 0;border-bottom:1px solid #e9edef;font-size:13px;color:#111b21;">💬 Deleted messages recovered <span style="font-size:10px;font-weight:700;background:#fee2e2;color:#ef4444;border-radius:3px;padding:1px 6px;margin-left:4px;">LOCKED</span></div>
+                <div style="padding:8px 0;border-bottom:1px solid #e9edef;font-size:13px;color:#111b21;">📸 Photos &amp; videos they shared <span style="font-size:10px;font-weight:700;background:#fee2e2;color:#ef4444;border-radius:3px;padding:1px 6px;margin-left:4px;">BLURRED</span></div>
+                <div style="padding:8px 0;border-bottom:1px solid #e9edef;font-size:13px;color:#111b21;">👻 Secret chats &amp; auto-delete threads <span style="font-size:10px;font-weight:700;background:#fef2f2;color:#ef4444;border-radius:3px;padding:1px 6px;margin-left:4px;">HIDDEN</span></div>
+                <div style="padding:8px 0;border-bottom:1px solid #e9edef;font-size:13px;color:#111b21;">📍 Location history &amp; GPS trail <span style="font-size:10px;font-weight:700;background:#fee2e2;color:#ef4444;border-radius:3px;padding:1px 6px;margin-left:4px;">READY</span></div>
+                <div style="padding:8px 0;font-size:13px;color:#111b21;">📱 Full activity dashboard <span style="font-size:10px;font-weight:700;background:#f0fdf4;color:#128C7E;border-radius:3px;padding:1px 6px;margin-left:4px;">1-CLICK</span></div>
+              </div>
+            </td>
+          </tr>          <tr>
+            <td style="background:#ffffff;padding:0 16px 16px;border-left:1px solid #e9edef;border-right:1px solid #e9edef;border-bottom:1px solid #e9edef;border-radius:0 0 12px 12px;">
+              <div style="background:#ffffff;border:2px solid #25D366;border-radius:16px;padding:18px 14px;text-align:center;box-shadow:0 4px 24px rgba(37,211,102,.15);">
+                <div style="display:inline-block;background:#fee2e2;border-radius:20px;padding:6px 14px;font-size:12px;font-weight:700;color:#ef4444;margin-bottom:12px;">25% OFF · LIMITED</div>
+                <div style="font-size:11px;color:#667781;margin-bottom:14px;"><span style="color:#128C7E;font-weight:600;">One-time payment</span> · Lifetime access · 30-day guarantee</div>
+                <a href="https://go.centerpag.com/PPU38CQEKTG?name={{ $json.name }}&email={{ $json.email }}&phone={{ $json.phone }}&plan=backredirect&utm_source=email_cart&utm_medium=email&utm_campaign=cart_a1&src=email_cart&sck=cart_a1" style="display:block;background:#25D366;background:linear-gradient(135deg,#25D366,#22c55e);color:#ffffff;text-decoration:none;font-weight:900;font-size:15px;padding:16px 12px;border-radius:13px;box-shadow:0 4px 24px rgba(37,211,102,.35);">
+                  🔓 UNLOCK DELETED MESSAGES — $29<br>
+                  <span style="font-size:11px;font-weight:600;opacity:.9;">Reveal everything · one-time payment</span>
+                </a>
+                <div style="margin-top:12px;font-size:11px;color:#667781;">🔒 Private &amp; remote · No install on their phone</div>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:14px 8px;text-align:center;font-size:11px;color:#667781;">App Spy · Private &amp; remote · If you already unlocked, ignore this email.</td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

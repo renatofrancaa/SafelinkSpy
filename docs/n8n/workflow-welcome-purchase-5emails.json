@@ -1,0 +1,647 @@
+{
+  "name": "Welcome Purchase — 5 Emails",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "purchase-welcome",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "wh-welcome",
+      "name": "Webhook Purchase Welcome",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        200,
+        300
+      ],
+      "webhookId": "purchase-welcome",
+      "notes": "Triggered on PerfectPay approved (from app N8N_WELCOME_WEBHOOK_URL)"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a1",
+              "name": "email",
+              "value": "={{ String($json.body?.email || $json.email || '').trim().toLowerCase() }}",
+              "type": "string"
+            },
+            {
+              "id": "a2",
+              "name": "name",
+              "value": "={{ String($json.body?.name || $json.name || '').trim() }}",
+              "type": "string"
+            },
+            {
+              "id": "a3",
+              "name": "phone",
+              "value": "={{ String($json.body?.phone || $json.phone || '').trim() }}",
+              "type": "string"
+            },
+            {
+              "id": "a4",
+              "name": "order_code",
+              "value": "={{ String($json.body?.order_code || $json.body?.code || $json.order_code || '') }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "normalize-purchase",
+      "name": "Normalize Purchase",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        420,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "has-email",
+              "leftValue": "={{ $json.email }}",
+              "rightValue": "@",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-email",
+      "name": "If has email",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        640,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.resend.com/emails",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ ({ from: 'App Spy <noreply@mysafelinkspy.com>', to: [$json.email], reply_to: 'support@mysafelinkspy.com', subject: 'Welcome — your access is ready', html: \"<!DOCTYPE html>\\n<html>\\n<body style=\\\"margin:0;padding:0;background:#f0f2f5;font-family:Arial,Helvetica,sans-serif;\\\">\\n  <table role=\\\"presentation\\\" width=\\\"100%\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" style=\\\"background:#f0f2f5;padding:20px 10px;\\\">\\n    <tr>\\n      <td align=\\\"center\\\">\\n        <table role=\\\"presentation\\\" width=\\\"100%\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" style=\\\"max-width:420px;\\\">\\n          <tr>\\n            <td style=\\\"background:#128C7E;padding:14px 16px;border-radius:12px 12px 0 0;\\\">\\n              <div style=\\\"font-size:11px;font-weight:700;letter-spacing:.08em;color:rgba(255,255,255,.85);text-transform:uppercase;\\\">App Spy · Welcome</div>\\n              <div style=\\\"font-size:18px;font-weight:800;color:#ffffff;margin-top:4px;line-height:1.25;\\\">Your access is ready</div>\\n            </td>\\n          </tr>          <tr>\\n            <td style=\\\"background:#ffffff;padding:16px;border:1px solid #e9edef;border-top:none;border-radius:0 0 12px 12px;\\\">\\n              <div style=\\\"font-size:14px;color:#111b21;line-height:1.55;margin-bottom:10px;\\\">Hi \" + ($json.name || \"there\") + \",</div>              <div style=\\\"font-size:14px;color:#111b21;line-height:1.55;margin-bottom:10px;\\\">Your payment is confirmed and your App Spy access is unlocked.</div>              <div style=\\\"font-size:14px;color:#111b21;line-height:1.55;margin-bottom:10px;\\\">Open your portal below to start — it only takes a minute.</div>              <div style=\\\"margin-top:16px;text-align:center;\\\">\\n                <a href=\\\"https://en.safelinkspy.com/?email=\" + ($json.email || '') + \"&name=\" + ($json.name || '') + \"&utm_source=email_welcome&utm_medium=email&utm_campaign=w1&src=email_welcome&sck=w1\\\" style=\\\"display:block;background:#25D366;background:linear-gradient(135deg,#25D366,#22c55e);color:#ffffff;text-decoration:none;font-weight:900;font-size:15px;padding:16px 12px;border-radius:13px;box-shadow:0 4px 24px rgba(37,211,102,.35);\\\">\\n                  Open my access<br>\\n                  <span style=\\\"font-size:11px;font-weight:600;opacity:.9;\\\">Member portal</span>\\n                </a>\\n              </div>              <div style=\\\"margin-top:14px;font-size:12px;color:#667781;text-align:center;\\\">Need help? support@mysafelinkspy.com</div>\\n            </td>\\n          </tr>\\n          <tr>\\n            <td style=\\\"padding:14px 8px;text-align:center;font-size:11px;color:#667781;line-height:1.45;\\\">\\n              App Spy · Questions? support@mysafelinkspy.com\\n            </td>\\n          </tr>\\n        </table>\\n      </td>\\n    </tr>\\n  </table>\\n</body>\\n</html>\" }) }}",
+        "options": {}
+      },
+      "id": "email-w1",
+      "name": "Email W1 — welcome",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        880,
+        220
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": null,
+          "name": "Resend API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 3,
+        "unit": "hours"
+      },
+      "id": "wait-w2",
+      "name": "Wait before W2",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1100,
+        220
+      ],
+      "webhookId": "wait-welcome-w2"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "k1",
+              "name": "email",
+              "value": "={{ $('Normalize Purchase').item.json.email }}",
+              "type": "string"
+            },
+            {
+              "id": "k2",
+              "name": "name",
+              "value": "={{ $('Normalize Purchase').item.json.name }}",
+              "type": "string"
+            },
+            {
+              "id": "k3",
+              "name": "phone",
+              "value": "={{ $('Normalize Purchase').item.json.phone }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "keep-w2",
+      "name": "Keep before W2",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1320,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.resend.com/emails",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ ({ from: 'App Spy <noreply@mysafelinkspy.com>', to: [$json.email], reply_to: 'support@mysafelinkspy.com', subject: 'Quick start: open your portal', html: \"<!DOCTYPE html>\\n<html>\\n<body style=\\\"margin:0;padding:0;background:#f0f2f5;font-family:Arial,Helvetica,sans-serif;\\\">\\n  <table role=\\\"presentation\\\" width=\\\"100%\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" style=\\\"background:#f0f2f5;padding:20px 10px;\\\">\\n    <tr>\\n      <td align=\\\"center\\\">\\n        <table role=\\\"presentation\\\" width=\\\"100%\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" style=\\\"max-width:420px;\\\">\\n          <tr>\\n            <td style=\\\"background:#128C7E;padding:14px 16px;border-radius:12px 12px 0 0;\\\">\\n              <div style=\\\"font-size:11px;font-weight:700;letter-spacing:.08em;color:rgba(255,255,255,.85);text-transform:uppercase;\\\">App Spy</div>\\n              <div style=\\\"font-size:18px;font-weight:800;color:#ffffff;margin-top:4px;line-height:1.25;\\\">Quick start</div>\\n            </td>\\n          </tr>          <tr>\\n            <td style=\\\"background:#ffffff;padding:16px;border:1px solid #e9edef;border-top:none;border-radius:0 0 12px 12px;\\\">\\n              <div style=\\\"font-size:14px;color:#111b21;line-height:1.55;margin-bottom:10px;\\\">Hi \" + ($json.name || \"there\") + \",</div>              <div style=\\\"font-size:14px;color:#111b21;line-height:1.55;margin-bottom:10px;\\\">Just checking in — have you opened your portal yet?</div>              <div style=\\\"font-size:14px;color:#111b21;line-height:1.55;margin-bottom:10px;\\\">Log in with the e-mail you used at checkout, enter the number, and start your scan.</div>              <div style=\\\"margin-top:16px;text-align:center;\\\">\\n                <a href=\\\"https://en.safelinkspy.com/?email=\" + ($json.email || '') + \"&name=\" + ($json.name || '') + \"&utm_source=email_welcome&utm_medium=email&utm_campaign=w2&src=email_welcome&sck=w2\\\" style=\\\"display:block;background:#25D366;background:linear-gradient(135deg,#25D366,#22c55e);color:#ffffff;text-decoration:none;font-weight:900;font-size:15px;padding:16px 12px;border-radius:13px;box-shadow:0 4px 24px rgba(37,211,102,.35);\\\">\\n                  Continue in the portal<br>\\n                  <span style=\\\"font-size:11px;font-weight:600;opacity:.9;\\\">Takes about 2 minutes</span>\\n                </a>\\n              </div>              <div style=\\\"margin-top:14px;font-size:12px;color:#667781;text-align:center;\\\">Stuck? Write to support@mysafelinkspy.com</div>\\n            </td>\\n          </tr>\\n          <tr>\\n            <td style=\\\"padding:14px 8px;text-align:center;font-size:11px;color:#667781;line-height:1.45;\\\">\\n              App Spy · Questions? support@mysafelinkspy.com\\n            </td>\\n          </tr>\\n        </table>\\n      </td>\\n    </tr>\\n  </table>\\n</body>\\n</html>\" }) }}",
+        "options": {}
+      },
+      "id": "email-w2",
+      "name": "Email W2 — quick start",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1540,
+        220
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": null,
+          "name": "Resend API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 1,
+        "unit": "days"
+      },
+      "id": "wait-w3",
+      "name": "Wait before W3",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1760,
+        220
+      ],
+      "webhookId": "wait-welcome-w3"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "k1",
+              "name": "email",
+              "value": "={{ $('Normalize Purchase').item.json.email }}",
+              "type": "string"
+            },
+            {
+              "id": "k2",
+              "name": "name",
+              "value": "={{ $('Normalize Purchase').item.json.name }}",
+              "type": "string"
+            },
+            {
+              "id": "k3",
+              "name": "phone",
+              "value": "={{ $('Normalize Purchase').item.json.phone }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "keep-w3",
+      "name": "Keep before W3",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1980,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.resend.com/emails",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ ({ from: 'App Spy <noreply@mysafelinkspy.com>', to: [$json.email], reply_to: 'support@mysafelinkspy.com', subject: 'Your report is waiting', html: \"<!DOCTYPE html>\\n<html>\\n<body style=\\\"margin:0;padding:0;background:#f0f2f5;font-family:Arial,Helvetica,sans-serif;\\\">\\n  <table role=\\\"presentation\\\" width=\\\"100%\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" style=\\\"background:#f0f2f5;padding:20px 10px;\\\">\\n    <tr>\\n      <td align=\\\"center\\\">\\n        <table role=\\\"presentation\\\" width=\\\"100%\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" style=\\\"max-width:420px;\\\">\\n          <tr>\\n            <td style=\\\"background:#128C7E;padding:14px 16px;border-radius:12px 12px 0 0;\\\">\\n              <div style=\\\"font-size:11px;font-weight:700;letter-spacing:.08em;color:rgba(255,255,255,.85);text-transform:uppercase;\\\">App Spy</div>\\n              <div style=\\\"font-size:18px;font-weight:800;color:#ffffff;margin-top:4px;line-height:1.25;\\\">Your report is waiting</div>\\n            </td>\\n          </tr>          <tr>\\n            <td style=\\\"background:#ffffff;padding:16px;border:1px solid #e9edef;border-top:none;border-radius:0 0 12px 12px;\\\">\\n              <div style=\\\"font-size:14px;color:#111b21;line-height:1.55;margin-bottom:10px;\\\">Hi \" + ($json.name || \"there\") + \",</div>              <div style=\\\"font-size:14px;color:#111b21;line-height:1.55;margin-bottom:10px;\\\">If you already started, open the portal and check your progress.</div>              <div style=\\\"font-size:14px;color:#111b21;line-height:1.55;margin-bottom:10px;\\\">If you haven't started yet, this is a good time — your access is already paid and active.</div>              <div style=\\\"margin-top:16px;text-align:center;\\\">\\n                <a href=\\\"https://en.safelinkspy.com/?email=\" + ($json.email || '') + \"&name=\" + ($json.name || '') + \"&utm_source=email_welcome&utm_medium=email&utm_campaign=w3&src=email_welcome&sck=w3\\\" style=\\\"display:block;background:#25D366;background:linear-gradient(135deg,#25D366,#22c55e);color:#ffffff;text-decoration:none;font-weight:900;font-size:15px;padding:16px 12px;border-radius:13px;box-shadow:0 4px 24px rgba(37,211,102,.35);\\\">\\n                  Open my portal<br>\\n                  <span style=\\\"font-size:11px;font-weight:600;opacity:.9;\\\">See your results</span>\\n                </a>\\n              </div>\\n            </td>\\n          </tr>\\n          <tr>\\n            <td style=\\\"padding:14px 8px;text-align:center;font-size:11px;color:#667781;line-height:1.45;\\\">\\n              App Spy · Questions? support@mysafelinkspy.com\\n            </td>\\n          </tr>\\n        </table>\\n      </td>\\n    </tr>\\n  </table>\\n</body>\\n</html>\" }) }}",
+        "options": {}
+      },
+      "id": "email-w3",
+      "name": "Email W3 — report waiting",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2200,
+        220
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": null,
+          "name": "Resend API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 2,
+        "unit": "days"
+      },
+      "id": "wait-w4",
+      "name": "Wait before W4",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        2420,
+        220
+      ],
+      "webhookId": "wait-welcome-w4"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "k1",
+              "name": "email",
+              "value": "={{ $('Normalize Purchase').item.json.email }}",
+              "type": "string"
+            },
+            {
+              "id": "k2",
+              "name": "name",
+              "value": "={{ $('Normalize Purchase').item.json.name }}",
+              "type": "string"
+            },
+            {
+              "id": "k3",
+              "name": "phone",
+              "value": "={{ $('Normalize Purchase').item.json.phone }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "keep-w4",
+      "name": "Keep before W4",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2640,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.resend.com/emails",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ ({ from: 'App Spy <noreply@mysafelinkspy.com>', to: [$json.email], reply_to: 'support@mysafelinkspy.com', subject: 'Tip: check your dashboard alerts', html: \"<!DOCTYPE html>\\n<html>\\n<body style=\\\"margin:0;padding:0;background:#f0f2f5;font-family:Arial,Helvetica,sans-serif;\\\">\\n  <table role=\\\"presentation\\\" width=\\\"100%\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" style=\\\"background:#f0f2f5;padding:20px 10px;\\\">\\n    <tr>\\n      <td align=\\\"center\\\">\\n        <table role=\\\"presentation\\\" width=\\\"100%\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" style=\\\"max-width:420px;\\\">\\n          <tr>\\n            <td style=\\\"background:#128C7E;padding:14px 16px;border-radius:12px 12px 0 0;\\\">\\n              <div style=\\\"font-size:11px;font-weight:700;letter-spacing:.08em;color:rgba(255,255,255,.85);text-transform:uppercase;\\\">App Spy</div>\\n              <div style=\\\"font-size:18px;font-weight:800;color:#ffffff;margin-top:4px;line-height:1.25;\\\">A quick tip</div>\\n            </td>\\n          </tr>          <tr>\\n            <td style=\\\"background:#ffffff;padding:16px;border:1px solid #e9edef;border-top:none;border-radius:0 0 12px 12px;\\\">\\n              <div style=\\\"font-size:14px;color:#111b21;line-height:1.55;margin-bottom:10px;\\\">Hi \" + ($json.name || \"there\") + \",</div>              <div style=\\\"font-size:14px;color:#111b21;line-height:1.55;margin-bottom:10px;\\\">When you open your dashboard, focus on the alerts first — that's usually where the important activity shows up.</div>              <div style=\\\"font-size:14px;color:#111b21;line-height:1.55;margin-bottom:10px;\\\">Come back anytime; your access does not expire.</div>              <div style=\\\"margin-top:16px;text-align:center;\\\">\\n                <a href=\\\"https://en.safelinkspy.com/?email=\" + ($json.email || '') + \"&name=\" + ($json.name || '') + \"&utm_source=email_welcome&utm_medium=email&utm_campaign=w4&src=email_welcome&sck=w4\\\" style=\\\"display:block;background:#25D366;background:linear-gradient(135deg,#25D366,#22c55e);color:#ffffff;text-decoration:none;font-weight:900;font-size:15px;padding:16px 12px;border-radius:13px;box-shadow:0 4px 24px rgba(37,211,102,.35);\\\">\\n                  Go to my dashboard<br>\\n                  <span style=\\\"font-size:11px;font-weight:600;opacity:.9;\\\">Member portal</span>\\n                </a>\\n              </div>\\n            </td>\\n          </tr>\\n          <tr>\\n            <td style=\\\"padding:14px 8px;text-align:center;font-size:11px;color:#667781;line-height:1.45;\\\">\\n              App Spy · Questions? support@mysafelinkspy.com\\n            </td>\\n          </tr>\\n        </table>\\n      </td>\\n    </tr>\\n  </table>\\n</body>\\n</html>\" }) }}",
+        "options": {}
+      },
+      "id": "email-w4",
+      "name": "Email W4 — tip",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2860,
+        220
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": null,
+          "name": "Resend API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 3,
+        "unit": "days"
+      },
+      "id": "wait-w5",
+      "name": "Wait before W5",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        3080,
+        220
+      ],
+      "webhookId": "wait-welcome-w5"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "k1",
+              "name": "email",
+              "value": "={{ $('Normalize Purchase').item.json.email }}",
+              "type": "string"
+            },
+            {
+              "id": "k2",
+              "name": "name",
+              "value": "={{ $('Normalize Purchase').item.json.name }}",
+              "type": "string"
+            },
+            {
+              "id": "k3",
+              "name": "phone",
+              "value": "={{ $('Normalize Purchase').item.json.phone }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "keep-w5",
+      "name": "Keep before W5",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3300,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.resend.com/emails",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ ({ from: 'App Spy <noreply@mysafelinkspy.com>', to: [$json.email], reply_to: 'support@mysafelinkspy.com', subject: 'You\\'re all set', html: \"<!DOCTYPE html>\\n<html>\\n<body style=\\\"margin:0;padding:0;background:#f0f2f5;font-family:Arial,Helvetica,sans-serif;\\\">\\n  <table role=\\\"presentation\\\" width=\\\"100%\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" style=\\\"background:#f0f2f5;padding:20px 10px;\\\">\\n    <tr>\\n      <td align=\\\"center\\\">\\n        <table role=\\\"presentation\\\" width=\\\"100%\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" style=\\\"max-width:420px;\\\">\\n          <tr>\\n            <td style=\\\"background:#128C7E;padding:14px 16px;border-radius:12px 12px 0 0;\\\">\\n              <div style=\\\"font-size:11px;font-weight:700;letter-spacing:.08em;color:rgba(255,255,255,.85);text-transform:uppercase;\\\">App Spy</div>\\n              <div style=\\\"font-size:18px;font-weight:800;color:#ffffff;margin-top:4px;line-height:1.25;\\\">You're all set</div>\\n            </td>\\n          </tr>          <tr>\\n            <td style=\\\"background:#ffffff;padding:16px;border:1px solid #e9edef;border-top:none;border-radius:0 0 12px 12px;\\\">\\n              <div style=\\\"font-size:14px;color:#111b21;line-height:1.55;margin-bottom:10px;\\\">Hi \" + ($json.name || \"there\") + \",</div>              <div style=\\\"font-size:14px;color:#111b21;line-height:1.55;margin-bottom:10px;\\\">This is our last onboarding e-mail. Your access stays available whenever you need it.</div>              <div style=\\\"font-size:14px;color:#111b21;line-height:1.55;margin-bottom:10px;\\\">For support, always use <strong>support@mysafelinkspy.com</strong> — we'll reply from there.</div>              <div style=\\\"margin-top:16px;text-align:center;\\\">\\n                <a href=\\\"https://en.safelinkspy.com/?email=\" + ($json.email || '') + \"&name=\" + ($json.name || '') + \"&utm_source=email_welcome&utm_medium=email&utm_campaign=w5&src=email_welcome&sck=w5\\\" style=\\\"display:block;background:#25D366;background:linear-gradient(135deg,#25D366,#22c55e);color:#ffffff;text-decoration:none;font-weight:900;font-size:15px;padding:16px 12px;border-radius:13px;box-shadow:0 4px 24px rgba(37,211,102,.35);\\\">\\n                  Open my portal<br>\\n                  <span style=\\\"font-size:11px;font-weight:600;opacity:.9;\\\">Lifetime access</span>\\n                </a>\\n              </div>              <div style=\\\"margin-top:14px;font-size:12px;color:#667781;text-align:center;\\\">Thank you for trusting App Spy.</div>\\n            </td>\\n          </tr>\\n          <tr>\\n            <td style=\\\"padding:14px 8px;text-align:center;font-size:11px;color:#667781;line-height:1.45;\\\">\\n              App Spy · Questions? support@mysafelinkspy.com\\n            </td>\\n          </tr>\\n        </table>\\n      </td>\\n    </tr>\\n  </table>\\n</body>\\n</html>\" }) }}",
+        "options": {}
+      },
+      "id": "email-w5",
+      "name": "Email W5 — all set",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3520,
+        220
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": null,
+          "name": "Resend API"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook Purchase Welcome": {
+      "main": [
+        [
+          {
+            "node": "Normalize Purchase",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Purchase": {
+      "main": [
+        [
+          {
+            "node": "If has email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If has email": {
+      "main": [
+        [
+          {
+            "node": "Email W1 — welcome",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Email W1 — welcome": {
+      "main": [
+        [
+          {
+            "node": "Wait before W2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait before W2": {
+      "main": [
+        [
+          {
+            "node": "Keep before W2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Keep before W2": {
+      "main": [
+        [
+          {
+            "node": "Email W2 — quick start",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email W2 — quick start": {
+      "main": [
+        [
+          {
+            "node": "Wait before W3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait before W3": {
+      "main": [
+        [
+          {
+            "node": "Keep before W3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Keep before W3": {
+      "main": [
+        [
+          {
+            "node": "Email W3 — report waiting",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email W3 — report waiting": {
+      "main": [
+        [
+          {
+            "node": "Wait before W4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait before W4": {
+      "main": [
+        [
+          {
+            "node": "Keep before W4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Keep before W4": {
+      "main": [
+        [
+          {
+            "node": "Email W4 — tip",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email W4 — tip": {
+      "main": [
+        [
+          {
+            "node": "Wait before W5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait before W5": {
+      "main": [
+        [
+          {
+            "node": "Keep before W5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Keep before W5": {
+      "main": [
+        [
+          {
+            "node": "Email W5 — all set",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "description": "Buyers only: W1 immediate → 3h W2 → 1d W3 → 2d W4 → 3d W5. Webhook purchase-welcome. Resend."
+  },
+  "pinData": {}
+}

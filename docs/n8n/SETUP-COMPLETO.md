@@ -35,7 +35,7 @@ Na **primeira vez**: crie o usuário dono (e-mail + senha). Guarde essa senha.
 ### A2. Domínio (recomendado)
 1. Resend → **Domains** → `mysafelinkspy.com`  
 2. Status **Verified** (SPF/DKIM no DNS)  
-3. From nos e-mails: `App Spy <ola@mysafelinkspy.com>`  
+3. From nos e-mails: `App Spy <noreply@mysafelinkspy.com>`  
 
 ### A3. No n8n — credencial Header Auth
 1. n8n → menu esquerdo **Credentials** (ou Settings → Credentials)  

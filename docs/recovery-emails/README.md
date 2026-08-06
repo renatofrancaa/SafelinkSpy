@@ -1,6 +1,6 @@
 # 4 e-mails recovery — HTML pronto (Resend / n8n)
 
-**From:** `App Spy <ola@mysafelinkspy.com>`
+**From:** `App Spy <noreply@mysafelinkspy.com>`
 
 | Arquivo | Quando | Preço | Subject |
 |---------|--------|-------|---------|
@@ -21,7 +21,7 @@
 
 ```json
 {
-  "from": "App Spy <ola@mysafelinkspy.com>",
+  "from": "App Spy <noreply@mysafelinkspy.com>",
   "to": ["={{ $json.email }}"],
   "subject": "={{ ($json.name || 'there') + ', your report is ready — unlock full access' }}",
   "html": "=<cole aqui o HTML do e1.html>"
@@ -34,8 +34,8 @@
 
 | E-mail | URL base | Código | Preço |
 |--------|----------|--------|-------|
-| E1–E3 | `https://go.centerpag.com/PPU38CQEHD1` | step6 | $39 |
-| E4 | `https://go.centerpag.com/PPU38CQEKTG` | backredirect | $29 |
+| E1–E3 | `https://go.centerpag.com/PPU38CQF005` | PerfectPay direto | $39 |
+| E4 | `https://go.centerpag.com/PPU38CQF019` | PerfectPay direto | $29 |
 
 Query: `name`, `email`, `phone`, `plan=full|backredirect`, `utm_source=email&utm_medium=recovery&utm_campaign=e1|e2|e3|e4`
 

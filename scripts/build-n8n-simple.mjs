@@ -12,7 +12,7 @@ const outDir = path.join(__dirname, "..", "docs", "n8n");
 const htmlOutDir = path.join(__dirname, "..", "docs", "recovery-emails");
 
 function resendJsonBody(subjectExpr, htmlExpr) {
-  return `={{ ({ from: 'App Spy <ola@mysafelinkspy.com>', to: [$json.email], subject: ${subjectExpr}, html: ${htmlExpr} }) }}`;
+  return `={{ ({ from: 'App Spy <noreply@mysafelinkspy.com>', to: [$json.email], subject: ${subjectExpr}, html: ${htmlExpr} }) }}`;
 }
 
 /** Checkout link fragment inside n8n expression */
@@ -378,7 +378,7 @@ fs.writeFileSync(out, JSON.stringify(workflow, null, 2));
 // Human-readable copy doc
 const copyMd = `# Recovery emails v2 — copy persuasivo
 
-**From:** \`App Spy <ola@mysafelinkspy.com>\`
+**From:** \`App Spy <noreply@mysafelinkspy.com>\`
 
 | # | Timing | Preço | Ângulo | Subject (ex.) |
 |---|--------|-------|--------|----------------|

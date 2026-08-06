@@ -19,8 +19,9 @@ const htmlOutDir = path.join(__dirname, "..", "docs", "recovery-emails");
 
 const sheetDoc = {
   __rl: true,
-  value: "YOUR_GOOGLE_SHEET_ID",
-  mode: "id",
+  value: "18jZnwB4KbIV3EdwmYi77Q_HkK-yO0fqkYvI9cxxbBOU",
+  mode: "list",
+  cachedResultName: "App Spy - Leads Recovery ",
 };
 const sheetName = {
   __rl: true,
@@ -558,7 +559,7 @@ const n = "Renato";
 const p = "+55 11 99999-9999";
 const readable = `# 4 e-mails recovery — texto completo (para ler)
 
-**From:** App Spy <ola@mysafelinkspy.com>  
+**From:** App Spy <noreply@mysafelinkspy.com>  
 **Sample lead:** ${n} · ${p}
 
 Abra no browser (HTML visual):
