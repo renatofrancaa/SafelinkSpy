@@ -704,6 +704,20 @@ html.hide-utm-price .price-box{display:none!important;}
       if (ev && ev.preventDefault) ev.preventDefault();
     } catch (e0) {}
 
+    // Single-flight + visual feedback (avoid multi-click)
+    if (window.__slAcceptBusy) return;
+    window.__slAcceptBusy = true;
+    try {
+      var yesEl = document.getElementById('cta-yes');
+      if (yesEl) {
+        yesEl.style.pointerEvents = 'none';
+        yesEl.setAttribute('aria-busy', 'true');
+        yesEl.textContent = 'Please wait…';
+      }
+      var noEl = document.getElementById('cta-no');
+      if (noEl) noEl.style.pointerEvents = 'none';
+    } catch (eUi) {}
+
     try {
       if (typeof fbq === 'function') {
         fbq('track', 'InitiateCheckout', {
@@ -748,6 +762,19 @@ html.hide-utm-price .price-box{display:none!important;}
   // Decline → next upsell / thankyou (same for price shown OR hidden via utm)
   function goNext(){
     if (!NEXT) return;
+    if (window.__slDeclineBusy) return;
+    window.__slDeclineBusy = true;
+    try {
+      var noEl2 = document.getElementById('cta-no');
+      if (noEl2) {
+        noEl2.disabled = true;
+        noEl2.style.pointerEvents = 'none';
+        noEl2.setAttribute('aria-busy', 'true');
+        noEl2.textContent = 'Loading basic dashboard...';
+      }
+      var yesEl2 = document.getElementById('cta-yes');
+      if (yesEl2) yesEl2.style.pointerEvents = 'none';
+    } catch (eDecUi) {}
     try {
       if (window.ZSAnalytics && ZSAnalytics.upsellDecline) {
         ZSAnalytics.upsellDecline({ tier: "up2", upsell: "up2", next: NEXT });
