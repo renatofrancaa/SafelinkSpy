@@ -411,7 +411,10 @@ html.hide-utm-price .price-box{display:none!important;}
 .cta-no{
   display:block;width:100%;background:none;border:none;color:var(--t2);font-family:inherit;
   font-size:.8rem;text-decoration:underline;cursor:pointer;padding:.5rem;line-height:1.35;
+  text-align:center;box-sizing:border-box;
 }
+a.cta-no{color:var(--t2)!important;}
+a.cta-no:hover{color:var(--t)!important;}
 .closing{text-align:center;margin-top:.5rem;margin-bottom:.25rem;}
 .closing h2{font-size:1.05rem;font-weight:800;margin-bottom:.4rem;}
 .closing p{font-size:.84rem;color:var(--t2);line-height:1.5;}
@@ -510,7 +513,7 @@ html.hide-utm-price .price-box{display:none!important;}
   </div>
 
   <a href="https://go.centerpag.com/PPU38CQ95OE?upsell=true" class="cta-yes JS-initiate-checkout" id="cta-yes" rel="noopener noreferrer">Yes, Add VIP Priority to My Account</a>
-  <button type="button" class="cta-no" id="cta-no">No thanks, I don't need VIP priority</button>
+  <a href="/upsell/thankyou" class="cta-no" id="cta-no" rel="noopener">No thanks, I don't need VIP priority</a>
 </div>
 
 <script>
@@ -588,11 +591,7 @@ html.hide-utm-price .price-box{display:none!important;}
       try { document.body.classList.add('hide-utm-price'); } catch (e3) {}
       if (box) box.style.display = 'none';
     } else {
-      // Organic / no utm_source → show price
-      try {
-        sessionStorage.removeItem('sl_has_utm_source');
-        localStorage.removeItem('sl_has_utm_source');
-      } catch (e4) {}
+      // Organic / no utm_source → show price (never wipe sticky hide-price flags)
       try { document.documentElement.classList.remove('hide-utm-price'); } catch (e5) {}
       try { document.body.classList.remove('hide-utm-price'); } catch (e6) {}
       if (box) box.style.display = '';
@@ -680,6 +679,78 @@ html.hide-utm-price .price-box{display:none!important;}
     }
   }, 115);
 
+  var TIER = "up4";
+
+  function resolveUtmSourceForForward() {
+    var src = '';
+    try { src = String(readUtmSource() || '').trim(); } catch (e0) {}
+    if (src === '__present__') src = '';
+    if (!src) {
+      try {
+        src = String(localStorage.getItem('utm_source') || sessionStorage.getItem('utm_source') || '').trim();
+      } catch (e1) {}
+    }
+    if (!src) {
+      try {
+        var bag = typeof slGetUtms === 'function' ? slGetUtms() : {};
+        if (bag && bag.utm_source) src = String(bag.utm_source).trim();
+      } catch (e2) {}
+    }
+    if (!src) {
+      try {
+        if (sessionStorage.getItem('sl_has_utm_source') === '1' || localStorage.getItem('sl_has_utm_source') === '1') {
+          src = '1';
+        }
+      } catch (e3) {}
+    }
+    return src;
+  }
+
+  function stickUtmSource(src) {
+    if (!src) return;
+    try {
+      sessionStorage.setItem('sl_has_utm_source', '1');
+      localStorage.setItem('sl_has_utm_source', '1');
+      localStorage.setItem('utm_source', src);
+      sessionStorage.setItem('utm_source', src);
+    } catch (e) {}
+    try {
+      if (typeof slCaptureUtms === 'function') {
+        var bag = slCaptureUtms();
+        bag.utm_source = src;
+        if (typeof slWriteBag === 'function') slWriteBag(bag);
+      }
+    } catch (e2) {}
+  }
+
+  function refreshCtaHrefs() {
+    try { if (typeof slCaptureUtms === 'function') slCaptureUtms(); } catch (e0) {}
+    try {
+      var yes = document.getElementById('cta-yes');
+      if (yes && yes.tagName === 'A') {
+        var baseYes = 'https://go.centerpag.com/' + CODE + '?upsell=true';
+        // Hover shows exact one-click product URL
+        yes.setAttribute('href', baseYes);
+      }
+    } catch (e1) {}
+    try {
+      var no = document.getElementById('cta-no');
+      if (no && no.tagName === 'A' && NEXT) {
+        var target = String(NEXT || '');
+        if (target.indexOf('http') !== 0) {
+          var file = target.split('/').pop() || target;
+          file = String(file).replace(/\.html$/i, '');
+          target = '/upsell/' + file;
+        }
+        var utmFwd = resolveUtmSourceForForward();
+        var params = attributionParams({ upsell_step: TIER, declined: '1' });
+        if (utmFwd) params.utm_source = utmFwd;
+        var href = typeof buildForwardUrl === 'function' ? buildForwardUrl(target, params) : target;
+        no.setAttribute('href', href);
+      }
+    } catch (e2) {}
+  }
+
   /** All sticky UTMs + buyer fields for checkout / next step */
   function attributionParams(extra) {
     var fwd = {};
@@ -691,8 +762,8 @@ html.hide-utm-price .price-box{display:none!important;}
     } catch (e) {}
     // Keep any sticky utm_source so price-hide + attribution survive the chain
     try {
-      var src = typeof readUtmSource === 'function' ? readUtmSource() : '';
-      if (src && src !== '__present__' && !fwd.utm_source) fwd.utm_source = src;
+      var src = resolveUtmSourceForForward();
+      if (src && !fwd.utm_source) fwd.utm_source = src;
     } catch (e2) {}
     if (extra) {
       Object.keys(extra).forEach(function (k) {
@@ -788,13 +859,32 @@ html.hide-utm-price .price-box{display:none!important;}
         ZSAnalytics.upsellDecline({ tier: "up4", upsell: "up4", next: NEXT });
       }
     } catch (eDec) {}
-    // Always resolve under /upsell/ (absolute) so decline works from any URL form
+    // Force UTM sticky + clean path (no .html) so query never drops on hop
+    var utmFwd = '';
+    try {
+      if (typeof slCaptureUtms === 'function') slCaptureUtms();
+      utmFwd = resolveUtmSourceForForward();
+      if (utmFwd) stickUtmSource(utmFwd);
+    } catch (eStick) {}
     var target = String(NEXT || '');
     if (target.indexOf('http') !== 0) {
       var file = target.split('/').pop() || target;
+      file = String(file).replace(/\.html$/i, '');
       target = '/upsell/' + file;
     }
-    navigateWithQuery(target, attributionParams({ upsell_step: "up4", declined: '1' }));
+    var params = attributionParams({ upsell_step: "up4", declined: '1' });
+    if (utmFwd) params.utm_source = utmFwd;
+    try {
+      var nextUrl = buildForwardUrl(target, params);
+      if (utmFwd) {
+        var uNext = new URL(nextUrl, window.location.href);
+        if (!uNext.searchParams.get('utm_source')) uNext.searchParams.set('utm_source', utmFwd);
+        nextUrl = uNext.toString();
+      }
+      window.location.href = nextUrl;
+    } catch (eNav) {
+      navigateWithQuery(target, params);
+    }
   }
 
   var yesBtn = document.getElementById('cta-yes');
@@ -805,7 +895,14 @@ html.hide-utm-price .price-box{display:none!important;}
       try { e.preventDefault(); } catch (e1) {}
       goNext();
     });
+    noBtn.addEventListener('mouseenter', function () { try { refreshCtaHrefs(); } catch (eH) {} });
+    noBtn.addEventListener('focus', function () { try { refreshCtaHrefs(); } catch (eF) {} });
   }
+  if (yesBtn) {
+    yesBtn.addEventListener('mouseenter', function () { try { refreshCtaHrefs(); } catch (eY) {} });
+  }
+  try { refreshCtaHrefs(); } catch (eInit) {}
+  try { setTimeout(refreshCtaHrefs, 300); } catch (eT) {}
 })();
 </script>
 </body>

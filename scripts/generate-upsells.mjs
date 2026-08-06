@@ -403,7 +403,8 @@ body.hide-utm-price .price-box,
 html.hide-utm-price .price-box{display:none!important;}
 .cta-yes{
   display:block;width:100%;border:none;border-radius:14px;padding:1.1rem 1.1rem;
-  background:linear-gradient(180deg,#2fe072,var(--g));color:#fff;font-family:inherit;
+  background:linear-gradient(180deg,#2fe072,var(--g));color:#fff!important;font-family:inherit;
+  text-decoration:none;text-align:center;box-sizing:border-box;
   font-size:1rem;font-weight:800;cursor:pointer;
   box-shadow:0 8px 28px rgba(37,211,102,.45);
   margin-bottom:.65rem;line-height:1.3;
@@ -417,7 +418,10 @@ html.hide-utm-price .price-box{display:none!important;}
 .cta-no{
   display:block;width:100%;background:none;border:none;color:var(--t2);font-family:inherit;
   font-size:.8rem;text-decoration:underline;cursor:pointer;padding:.5rem;line-height:1.35;
+  text-align:center;box-sizing:border-box;
 }
+a.cta-no{color:var(--t2)!important;}
+a.cta-no:hover{color:var(--t)!important;}
 .closing{text-align:center;margin-top:.5rem;margin-bottom:.25rem;}
 .closing h2{font-size:1.05rem;font-weight:800;margin-bottom:.4rem;}
 .closing p{font-size:.84rem;color:var(--t2);line-height:1.5;}
@@ -641,8 +645,8 @@ function renderOffer(u) {
     <div class="bill">${esc(catalog.billing)}</div>
   </div>
 
-  <button type="button" class="cta-yes JS-initiate-checkout" id="cta-yes">${esc(u.ctaYes)}</button>
-  <button type="button" class="cta-no" id="cta-no">${esc(u.ctaNo)}</button>
+  <a href="https://go.centerpag.com/${esc(u.centerpagCode)}?upsell=true" class="cta-yes JS-initiate-checkout" id="cta-yes" rel="noopener noreferrer">${esc(u.ctaYes)}</a>
+  <a href="${esc(String(u.nextOnDecline || "/upsell/thankyou.html").replace(/\.html$/i, ""))}" class="cta-no" id="cta-no" rel="noopener">${esc(u.ctaNo)}</a>
 </div>`;
 }
 
@@ -731,11 +735,7 @@ function renderScript(u) {
       try { document.body.classList.add('hide-utm-price'); } catch (e3) {}
       if (box) box.style.display = 'none';
     } else {
-      // Organic / no utm_source → show price
-      try {
-        sessionStorage.removeItem('sl_has_utm_source');
-        localStorage.removeItem('sl_has_utm_source');
-      } catch (e4) {}
+      // Organic / no utm_source → show price (never wipe sticky hide-price flags)
       try { document.documentElement.classList.remove('hide-utm-price'); } catch (e5) {}
       try { document.body.classList.remove('hide-utm-price'); } catch (e6) {}
       if (box) box.style.display = '';
@@ -823,6 +823,76 @@ function renderScript(u) {
     }
   }, 115);
 
+  var TIER = ${JSON.stringify(u.id)};
+
+  function resolveUtmSourceForForward() {
+    var src = '';
+    try { src = String(readUtmSource() || '').trim(); } catch (e0) {}
+    if (src === '__present__') src = '';
+    if (!src) {
+      try {
+        src = String(localStorage.getItem('utm_source') || sessionStorage.getItem('utm_source') || '').trim();
+      } catch (e1) {}
+    }
+    if (!src) {
+      try {
+        var bag = typeof slGetUtms === 'function' ? slGetUtms() : {};
+        if (bag && bag.utm_source) src = String(bag.utm_source).trim();
+      } catch (e2) {}
+    }
+    if (!src) {
+      try {
+        if (sessionStorage.getItem('sl_has_utm_source') === '1' || localStorage.getItem('sl_has_utm_source') === '1') {
+          src = '1';
+        }
+      } catch (e3) {}
+    }
+    return src;
+  }
+
+  function stickUtmSource(src) {
+    if (!src) return;
+    try {
+      sessionStorage.setItem('sl_has_utm_source', '1');
+      localStorage.setItem('sl_has_utm_source', '1');
+      localStorage.setItem('utm_source', src);
+      sessionStorage.setItem('utm_source', src);
+    } catch (e) {}
+    try {
+      if (typeof slCaptureUtms === 'function') {
+        var bag = slCaptureUtms();
+        bag.utm_source = src;
+        if (typeof slWriteBag === 'function') slWriteBag(bag);
+      }
+    } catch (e2) {}
+  }
+
+  function refreshCtaHrefs() {
+    try { if (typeof slCaptureUtms === 'function') slCaptureUtms(); } catch (e0) {}
+    try {
+      var yes = document.getElementById('cta-yes');
+      if (yes && yes.tagName === 'A') {
+        yes.setAttribute('href', 'https://go.centerpag.com/' + CODE + '?upsell=true');
+      }
+    } catch (e1) {}
+    try {
+      var no = document.getElementById('cta-no');
+      if (no && no.tagName === 'A' && NEXT) {
+        var target = String(NEXT || '');
+        if (target.indexOf('http') !== 0) {
+          var file = target.split('/').pop() || target;
+          file = String(file).replace(/\\.html$/i, '');
+          target = '/upsell/' + file;
+        }
+        var utmFwd = resolveUtmSourceForForward();
+        var params = attributionParams({ upsell_step: TIER, declined: '1' });
+        if (utmFwd) params.utm_source = utmFwd;
+        var href = typeof buildForwardUrl === 'function' ? buildForwardUrl(target, params) : target;
+        no.setAttribute('href', href);
+      }
+    } catch (e2) {}
+  }
+
   /** All sticky UTMs + buyer fields for checkout / next step */
   function attributionParams(extra) {
     var fwd = {};
@@ -832,10 +902,9 @@ function renderScript(u) {
         if (bag[k] != null && bag[k] !== '') fwd[k] = bag[k];
       });
     } catch (e) {}
-    // Keep any sticky utm_source so price-hide + attribution survive the chain
     try {
-      var src = typeof readUtmSource === 'function' ? readUtmSource() : '';
-      if (src && src !== '__present__' && !fwd.utm_source) fwd.utm_source = src;
+      var src = resolveUtmSourceForForward();
+      if (src && !fwd.utm_source) fwd.utm_source = src;
     } catch (e2) {}
     if (extra) {
       Object.keys(extra).forEach(function (k) {
@@ -845,7 +914,20 @@ function renderScript(u) {
     return fwd;
   }
 
-  function goCheckout(){
+  function goCheckout(ev) {
+    try { if (ev && ev.preventDefault) ev.preventDefault(); } catch (e0) {}
+    if (window.__slAcceptBusy) return;
+    window.__slAcceptBusy = true;
+    try {
+      var yesEl = document.getElementById('cta-yes');
+      if (yesEl) {
+        yesEl.style.pointerEvents = 'none';
+        yesEl.setAttribute('aria-busy', 'true');
+        yesEl.textContent = 'Please wait…';
+      }
+      var noEl = document.getElementById('cta-no');
+      if (noEl) noEl.style.pointerEvents = 'none';
+    } catch (eUi) {}
     try {
       if (typeof fbq === 'function') {
         fbq('track', 'InitiateCheckout', {
@@ -862,9 +944,13 @@ function renderScript(u) {
     var name = sessionStorage.getItem('buyer_name') || '';
     var email = sessionStorage.getItem('buyer_email') || '';
     var phone = sessionStorage.getItem('sl_phone') || sessionStorage.getItem('buyer_phone') || '';
-    // CenterPag + full UTM bag (accept does not drop attribution)
+    var base = 'https://go.centerpag.com/' + CODE + '?upsell=true';
+    try {
+      var a = document.getElementById('cta-yes');
+      if (a && a.getAttribute('href')) base = a.getAttribute('href');
+    } catch (eH) {}
     setTimeout(function(){
-      navigateWithQuery('https://go.centerpag.com/' + CODE + '?upsell=true', attributionParams({
+      navigateWithQuery(base, attributionParams({
         name: name,
         email: email,
         phone: phone,
@@ -877,18 +963,48 @@ function renderScript(u) {
   // Decline → next upsell / thankyou (same for price shown OR hidden via utm)
   function goNext(){
     if (!NEXT) return;
+    if (window.__slDeclineBusy) return;
+    window.__slDeclineBusy = true;
+    try {
+      var noEl2 = document.getElementById('cta-no');
+      if (noEl2) {
+        noEl2.style.pointerEvents = 'none';
+        noEl2.setAttribute('aria-busy', 'true');
+        noEl2.textContent = 'Loading basic dashboard...';
+      }
+      var yesEl2 = document.getElementById('cta-yes');
+      if (yesEl2) yesEl2.style.pointerEvents = 'none';
+    } catch (eDecUi) {}
     try {
       if (window.ZSAnalytics && ZSAnalytics.upsellDecline) {
         ZSAnalytics.upsellDecline({ tier: ${JSON.stringify(u.id)}, upsell: ${JSON.stringify(u.id)}, next: NEXT });
       }
     } catch (eDec) {}
-    // Always resolve under /upsell/ (absolute) so decline works from any URL form
+    var utmFwd = '';
+    try {
+      if (typeof slCaptureUtms === 'function') slCaptureUtms();
+      utmFwd = resolveUtmSourceForForward();
+      if (utmFwd) stickUtmSource(utmFwd);
+    } catch (eStick) {}
     var target = String(NEXT || '');
     if (target.indexOf('http') !== 0) {
       var file = target.split('/').pop() || target;
+      file = String(file).replace(/\\.html$/i, '');
       target = '/upsell/' + file;
     }
-    navigateWithQuery(target, attributionParams({ upsell_step: ${JSON.stringify(u.id)}, declined: '1' }));
+    var params = attributionParams({ upsell_step: ${JSON.stringify(u.id)}, declined: '1' });
+    if (utmFwd) params.utm_source = utmFwd;
+    try {
+      var nextUrl = buildForwardUrl(target, params);
+      if (utmFwd) {
+        var uNext = new URL(nextUrl, window.location.href);
+        if (!uNext.searchParams.get('utm_source')) uNext.searchParams.set('utm_source', utmFwd);
+        nextUrl = uNext.toString();
+      }
+      window.location.href = nextUrl;
+    } catch (eNav) {
+      navigateWithQuery(target, params);
+    }
   }
 
   var yesBtn = document.getElementById('cta-yes');
@@ -899,30 +1015,17 @@ function renderScript(u) {
       try { e.preventDefault(); } catch (e1) {}
       goNext();
     });
+    noBtn.addEventListener('mouseenter', function () { try { refreshCtaHrefs(); } catch (eH) {} });
+    noBtn.addEventListener('focus', function () { try { refreshCtaHrefs(); } catch (eF) {} });
   }
+  if (yesBtn) {
+    yesBtn.addEventListener('mouseenter', function () { try { refreshCtaHrefs(); } catch (eY) {} });
+  }
+  try { refreshCtaHrefs(); } catch (eInit) {}
+  try { setTimeout(refreshCtaHrefs, 300); } catch (eT) {}
 })();
 </script>`;
 }
-
-/** up1 only: when price is hidden (utm traffic), hide decline + stop CTA pulse */
-const UP1_HIDE_PRICE_CTA_CSS = `
-/* up1 only · hide-price mode: no decline button + green CTA static (no pulse) */
-body.hide-utm-price .cta-no,
-html.hide-utm-price .cta-no,
-body.hide-utm-price #cta-no,
-html.hide-utm-price #cta-no{display:none!important;}
-body.hide-utm-price #offer .cta-yes,
-body.hide-utm-price #offer.show-anim > .cta-yes,
-body.hide-utm-price a.cta-yes#cta-yes,
-body.hide-utm-price button.cta-yes#cta-yes,
-html.hide-utm-price #offer .cta-yes,
-html.hide-utm-price #offer.show-anim > .cta-yes,
-html.hide-utm-price a.cta-yes#cta-yes,
-html.hide-utm-price button.cta-yes#cta-yes{
-  animation:none!important;
-  will-change:auto;
-}
-`;
 
 function pageShell(title, body, extraScript = "", extraStyles = "") {
   return `<!DOCTYPE html>
@@ -945,12 +1048,11 @@ ${extraScript}
 
 // Generate upsells
 for (const u of catalog.upsells) {
-  const extraStyles = u.id === "up1" ? UP1_HIDE_PRICE_CTA_CSS : "";
   const html = pageShell(
     u.pageTitle,
     renderLoader(u) + renderOffer(u),
     renderScript(u),
-    extraStyles
+    ""
   );
   const out = join(root, "public/upsell", u.file);
   writeFileSync(out, html, "utf8");
