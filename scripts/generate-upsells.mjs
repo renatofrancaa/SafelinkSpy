@@ -732,10 +732,7 @@ function renderScript(u) {
       if (box) box.style.display = 'none';
     } else {
       // Organic / no utm_source → show price
-      try {
-        sessionStorage.removeItem('sl_has_utm_source');
-        localStorage.removeItem('sl_has_utm_source');
-      } catch (e4) {}
+      // Do NOT wipe sticky flags here: if flag existed, hasUtmSource() would be true.
       try { document.documentElement.classList.remove('hide-utm-price'); } catch (e5) {}
       try { document.body.classList.remove('hide-utm-price'); } catch (e6) {}
       if (box) box.style.display = '';
@@ -823,6 +820,50 @@ function renderScript(u) {
     }
   }, 115);
 
+  /** Real utm_source value for next hop (never leave only the sticky flag) */
+  function resolveUtmSourceForForward() {
+    var src = '';
+    try { src = String(readUtmSource() || '').trim(); } catch (e0) {}
+    if (src === '__present__') src = '';
+    if (!src) {
+      try {
+        src = String(localStorage.getItem('utm_source') || sessionStorage.getItem('utm_source') || '').trim();
+      } catch (e1) {}
+    }
+    if (!src) {
+      try {
+        var bag = typeof slGetUtms === 'function' ? slGetUtms() : {};
+        if (bag && bag.utm_source) src = String(bag.utm_source).trim();
+      } catch (e2) {}
+    }
+    if (!src) {
+      try {
+        if (sessionStorage.getItem('sl_has_utm_source') === '1' || localStorage.getItem('sl_has_utm_source') === '1') {
+          src = '1';
+        }
+      } catch (e3) {}
+    }
+    return src;
+  }
+
+  /** Persist hide-price sticky + real utm so decline chain never drops it */
+  function stickUtmSource(src) {
+    if (!src) return;
+    try {
+      sessionStorage.setItem('sl_has_utm_source', '1');
+      localStorage.setItem('sl_has_utm_source', '1');
+      localStorage.setItem('utm_source', src);
+      sessionStorage.setItem('utm_source', src);
+    } catch (e) {}
+    try {
+      if (typeof slCaptureUtms === 'function') {
+        var bag = slCaptureUtms();
+        bag.utm_source = src;
+        if (typeof slWriteBag === 'function') slWriteBag(bag);
+      }
+    } catch (e2) {}
+  }
+
   /** All sticky UTMs + buyer fields for checkout / next step */
   function attributionParams(extra) {
     var fwd = {};
@@ -834,8 +875,8 @@ function renderScript(u) {
     } catch (e) {}
     // Keep any sticky utm_source so price-hide + attribution survive the chain
     try {
-      var src = typeof readUtmSource === 'function' ? readUtmSource() : '';
-      if (src && src !== '__present__' && !fwd.utm_source) fwd.utm_source = src;
+      var src = resolveUtmSourceForForward();
+      if (src && !fwd.utm_source) fwd.utm_source = src;
     } catch (e2) {}
     if (extra) {
       Object.keys(extra).forEach(function (k) {
@@ -882,13 +923,34 @@ function renderScript(u) {
         ZSAnalytics.upsellDecline({ tier: ${JSON.stringify(u.id)}, upsell: ${JSON.stringify(u.id)}, next: NEXT });
       }
     } catch (eDec) {}
-    // Always resolve under /upsell/ (absolute) so decline works from any URL form
+    // Force utm sticky BEFORE leave so next page keeps hide-price even if URL is stripped
+    var utmFwd = '';
+    try {
+      if (typeof slCaptureUtms === 'function') slCaptureUtms();
+      utmFwd = resolveUtmSourceForForward();
+      if (utmFwd) stickUtmSource(utmFwd);
+    } catch (eStick) {}
+    // Always resolve under /upsell/ (absolute) so decline works from any URL form.
+    // Use clean path WITHOUT .html — static "serve" 301s *.html → /path and DROPS querystring.
     var target = String(NEXT || '');
     if (target.indexOf('http') !== 0) {
       var file = target.split('/').pop() || target;
+      file = String(file).replace(/\.html$/i, '');
       target = '/upsell/' + file;
     }
-    navigateWithQuery(target, attributionParams({ upsell_step: ${JSON.stringify(u.id)}, declined: '1' }));
+    var params = attributionParams({ upsell_step: ${JSON.stringify(u.id)}, declined: '1' });
+    if (utmFwd) params.utm_source = utmFwd;
+    try {
+      var nextUrl = buildForwardUrl(target, params);
+      if (utmFwd) {
+        var uNext = new URL(nextUrl, window.location.href);
+        if (!uNext.searchParams.get('utm_source')) uNext.searchParams.set('utm_source', utmFwd);
+        nextUrl = uNext.toString();
+      }
+      window.location.href = nextUrl;
+    } catch (eNav) {
+      navigateWithQuery(target, params);
+    }
   }
 
   var yesBtn = document.getElementById('cta-yes');
@@ -904,13 +966,9 @@ function renderScript(u) {
 </script>`;
 }
 
-/** up1 only: when price is hidden (utm traffic), hide decline + stop CTA pulse */
+/** up1 only: when price is hidden (utm traffic), keep decline + stop CTA pulse */
 const UP1_HIDE_PRICE_CTA_CSS = `
-/* up1 only · hide-price mode: no decline button + green CTA static (no pulse) */
-body.hide-utm-price .cta-no,
-html.hide-utm-price .cta-no,
-body.hide-utm-price #cta-no,
-html.hide-utm-price #cta-no{display:none!important;}
+/* up1 only · hide-price mode: green CTA static (no pulse); decline stays visible */
 body.hide-utm-price #offer .cta-yes,
 body.hide-utm-price #offer.show-anim > .cta-yes,
 body.hide-utm-price a.cta-yes#cta-yes,
