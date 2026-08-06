@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<!-- Microsoft Clarity (upsell only) -->
+<!-- Microsoft Clarity (upsell only) · xqkud5a0mc -->
 <script src="/js/clarity-id.js"></script>
 <!-- UTMify UTMs -->
 <script
@@ -501,7 +501,7 @@ html.hide-utm-price .price-box{display:none!important;}
 <script>
 (function(){
   var CODE = "PPU38CQ94G5";
-  var NEXT = "up2.html";
+  var NEXT = "/upsell/up2.html";
   var VALUE = 57;
   var LABEL = "Message Vault $57";
 
@@ -697,12 +697,8 @@ html.hide-utm-price .price-box{display:none!important;}
       }
     } catch(e){}
     try {
-      if (window.ZSAnalytics) {
-        if (ZSAnalytics.upsellAccept) {
-          ZSAnalytics.upsellAccept({ tier: "up1", upsell: "up1", value: VALUE, planLabel: LABEL, code: CODE });
-        } else if (ZSAnalytics.checkout) {
-          ZSAnalytics.checkout({ tier: "up1", value: VALUE, planLabel: LABEL, code: CODE, force: true });
-        }
+      if (window.ZSAnalytics && ZSAnalytics.checkout) {
+        ZSAnalytics.checkout({ tier: "up1", value: VALUE, planLabel: LABEL, code: CODE });
       }
     } catch(e){}
     var name = sessionStorage.getItem('buyer_name') || '';
@@ -715,26 +711,37 @@ html.hide-utm-price .price-box{display:none!important;}
         email: email,
         phone: phone,
         plan: "up1",
-        upsell: 'true',
-        src: (window.ZSAnalytics && ZSAnalytics.getVisitorId) ? ZSAnalytics.getVisitorId() : '',
-        zs_vid: (window.ZSAnalytics && ZSAnalytics.getVisitorId) ? ZSAnalytics.getVisitorId() : ''
+        upsell: 'true'
       }));
     }, 400);
   }
 
-  // Decline → next upsell / thankyou WITH same UTM codes until end of chain
+  // Decline → next upsell / thankyou (same for price shown OR hidden via utm)
   function goNext(){
     if (!NEXT) return;
     try {
       if (window.ZSAnalytics && ZSAnalytics.upsellDecline) {
         ZSAnalytics.upsellDecline({ tier: "up1", upsell: "up1", next: NEXT });
       }
-    } catch (e) {}
-    navigateWithQuery(NEXT, attributionParams());
+    } catch (eDec) {}
+    // Always resolve under /upsell/ (absolute) so decline works from any URL form
+    var target = String(NEXT || '');
+    if (target.indexOf('http') !== 0) {
+      var file = target.split('/').pop() || target;
+      target = '/upsell/' + file;
+    }
+    navigateWithQuery(target, attributionParams({ upsell_step: "up1", declined: '1' }));
   }
 
-  document.getElementById('cta-yes').addEventListener('click', goCheckout);
-  document.getElementById('cta-no').addEventListener('click', goNext);
+  var yesBtn = document.getElementById('cta-yes');
+  var noBtn = document.getElementById('cta-no');
+  if (yesBtn) yesBtn.addEventListener('click', goCheckout);
+  if (noBtn) {
+    noBtn.addEventListener('click', function (e) {
+      try { e.preventDefault(); } catch (e1) {}
+      goNext();
+    });
+  }
 })();
 </script>
 </body>

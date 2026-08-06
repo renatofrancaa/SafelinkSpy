@@ -311,6 +311,53 @@ function claimOffer() {
     }
   } catch (err) {}
 
+  // Cart abandon: only after user starts checkout (same as step6)
+  try {
+    function get(k) {
+      try { return sessionStorage.getItem(k) || localStorage.getItem(k) || ''; } catch (e) { return ''; }
+    }
+    var params = new URLSearchParams(window.location.search || '');
+    var email = (params.get('email') || get('buyer_email') || get('email') || '').trim().toLowerCase();
+    var name = (params.get('name') || get('buyer_name') || get('name') || '').trim();
+    var phone = (params.get('phone') || get('buyer_phone') || get('sl_phone') || get('phone') || '').trim();
+    if (email && email.indexOf('@') >= 0) {
+      var dedupeKey = 'sl_cart_abandon_' + email;
+      var already = false;
+      try {
+        if (sessionStorage.getItem(dedupeKey) === '1') already = true;
+        else sessionStorage.setItem(dedupeKey, '1');
+      } catch (e0) {}
+      if (!already) {
+        var vid = '';
+        try {
+          if (window.ZSAnalytics && ZSAnalytics.getVisitorId) vid = ZSAnalytics.getVisitorId() || '';
+        } catch (eVid) {}
+        var payload = {
+          email: email,
+          name: name,
+          phone: phone.replace(/^\+/, ''),
+          visitorId: vid,
+          utmSource: params.get('utm_source') || get('utm_source') || '',
+          utmMedium: params.get('utm_medium') || 'checkout',
+          utmCampaign: params.get('utm_campaign') || get('utm_campaign') || '',
+          page: location.pathname,
+          event: 'checkout_started',
+          source: 'checkout_click_backredirect'
+        };
+        try {
+          var blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
+          if (navigator.sendBeacon) navigator.sendBeacon('/api/leads/cart-abandon', blob);
+          else fetch('/api/leads/cart-abandon', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+            keepalive: true
+          });
+        } catch (eSend) {}
+      }
+    }
+  } catch (eCart) {}
+
   setTimeout(function () {
     var p = sessionStorage.getItem('sl_phone') || sessionStorage.getItem('buyer_phone') || '';
     var n = sessionStorage.getItem('buyer_name') || '';

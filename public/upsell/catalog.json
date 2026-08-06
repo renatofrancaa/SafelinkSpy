@@ -12,9 +12,6 @@
     "up2",
     "up3",
     "up4",
-    "up5",
-    "up6",
-    "up7",
     "thankyou"
   ],
   "upsells": [
@@ -28,7 +25,7 @@
       "emoji": "📱",
       "centerpagCode": "PPU38CQ94G5",
       "price": 57,
-      "nextOnDecline": "up2.html",
+      "nextOnDecline": "/upsell/up2.html",
       "loader": {
         "icon": "🔐",
         "title": "Setting Up Your Account",
@@ -60,132 +57,13 @@
       "id": "up2",
       "slug": "up2",
       "file": "up2.html",
-      "sourceUrl": "https://perfect.zappdetect.com/ingles/upsell/up2/",
-      "title": "360 Tracker",
-      "pageTitle": "App Spy — 360 Tracker",
-      "emoji": "📡",
-      "centerpagCode": "PPU38CQ95O6",
-      "price": 59,
-      "nextOnDecline": "up3.html",
-      "loader": {
-        "icon": "📡",
-        "title": "Cross-Platform Scan in Progress",
-        "subtitle": "Analyzing target's digital footprint...",
-        "platforms": [
-          {
-            "icon": "💬",
-            "name": "WhatsApp"
-          },
-          {
-            "icon": "📸",
-            "name": "Instagram"
-          },
-          {
-            "icon": "🎵",
-            "name": "TikTok"
-          },
-          {
-            "icon": "👻",
-            "name": "Snapchat"
-          },
-          {
-            "icon": "📍",
-            "name": "GPS Location"
-          }
-        ]
-      },
-      "badge": {
-        "icon": "🚨",
-        "label": "ACTIVITY DETECTED ON MULTIPLE PLATFORMS",
-        "text": "Hidden conversations found on 3+ platforms. Add this service to see everything."
-      },
-      "headline": "WAIT! You're Only Seeing 30% of the Truth...",
-      "subheadline": "They might be having secret conversations on Instagram, Snapchat, or TikTok RIGHT NOW — and you'd never know.",
-      "sectionTitle": "App Spy — 360 Tracker: Monitor All Social Networks + GPS",
-      "sectionBody": "Monitor Instagram, Facebook, TikTok, Snapchat, Twitter + Real-time GPS location. See EVERYTHING they're hiding across ALL platforms.",
-      "extraLine": "WhatsApp Is Just The Surface — See Everything",
-      "ctaYes": "Yes, Add Social Networks + GPS to My Account",
-      "ctaNo": "No thanks, I don't need social networks + GPS",
-      "features": [],
-      "compare": null,
-      "priceLabel": "$59"
-    },
-    {
-      "id": "up3",
-      "slug": "up3",
-      "file": "up3.html",
-      "sourceUrl": "https://perfect.zappdetect.com/ingles/upsell/up3/",
-      "title": "VIP Priority Processing",
-      "pageTitle": "App Spy — VIP Access",
-      "emoji": "⚡",
-      "centerpagCode": "PPU38CQ95OE",
-      "price": 67,
-      "nextOnDecline": "up4.html",
-      "loader": {
-        "icon": "⏳",
-        "title": "Processing Your Request",
-        "subtitle": "You've been placed in the standard processing queue",
-        "queue": {
-          "position": 127,
-          "of": 203,
-          "wait": "~7 days",
-          "load": "74% capacity",
-          "speed": "Standard"
-        }
-      },
-      "badge": {
-        "icon": "✓",
-        "label": "VIP FAST LANE AVAILABLE",
-        "text": "Skip the standard queue. Get your results in 48 hours instead of 7 days."
-      },
-      "headline": "Get Results in 48 Hours Instead of 7 Days",
-      "subheadline": "Standard Processing (What You Have Now): Your data sits in a queue with thousands of other users. Wait up to 7 days before seeing any results. By then, critical evidence may already be gone.\n\nVIP Priority Processing (Instant Access): Jump to the front of the line. Your data is processed FIRST. See deleted messages, photos, and locations in about 48 hours — not a full week.",
-      "sectionTitle": "Standard vs VIP Priority Processing",
-      "sectionBody": "Stop waiting 7 days. With VIP Priority, you get answers in about 48 hours.",
-      "urgency": {
-        "title": "VIP Priority — Only Available During Setup",
-        "body": "VIP Priority can only be added to your account during initial setup. Once you leave this page, your account will be locked into standard processing with up to 7-day delays.\n\nDon't make this mistake: Thousands of users regret not adding VIP Priority. They waste a full week waiting for results while critical evidence disappears. By the time they see the data, it's too late. Add it now and cut the wait to about 48 hours!"
-      },
-      "closingTitle": "7 Days is Too Long to Wait for The Truth",
-      "ctaYes": "Yes, Add VIP Priority to My Account",
-      "ctaNo": "No thanks, I don't need VIP priority",
-      "features": [
-        "Priority Results: Data processed in about 48 hours, not 7 days",
-        "Skip The Queue: Your requests always go first",
-        "Faster Alerts: Get notified sooner when new data appears",
-        "24/7 VIP Support: Priority assistance whenever you need",
-        "Dedicated Resources: Faster servers, better performance",
-        "Lifetime VIP Status: Priority access forever"
-      ],
-      "compare": {
-        "leftTitle": "Standard Processing",
-        "left": [
-          "Wait up to 7 days for results",
-          "Data processed in order with thousands of others",
-          "No priority support",
-          "Risk losing critical evidence while waiting"
-        ],
-        "rightTitle": "VIP Priority Processing",
-        "right": [
-          "Results in about 48 hours",
-          "Your data processed FIRST",
-          "24/7 premium support",
-          "Faster notifications & alerts"
-        ]
-      },
-      "priceLabel": "$67"
-    },
-    {
-      "id": "up4",
-      "slug": "up4",
-      "file": "up4.html",
       "sourceUrl": "https://perfect.zappdetect.com/ingles/upsell/up4/",
       "title": "Invisibility Cloak",
       "pageTitle": "App Spy — Invisibility Cloak",
       "emoji": "👻",
       "centerpagCode": "PPU38CQ95OL",
       "price": 45,
-      "nextOnDecline": "up5.html",
+      "nextOnDecline": "/upsell/up3.html",
       "loader": {
         "icon": "👻",
         "title": "Activating Stealth Mode...",
@@ -270,275 +148,123 @@
       "priceLabel": "$45"
     },
     {
-      "id": "up5",
-      "slug": "up5",
-      "file": "up5.html",
-      "sourceUrl": "https://perfect.zappdetect.com/ingles/upsell/up5/",
-      "title": "Live Room & Camera",
-      "pageTitle": "App Spy — Live Room & Camera",
-      "emoji": "🎙️",
-      "centerpagCode": "PPU38CQ95Q0",
-      "price": 51,
-      "nextOnDecline": "up6.html",
+      "id": "up3",
+      "slug": "up3",
+      "file": "up3.html",
+      "sourceUrl": "https://perfect.zappdetect.com/ingles/upsell/up2/",
+      "title": "360 Tracker",
+      "pageTitle": "App Spy — 360 Tracker",
+      "emoji": "📡",
+      "centerpagCode": "PPU38CQ95O6",
+      "price": 59,
+      "nextOnDecline": "/upsell/up4.html",
       "loader": {
-        "icon": "🎙️",
-        "title": "Establishing Secure Live Connection...",
-        "subtitle": "Connecting to the target device's microphone and camera systems.",
-        "steps": [
-          "Scanning device hardware capabilities",
-          "Establishing encrypted P2P connection",
-          "Activating remote microphone access",
-          "Activating remote camera access"
-        ],
-        "ready": "Live feed ready — awaiting your activation"
-      },
-      "badge": {
-        "icon": "🎙️",
-        "label": "LIVE ACCESS SERVICE AVAILABLE",
-        "text": "Your monitoring is currently limited to stored data. Add Live Access to hear and see what's happening RIGHT NOW."
-      },
-      "headline": "Hear Their Conversations. See Their Surroundings. LIVE.",
-      "subheadline": "Messages tell you what happened yesterday. Live Room tells you what's happening RIGHT NOW. You've been reading old conversations and looking at past locations. But what about what's happening at this very moment?\n\nWith Live Room & Camera: Secretly activate the phone's microphone to listen to their conversations in real-time, or turn on the camera to see exactly where they are and who they're with. No delay, no waiting.",
-      "sectionTitle": "Real-Time Surveillance Features",
-      "sectionBody": "Stop reading yesterday's messages. Start hearing today's conversations.",
-      "closingTitle": "What Are They Saying Right Now?",
-      "closingBody": "Your account already has access to stored messages and locations. Now add the live feed. Hear their conversations and see their surroundings in real-time.",
-      "ctaYes": "Yes, Add Live Access to My Account",
-      "ctaNo": "No thanks, I don't need live access",
-      "features": [
-        "Live Microphone: Real-time conversations and ambient sounds",
-        "Remote Camera: Front or rear camera, live view",
-        "One-Tap Recording: Save live sessions as evidence",
-        "Encrypted Stream: End-to-end security on all feeds",
-        "Silent Activation: Zero signs on their device",
-        "GPS Overlay: Location tracking during live sessions"
-      ],
-      "featureCards": [
-        {
-          "icon": "🎙️",
-          "title": "Live Microphone",
-          "text": "Listen to real-time conversations and ambient sounds from their phone."
-        },
-        {
-          "icon": "📹",
-          "title": "Remote Camera",
-          "text": "Activate front or rear camera to see their surroundings live."
-        },
-        {
-          "icon": "🔴",
-          "title": "One-Tap Recording",
-          "text": "Record live audio and video sessions for evidence."
-        },
-        {
-          "icon": "📡",
-          "title": "Encrypted Stream",
-          "text": "All live feeds are encrypted end-to-end for your security."
-        },
-        {
-          "icon": "🔕",
-          "title": "Silent Activation",
-          "text": "No sound, no light, no notification when you activate the feed."
-        },
-        {
-          "icon": "📍",
-          "title": "Live Location Overlay",
-          "text": "See their exact GPS location while watching/listening."
-        }
-      ],
-      "compare": {
-        "leftTitle": "Without Live Room",
-        "left": [
-          "Only see stored messages",
-          "Know where they WERE",
-          "Read what they SAID",
-          "Always 1 step behind"
-        ],
-        "rightTitle": "With Live Room & Camera",
-        "right": [
-          "Hear live conversations",
-          "See where they ARE",
-          "Listen to what they're SAYING",
-          "Always in control"
+        "icon": "📡",
+        "title": "Cross-Platform Scan in Progress",
+        "subtitle": "Analyzing target's digital footprint...",
+        "platforms": [
+          {
+            "icon": "💬",
+            "name": "WhatsApp"
+          },
+          {
+            "icon": "📸",
+            "name": "Instagram"
+          },
+          {
+            "icon": "🎵",
+            "name": "TikTok"
+          },
+          {
+            "icon": "👻",
+            "name": "Snapchat"
+          },
+          {
+            "icon": "📍",
+            "name": "GPS Location"
+          }
         ]
       },
-      "priceLabel": "$51"
+      "badge": {
+        "icon": "🚨",
+        "label": "ACTIVITY DETECTED ON MULTIPLE PLATFORMS",
+        "text": "Hidden conversations found on 3+ platforms. Add this service to see everything."
+      },
+      "headline": "WAIT! You're Only Seeing 30% of the Truth...",
+      "subheadline": "They might be having secret conversations on Instagram, Snapchat, or TikTok RIGHT NOW — and you'd never know.",
+      "sectionTitle": "App Spy — 360 Tracker: Monitor All Social Networks + GPS",
+      "sectionBody": "Monitor Instagram, Facebook, TikTok, Snapchat, Twitter + Real-time GPS location. See EVERYTHING they're hiding across ALL platforms.",
+      "extraLine": "WhatsApp Is Just The Surface — See Everything",
+      "ctaYes": "Yes, Add Social Networks + GPS to My Account",
+      "ctaNo": "No thanks, I don't need social networks + GPS",
+      "features": [],
+      "compare": null,
+      "priceLabel": "$59"
     },
     {
-      "id": "up6",
-      "slug": "up6",
-      "file": "up6.html",
-      "sourceUrl": "https://perfect.zappdetect.com/ingles/upsell/up6/",
-      "title": "Multi-Device License",
-      "pageTitle": "App Spy — Multi-Device License",
-      "emoji": "📱",
-      "centerpagCode": "PPU38CQ95Q7",
-      "price": 49,
-      "nextOnDecline": "up7.html",
+      "id": "up4",
+      "slug": "up4",
+      "file": "up4.html",
+      "sourceUrl": "https://perfect.zappdetect.com/ingles/upsell/up3/",
+      "title": "VIP Priority Processing",
+      "pageTitle": "App Spy — VIP Access",
+      "emoji": "⚡",
+      "centerpagCode": "PPU38CQ95OE",
+      "price": 67,
+      "nextOnDecline": "/upsell/thankyou.html",
       "loader": {
-        "icon": "📱📱📱",
-        "title": "Expanding Your License...",
-        "subtitle": "Upgrading your account to support multiple device monitoring.",
-        "steps": [
-          "Validating your primary device license",
-          "Generating License Key #2",
-          "Generating License Key #3",
-          "Syncing all licenses to your account"
-        ],
-        "ready": "Multi-device access authorized"
+        "icon": "⏳",
+        "title": "Processing Your Request",
+        "subtitle": "You've been placed in the standard processing queue",
+        "queue": {
+          "position": 127,
+          "of": 203,
+          "wait": "~7 days",
+          "load": "74% capacity",
+          "speed": "Standard"
+        }
       },
       "badge": {
-        "icon": "📱",
-        "label": "LICENSE EXPANSION AVAILABLE",
-        "text": "Your current plan covers only 1 device. Most users monitor 2-3 devices. Add extra device slots to your account now."
+        "icon": "✓",
+        "label": "VIP FAST LANE AVAILABLE",
+        "text": "Skip the standard queue. Get your results in 48 hours instead of 7 days."
       },
-      "headline": "What If They Have a Second Phone?",
-      "subheadline": "You're monitoring one device. But what if they use a second phone for their secrets? What about their tablet? Or what if you need to monitor someone else too? Don't leave blind spots.\n\nWith Multi-Device License: Monitor up to 3 devices — all from one dashboard. Cover their main phone, backup phone, and tablet. Or monitor multiple people. No blind spots.",
-      "sectionTitle": "Multi-Device Features",
-      "sectionBody": "Don't leave blind spots. Cover all their devices from one dashboard.",
-      "closingTitle": "What If Their Secrets Are on Another Device?",
-      "closingBody": "Your account currently monitors one device. But most people have multiple phones. Add the Multi-Device License for complete coverage — no blind spots, no secrets hidden away.",
-      "ctaYes": "Yes, Add Multi-Device License to My Account",
-      "ctaNo": "No thanks, I don't need the multi-device license",
+      "headline": "Get Results in 48 Hours Instead of 7 Days",
+      "subheadline": "Standard Processing (What You Have Now): Your data sits in a queue with thousands of other users. Wait up to 7 days before seeing any results. By then, critical evidence may already be gone.\n\nVIP Priority Processing (Instant Access): Jump to the front of the line. Your data is processed FIRST. See deleted messages, photos, and locations in about 48 hours — not a full week.",
+      "sectionTitle": "Standard vs VIP Priority Processing",
+      "sectionBody": "Stop waiting 7 days. With VIP Priority, you get answers in about 48 hours.",
+      "urgency": {
+        "title": "VIP Priority — Only Available During Setup",
+        "body": "VIP Priority can only be added to your account during initial setup. Once you leave this page, your account will be locked into standard processing with up to 7-day delays.\n\nDon't make this mistake: Thousands of users regret not adding VIP Priority. They waste a full week waiting for results while critical evidence disappears. By the time they see the data, it's too late. Add it now and cut the wait to about 48 hours!"
+      },
+      "closingTitle": "7 Days is Too Long to Wait for The Truth",
+      "ctaYes": "Yes, Add VIP Priority to My Account",
+      "ctaNo": "No thanks, I don't need VIP priority",
       "features": [
-        "3 Device Slots: Phones and tablets, any combination",
-        "Unified Dashboard: All devices in one place",
-        "3 Devices Included: One activation covers all your device slots",
-        "Swap Anytime: Change devices whenever needed",
-        "Multi-Target: Monitor different people",
-        "Instant Setup: New devices ready in under 2 minutes"
-      ],
-      "featureCards": [
-        {
-          "icon": "📱",
-          "title": "3 Device Slots",
-          "text": "Monitor up to 3 different phones or tablets simultaneously."
-        },
-        {
-          "icon": "🔄",
-          "title": "Unified Dashboard",
-          "text": "See all devices in one place, switch between them instantly."
-        },
-        {
-          "icon": "💰",
-          "title": "3 Devices Included",
-          "text": "One activation covers 3 device slots instead of just 1."
-        },
-        {
-          "icon": "🔀",
-          "title": "Swap Anytime",
-          "text": "Change which devices you monitor whenever you want."
-        },
-        {
-          "icon": "👨‍👩‍👧",
-          "title": "Multi-Target",
-          "text": "Monitor different people if needed (partner, child, employee)."
-        },
-        {
-          "icon": "⚡",
-          "title": "Instant Activation",
-          "text": "New devices are ready to monitor in under 2 minutes."
-        }
+        "Priority Results: Data processed in about 48 hours, not 7 days",
+        "Skip The Queue: Your requests always go first",
+        "Faster Alerts: Get notified sooner when new data appears",
+        "24/7 VIP Support: Priority assistance whenever you need",
+        "Dedicated Resources: Faster servers, better performance",
+        "Lifetime VIP Status: Priority access forever"
       ],
       "compare": {
-        "leftTitle": "Single License",
+        "leftTitle": "Standard Processing",
         "left": [
-          "1 device only",
-          "Blind spots on other devices",
-          "Only 1 device slot",
-          "Limited monitoring scope"
+          "Wait up to 7 days for results",
+          "Data processed in order with thousands of others",
+          "No priority support",
+          "Risk losing critical evidence while waiting"
         ],
-        "rightTitle": "Multi-Device License",
+        "rightTitle": "VIP Priority Processing",
         "right": [
-          "Up to 3 devices",
-          "Complete coverage",
-          "3 devices included",
-          "Full monitoring scope"
+          "Results in about 48 hours",
+          "Your data processed FIRST",
+          "24/7 premium support",
+          "Faster notifications & alerts"
         ]
       },
-      "priceLabel": "$49"
-    },
-    {
-      "id": "up7",
-      "slug": "up7",
-      "file": "up7.html",
-      "sourceUrl": "https://perfect.zappdetect.com/ingles/upsell/up7/",
-      "title": "AI Behavior Analyst",
-      "pageTitle": "App Spy — AI Behavior Analyst",
-      "emoji": "🧠",
-      "centerpagCode": "PPU38CQ95R6",
-      "price": 35,
-      "nextOnDecline": "thankyou.html",
-      "loader": {
-        "icon": "🧠",
-        "title": "AI Scanning Your Collected Data...",
-        "subtitle": "Running behavior pattern analysis on monitored account",
-        "metrics": [
-          "Messages",
-          "Locations",
-          "Media Files",
-          "Behavior"
-        ]
-      },
-      "badge": {
-        "icon": "🧠",
-        "label": "AI BEHAVIOR ANALYST AVAILABLE",
-        "text": "3 suspicious patterns detected. AI can continuously monitor and predict behavior changes in real-time."
-      },
-      "headline": "Stop Guessing. Let AI Predict Their Next Move",
-      "subheadline": "Right now, you're reacting: You check messages, locations, and photos AFTER the fact. By the time you see something suspicious, they've already covered their tracks. You're always one step behind.\n\nWith AI Behavior Analyst: Our AI learns their patterns and predicts suspicious behavior BEFORE it happens. Get alerts when behavior deviates from normal — like sudden message deletions, new late-night contacts, or unusual location patterns.",
-      "sectionTitle": "AI-Powered Detection Features",
-      "sectionBody": "Stop guessing. Let AI do the detective work for you — 24/7, automatically.",
-      "closingTitle": "Stop Being 3 Steps Behind. Let AI Predict Their Moves",
-      "closingBody": "Your account has the monitoring tools. Now add the intelligence layer. AI Behavior Analyst turns raw data into actionable predictions — automatically.",
-      "ctaYes": "Yes, Add AI Behavior Analyst to My Account",
-      "ctaNo": "No thanks, I don't need AI behavior analysis",
-      "features": [
-        "AI Pattern Engine: Learns behavior and detects anomalies",
-        "Predictive Alerts: Know what happens before it happens",
-        "Contact Risk Scoring: AI ranks contacts by suspicion level",
-        "Weekly AI Reports: Automated behavior analysis summaries",
-        "Real-Time Monitoring: 24/7 AI surveillance, never sleeps",
-        "Evidence Protection: Auto-saves data before deletion"
-      ],
-      "featureCards": [
-        {
-          "icon": "📊",
-          "title": "Pattern Recognition",
-          "text": "AI learns their daily routine and flags any deviation — late-night activity, new contacts, schedule changes."
-        },
-        {
-          "icon": "⚡",
-          "title": "Predictive Alerts",
-          "text": "Get notified BEFORE they delete messages or photos. AI detects pre-deletion behavior patterns."
-        },
-        {
-          "icon": "🔍",
-          "title": "Suspicious Contact Analysis",
-          "text": "AI automatically identifies and ranks contacts by risk level based on interaction frequency and timing."
-        },
-        {
-          "icon": "📈",
-          "title": "Behavior Trend Reports",
-          "text": "Weekly AI-generated reports showing behavior changes, risk assessments, and confidence scores."
-        }
-      ],
-      "compare": {
-        "leftTitle": "Manual Monitoring",
-        "left": [
-          "You check data manually, hours later",
-          "Miss 80% of suspicious patterns",
-          "Always reacting, never ahead",
-          "Evidence deleted before you see it"
-        ],
-        "rightTitle": "AI Behavior Analyst",
-        "right": [
-          "AI monitors 24/7 automatically",
-          "Detects 97% of behavior changes",
-          "Predicts actions before they happen",
-          "Alerts you in real-time"
-        ]
-      },
-      "priceLabel": "$35"
+      "priceLabel": "$67"
     }
   ],
   "thankyou": {
@@ -633,11 +359,11 @@
     "disclaimer": "App Spy / SafeLink Spy member access. This product is not affiliated with WhatsApp Inc. or Meta Platforms, Inc."
   },
   "notes": [
-    "All 7 upsells are $47 one-time / lifetime on the source funnel.",
-    "Source Accept CTAs point to CenterPag codes with ?upsell=true.",
-    "On the source, Accept and Decline sometimes share the same CenterPag URL (gateway-managed upsell chain). In our static flow, Decline advances to the next upsell page.",
-    "Brand renamed Whats Spy → App Spy in local copies.",
-    "Wire post-checkout redirect from CenterPag to /upsell/up1.html (or first upsell) after main purchase."
+    "Upsell chain (4): Message Vault → Invisibility Cloak → 360 Tracker → VIP Priority → thankyou.",
+    "Order optimized for conversion (desire → fear → expand → speed), independent of ticket size.",
+    "Dropped: Live Room, Multi-Device, AI Behavior Analyst.",
+    "Decline advances to next page; last decline → thankyou.",
+    "Post-checkout redirect: /upsell/up1.html"
   ],
   "priceNote": "Per-upsell price is productValue without taxes from CenterPag hidden field",
   "pricesFromCheckout": {
@@ -649,40 +375,22 @@
       "tax": 4.27
     },
     "up2": {
-      "code": "PPU38CQ95O6",
-      "productValue": 59,
-      "withTax": 63.43,
-      "tax": 4.42
-    },
-    "up3": {
-      "code": "PPU38CQ95OE",
-      "productValue": 67,
-      "withTax": 72.03,
-      "tax": 5.02
-    },
-    "up4": {
       "code": "PPU38CQ95OL",
       "productValue": 45,
       "withTax": 48.38,
       "tax": 3.37
     },
-    "up5": {
-      "code": "PPU38CQ95Q0",
-      "productValue": 51,
-      "withTax": 54.83,
-      "tax": 3.82
+    "up3": {
+      "code": "PPU38CQ95O6",
+      "productValue": 59,
+      "withTax": 63.43,
+      "tax": 4.42
     },
-    "up6": {
-      "code": "PPU38CQ95Q7",
-      "productValue": 49,
-      "withTax": 52.68,
-      "tax": 3.67
-    },
-    "up7": {
-      "code": "PPU38CQ95R6",
-      "productValue": 35,
-      "withTax": 37.63,
-      "tax": 2.62
+    "up4": {
+      "code": "PPU38CQ95OE",
+      "productValue": 67,
+      "withTax": 72.03,
+      "tax": 5.02
     }
   }
 }

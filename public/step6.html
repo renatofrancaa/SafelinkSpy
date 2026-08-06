@@ -873,11 +873,73 @@ function fireInitiateCheckoutPixels(opts) {
   } catch (e3) {}
 }
 
+/** Fire cart-abandon sequence only after user starts checkout (not on page view). */
+function fireCartAbandonOnCheckout() {
+  function get(k) {
+    try { return sessionStorage.getItem(k) || localStorage.getItem(k) || ''; } catch (e) { return ''; }
+  }
+  var params = new URLSearchParams(window.location.search || '');
+  var email = (params.get('email') || get('buyer_email') || get('email') || '').trim().toLowerCase();
+  var name = (params.get('name') || get('buyer_name') || get('name') || '').trim();
+  // Target number from funnel (what they searched) — not the buyer's own phone
+  var phone = (
+    params.get('phone') ||
+    get('sl_phone') ||
+    get('phone') ||
+    get('buyer_phone') ||
+    ''
+  ).trim();
+  if (!email || email.indexOf('@') < 0) return;
+
+  var dedupeKey = 'sl_cart_abandon_' + email;
+  try {
+    if (sessionStorage.getItem(dedupeKey) === '1') return;
+    sessionStorage.setItem(dedupeKey, '1');
+  } catch (e) {}
+
+  var vid = '';
+  try {
+    if (window.ZSAnalytics && ZSAnalytics.getVisitorId) vid = ZSAnalytics.getVisitorId() || '';
+  } catch (e2) {}
+
+  var payload = {
+    email: email,
+    name: name,
+    phone: phone.replace(/^\+/, ''),
+    visitorId: vid,
+    utmSource: params.get('utm_source') || get('utm_source') || '',
+    utmMedium: params.get('utm_medium') || get('utm_medium') || 'checkout',
+    utmCampaign: params.get('utm_campaign') || get('utm_campaign') || '',
+    page: location.pathname,
+    event: 'checkout_started',
+    source: 'checkout_click'
+  };
+
+  try {
+    var blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
+    if (navigator.sendBeacon) {
+      navigator.sendBeacon('/api/leads/cart-abandon', blob);
+      return;
+    }
+  } catch (e3) {}
+  try {
+    fetch('/api/leads/cart-abandon', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      keepalive: true
+    });
+  } catch (e4) {}
+}
+
 function goCheckout() {
   var overlay = document.getElementById('checkout-loading');
   if (overlay) overlay.style.display = 'flex';
 
   try { sessionStorage.setItem('sl_plan', PLAN_TIER); } catch (e) {}
+
+  // Cart abandon: only when user clicks checkout (starts payment)
+  try { fireCartAbandonOnCheckout(); } catch (eCart) {}
 
   // Meta + helpers (UTMify also picks up click on .JS-initiate-checkout)
   try {
@@ -1001,6 +1063,7 @@ function goCheckout() {
     return '';
   });
 })();
+
 </script>
 <script src="/js/zs-analytics.js" defer></script>
 </body>
