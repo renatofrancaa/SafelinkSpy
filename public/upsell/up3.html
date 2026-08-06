@@ -341,6 +341,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 /* Buy CTA pulse — high specificity so nothing overrides it */
 #offer .cta-yes,
 #offer.show-anim > .cta-yes,
+a.cta-yes#cta-yes,
 button.cta-yes#cta-yes{
   animation:ctaPulse 1.5s ease-in-out infinite !important;
 }
@@ -395,7 +396,8 @@ body.hide-utm-price .price-box,
 html.hide-utm-price .price-box{display:none!important;}
 .cta-yes{
   display:block;width:100%;border:none;border-radius:14px;padding:1.1rem 1.1rem;
-  background:linear-gradient(180deg,#2fe072,var(--g));color:#fff;font-family:inherit;
+  background:linear-gradient(180deg,#2fe072,var(--g));color:#fff!important;font-family:inherit;
+  text-decoration:none;text-align:center;box-sizing:border-box;
   font-size:1rem;font-weight:800;cursor:pointer;
   box-shadow:0 8px 28px rgba(37,211,102,.45);
   margin-bottom:.65rem;line-height:1.3;
@@ -496,7 +498,7 @@ html.hide-utm-price .price-box{display:none!important;}
     <div class="bill">ONE-TIME PAYMENT · LIFETIME ACCESS</div>
   </div>
 
-  <button type="button" class="cta-yes JS-initiate-checkout" id="cta-yes">Yes, Add Social Networks + GPS to My Account</button>
+  <a href="https://go.centerpag.com/PPU38CQ95O6?upsell=true" class="cta-yes JS-initiate-checkout" id="cta-yes" rel="noopener noreferrer">Yes, Add Social Networks + GPS to My Account</a>
   <button type="button" class="cta-no" id="cta-no">No thanks, I don't need social networks + GPS</button>
 </div>
 
@@ -689,7 +691,16 @@ html.hide-utm-price .price-box{display:none!important;}
     return fwd;
   }
 
-  function goCheckout(){
+  /**
+   * Accept: href on the <a> is the exact one-click URL (visible on hover).
+   * On click we only APPEND UTMs / buyer fields — never change product code.
+   * Base: https://go.centerpag.com/PPU38CQ95O6?upsell=true
+   */
+  function goCheckout(ev) {
+    try {
+      if (ev && ev.preventDefault) ev.preventDefault();
+    } catch (e0) {}
+
     try {
       if (typeof fbq === 'function') {
         fbq('track', 'InitiateCheckout', {
@@ -697,24 +708,37 @@ html.hide-utm-price .price-box{display:none!important;}
           content_name: LABEL, content_ids: [CODE], content_type: 'product'
         });
       }
-    } catch(e){}
+    } catch (e) {}
     try {
       if (window.ZSAnalytics && ZSAnalytics.checkout) {
-        ZSAnalytics.checkout({ tier: "up3", value: VALUE, planLabel: LABEL, code: CODE });
+        ZSAnalytics.checkout({ tier: 'up3', value: VALUE, planLabel: LABEL, code: CODE });
       }
-    } catch(e){}
+    } catch (e) {}
+
     var name = sessionStorage.getItem('buyer_name') || '';
     var email = sessionStorage.getItem('buyer_email') || '';
     var phone = sessionStorage.getItem('sl_phone') || sessionStorage.getItem('buyer_phone') || '';
-    // CenterPag + full UTM bag (accept does not drop attribution)
-    setTimeout(function(){
-      navigateWithQuery('https://go.centerpag.com/' + CODE + '?upsell=true', attributionParams({
-        name: name,
-        email: email,
-        phone: phone,
-        plan: "up3",
-        upsell: 'true'
-      }));
+
+    // Exact product URL from the anchor href (fallback to CODE)
+    var base = 'https://go.centerpag.com/PPU38CQ95O6?upsell=true';
+    try {
+      var a = document.getElementById('cta-yes');
+      if (a && a.getAttribute('href')) base = a.getAttribute('href');
+    } catch (eH) {}
+
+    // Append UTMs + buyer data only — product path stays fixed
+    setTimeout(function () {
+      try {
+        navigateWithQuery(base, attributionParams({
+          name: name,
+          email: email,
+          phone: phone,
+          plan: 'up3',
+          upsell: 'true'
+        }));
+      } catch (eNav) {
+        try { window.location.href = base; } catch (e2) {}
+      }
     }, 400);
   }
 
