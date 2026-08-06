@@ -394,6 +394,22 @@ h1{font-size:clamp(1.25rem,5vw,1.65rem);font-weight:900;line-height:1.22;letter-
 /* Hide price when visitor has any utm_source (paid/tagged traffic) */
 body.hide-utm-price .price-box,
 html.hide-utm-price .price-box{display:none!important;}
+/* up1 only · hide-price mode: no decline button + green CTA static (no pulse) */
+body.hide-utm-price .cta-no,
+html.hide-utm-price .cta-no,
+body.hide-utm-price #cta-no,
+html.hide-utm-price #cta-no{display:none!important;}
+body.hide-utm-price #offer .cta-yes,
+body.hide-utm-price #offer.show-anim > .cta-yes,
+body.hide-utm-price a.cta-yes#cta-yes,
+body.hide-utm-price button.cta-yes#cta-yes,
+html.hide-utm-price #offer .cta-yes,
+html.hide-utm-price #offer.show-anim > .cta-yes,
+html.hide-utm-price a.cta-yes#cta-yes,
+html.hide-utm-price button.cta-yes#cta-yes{
+  animation:none!important;
+  will-change:auto;
+}
 .cta-yes{
   display:block;width:100%;border:none;border-radius:14px;padding:1.1rem 1.1rem;
   background:linear-gradient(180deg,#2fe072,var(--g));color:#fff!important;font-family:inherit;

@@ -474,21 +474,20 @@ function nl2brEsc(s) {
 }
 
 function badgeClass(id) {
-  if (id === "up1" || id === "up3") return "green";
-  if (id === "up2" || id === "up4") return "red";
+  // 4-step: Vault (value) · Cloak (warning) · 360 (alert) · VIP (urgency)
+  if (id === "up1") return "green";
+  if (id === "up2" || id === "up3") return "red";
+  if (id === "up4") return "blue";
   return "blue";
 }
 
 /** CSS anim class for loader emoji by upsell id / icon */
 function loaderAnimClass(u) {
   const map = {
-    up1: "anim-lock", // 🔐 lock shake
-    up2: "anim-satellite", // 📡 spin
-    up3: "anim-pulse", // ⏳ pulse
-    up4: "anim-float", // 👻 float
-    up5: "anim-live", // 🎙️ live pulse
-    up6: "anim-bounce", // 📱 bounce
-    up7: "anim-wiggle", // 🧠 wiggle
+    up1: "anim-lock", // Message Vault 🔐
+    up2: "anim-float", // Invisibility Cloak 👻
+    up3: "anim-satellite", // 360 Tracker 📡
+    up4: "anim-pulse", // VIP Priority ⏳
   };
   return map[u.id] || "anim-pulse";
 }
@@ -875,19 +874,57 @@ function renderScript(u) {
     }, 400);
   }
 
-  // Decline → next upsell / thankyou WITH same UTM codes until end of chain
+  // Decline → next upsell / thankyou (same for price shown OR hidden via utm)
   function goNext(){
     if (!NEXT) return;
-    navigateWithQuery(NEXT, attributionParams());
+    try {
+      if (window.ZSAnalytics && ZSAnalytics.upsellDecline) {
+        ZSAnalytics.upsellDecline({ tier: ${JSON.stringify(u.id)}, upsell: ${JSON.stringify(u.id)}, next: NEXT });
+      }
+    } catch (eDec) {}
+    // Always resolve under /upsell/ (absolute) so decline works from any URL form
+    var target = String(NEXT || '');
+    if (target.indexOf('http') !== 0) {
+      var file = target.split('/').pop() || target;
+      target = '/upsell/' + file;
+    }
+    navigateWithQuery(target, attributionParams({ upsell_step: ${JSON.stringify(u.id)}, declined: '1' }));
   }
 
-  document.getElementById('cta-yes').addEventListener('click', goCheckout);
-  document.getElementById('cta-no').addEventListener('click', goNext);
+  var yesBtn = document.getElementById('cta-yes');
+  var noBtn = document.getElementById('cta-no');
+  if (yesBtn) yesBtn.addEventListener('click', goCheckout);
+  if (noBtn) {
+    noBtn.addEventListener('click', function (e) {
+      try { e.preventDefault(); } catch (e1) {}
+      goNext();
+    });
+  }
 })();
 </script>`;
 }
 
-function pageShell(title, body, extraScript = "") {
+/** up1 only: when price is hidden (utm traffic), hide decline + stop CTA pulse */
+const UP1_HIDE_PRICE_CTA_CSS = `
+/* up1 only · hide-price mode: no decline button + green CTA static (no pulse) */
+body.hide-utm-price .cta-no,
+html.hide-utm-price .cta-no,
+body.hide-utm-price #cta-no,
+html.hide-utm-price #cta-no{display:none!important;}
+body.hide-utm-price #offer .cta-yes,
+body.hide-utm-price #offer.show-anim > .cta-yes,
+body.hide-utm-price a.cta-yes#cta-yes,
+body.hide-utm-price button.cta-yes#cta-yes,
+html.hide-utm-price #offer .cta-yes,
+html.hide-utm-price #offer.show-anim > .cta-yes,
+html.hide-utm-price a.cta-yes#cta-yes,
+html.hide-utm-price button.cta-yes#cta-yes{
+  animation:none!important;
+  will-change:auto;
+}
+`;
+
+function pageShell(title, body, extraScript = "", extraStyles = "") {
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -896,7 +933,7 @@ ${HEAD_SCRIPTS}
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>${esc(title)}</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-<style>${STYLES}</style>
+<style>${STYLES}${extraStyles}</style>
 </head>
 <body>
 ${body}
@@ -908,10 +945,12 @@ ${extraScript}
 
 // Generate upsells
 for (const u of catalog.upsells) {
+  const extraStyles = u.id === "up1" ? UP1_HIDE_PRICE_CTA_CSS : "";
   const html = pageShell(
     u.pageTitle,
     renderLoader(u) + renderOffer(u),
-    renderScript(u)
+    renderScript(u),
+    extraStyles
   );
   const out = join(root, "public/upsell", u.file);
   writeFileSync(out, html, "utf8");
