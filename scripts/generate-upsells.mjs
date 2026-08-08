@@ -14,14 +14,8 @@ const catalog = JSON.parse(
 
 const HEAD_SCRIPTS = `<!-- Microsoft Clarity (upsell only) · xqkud5a0mc -->
 <script src="/js/clarity-id.js"></script>
-<!-- Skalame UTMs -->
-<script
-  src="https://cdn.skalame.com.br/scripts/utms/latest.js"
-  data-skalame-prevent-xcod-sck
-  data-skalame-prevent-subids
-  async
-  defer
-></script>
+<!-- UTMify UTMs -->
+<script src="/js/utmify-utms.js"></script>
 <!-- UTMify Pixel (Meta) -->
 <script src="/js/utmify-pixel.js"></script>
 <script src="/js/zs-analytics.js" defer></script>
