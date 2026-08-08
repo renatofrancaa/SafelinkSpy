@@ -14,11 +14,11 @@ const catalog = JSON.parse(
 
 const HEAD_SCRIPTS = `<!-- Microsoft Clarity (upsell only) · xqkud5a0mc -->
 <script src="/js/clarity-id.js"></script>
-<!-- UTMify UTMs -->
+<!-- Skalame UTMs -->
 <script
-  src="https://cdn.utmify.com.br/scripts/utms/latest.js"
-  data-utmify-prevent-xcod-sck
-  data-utmify-prevent-subids
+  src="https://cdn.skalame.com.br/scripts/utms/latest.js"
+  data-skalame-prevent-xcod-sck
+  data-skalame-prevent-subids
   async
   defer
 ></script>
