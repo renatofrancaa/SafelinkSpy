@@ -450,7 +450,12 @@ function runPhaseB(){
     var v=Math.round((1-Math.pow(1-t,2))*100);
     bpf.style.width=v+'%';
     bp.textContent=v+'%';
-    sl.textContent='Preparing dashboard... '+v+'%';
+    // Status text only — percentage lives solely in #bp (avoid double %)
+    if(v<25) sl.textContent=sSt[0];
+    else if(v<50) sl.textContent=sSt[1];
+    else if(v<75) sl.textContent=sSt[2];
+    else if(v<95) sl.textContent=sSt[3];
+    else sl.textContent=sSt[4];
     if(t<1){
       requestAnimationFrame(animB);
     } else {
