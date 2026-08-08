@@ -22,8 +22,8 @@ const HEAD_SCRIPTS = `<!-- Microsoft Clarity (upsell only) · xqkud5a0mc -->
   async
   defer
 ></script>
-<!-- Skalame pixel (Vega Checkout) -->
-<script src="/js/skalame-pixel.js"></script>
+<!-- UTMify Pixel (Meta) -->
+<script src="/js/utmify-pixel.js"></script>
 <script src="/js/zs-analytics.js" defer></script>
 <script>
 /**
